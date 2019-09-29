@@ -3,3 +3,7 @@
 terraform.tfstate*
 terraform.tfvars
 *.auto.tfvars
+
+# Ignore envrc
+.envrc
+.direnv
