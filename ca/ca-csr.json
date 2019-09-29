@@ -1,0 +1,19 @@
+{
+  "CN": "Accelerated GCP Root CA",
+  "ca": {
+    "expiry": "87600h"
+  },
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "United States",
+      "L": "Laguna Niguel",
+      "O": "Accelerated GCP",
+      "OU": "CA",
+      "ST": "California"
+    }
+  ]
+}
