@@ -6,10 +6,9 @@ terraform {
   required_version = "~> 0.12"
   # Once the Terraform state bucket has been created, uncomment these lines and
   # re-init Terraform so that state can be transferred to GCS.
-  backend "gcs" {
-    bucket = "lab-config-terraform-state"
-    prefix = "foundations"
-  }
+  # NOTE: the configuration values for bucket and prefix *MUST* be provided during
+  # `terraform init -backend-config=CONFIG-FILE`
+  backend "gcs" {}
 }
 
 provider "google" {
@@ -18,9 +17,8 @@ provider "google" {
 # Create the lab-config project
 resource "google_project" "lab-config" {
   name       = "lab-config"
-  project_id = "lab-config"
-  # Add the project to the acceleratedgcp folder
-  folder_id = "987892363507"
+  project_id = var.project_id
+  folder_id  = var.folder_id
   # Pull the billing account info from command line
   billing_account = var.billing_account
   # Don't need the default network
@@ -39,15 +37,13 @@ resource "google_service_account" "terraform" {
 resource "google_service_account_iam_binding" "impersonate" {
   service_account_id = google_service_account.terraform.name
   role               = "roles/iam.serviceAccountTokenCreator"
-  members = [
-    "group:lab-admins@matthewemes.com",
-  ]
+  members            = var.terraform_sa_impersonators
 }
 
 # Create a bucket for Terraform state
 resource "google_storage_bucket" "tf-state" {
   project  = google_project.lab-config.project_id
-  name     = "lab-config-terraform-state"
+  name     = format("%s-terraform-state", var.project_id)
   location = "US"
   versioning {
     enabled = true
@@ -76,4 +72,74 @@ resource "google_project_iam_member" "sa-roles" {
   role       = element(var.tf_sa_roles, count.index)
   member     = "serviceAccount:${google_service_account.terraform.email}"
   depends_on = [google_project_service.apis]
+}
+
+# Create a service account that Vault can use
+resource "google_service_account" "vault" {
+  project      = google_project.lab-config.project_id
+  account_id   = "vault-sa"
+  display_name = "Hashicorp Vault service account"
+}
+
+# Generate a service account key to use with Vault
+resource "google_service_account_key" "vault" {
+  service_account_id = google_service_account.vault.name
+  key_algorithm      = "KEY_ALG_RSA_2048"
+  public_key_type    = "TYPE_X509_PEM_FILE"
+  private_key_type   = "TYPE_GOOGLE_CREDENTIALS_FILE"
+}
+
+# Generate a random name for the bucket - it'll only ever be used by a Vault
+# instance
+resource "random_id" "vault_bucket_name" {
+  byte_length = 8
+}
+
+# Create the bucket for Vault persistence
+resource "google_storage_bucket" "vault-gcs" {
+  project  = google_project.lab-config.project_id
+  name     = random_id.vault_bucket_name.hex
+  location = "US"
+  versioning {
+    enabled = false
+  }
+}
+
+# Set IAM policy for the bucket.
+data "google_iam_policy" "vault-gcs" {
+  binding {
+    role = "roles/storage.admin"
+    members = [
+      "group:lab-admins@matthewemes.com",
+      "serviceAccount:${google_service_account.terraform.email}",
+    ]
+  }
+
+  binding {
+    role = "roles/storage.objectAdmin"
+    members = [
+      "serviceAccount:${google_service_account.vault.email}",
+    ]
+  }
+}
+
+resource "google_storage_bucket_iam_policy" "vault-gcs" {
+  bucket      = google_storage_bucket.vault-gcs.name
+  policy_data = data.google_iam_policy.vault-gcs.policy_data
+}
+
+# Allow the Vault SA to generate authentication tokens - actual binding against
+# target accounts will occur elsewhere.
+resource "google_project_iam_member" "vault-sa-key-admin" {
+  project = google_project.lab-config.project_id
+  role    = "roles/iam.serviceAccountKeyAdmin"
+  member  = "serviceAccount:${google_service_account.vault.email}"
+}
+
+# Create a service account for OPNsense backups; roles are manually handled in
+# GSuite admin console.
+resource "google_service_account" "opnsense" {
+  account_id   = "opnsense-sa"
+  project      = google_project.lab-config.project_id
+  display_name = "OPNsense service account for config backups"
 }

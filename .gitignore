@@ -3,6 +3,7 @@
 terraform.tfstate*
 terraform.tfvars
 *.auto.tfvars
+terraform.config
 
 # Ignore envrc
 .envrc
