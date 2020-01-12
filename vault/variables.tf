@@ -1,14 +1,25 @@
-variable "tf_sa" {
-  type        = string
-  description = <<EOD
-The email address associated with the GCP service account that will be used to create and manage resources. E.g.
-tf_sa = "terraform@project-id.iam.gserviceaccount.com"
-EOD
+variable "server_domains" {
+  type = list(string)
+  default = [
+    "home.arpa",
+    "lab.arpa",
+  ]
+  description = "The list of domains that will be permitted for server CSRs."
 }
 
-variable "project_id" {
-  type        = string
-  description = <<EOD
-The unique identifier for the GCP project that will be used for Vault persistence.
-EOD
+variable "person_domains" {
+  type = list(string)
+  default = [
+    "home.arpa",
+    "lab.arpa",
+  ]
+  description = "The list of domains that will be permitted for person (VPN) CSRs."
+}
+
+variable "server_2048_domains" {
+  type = list(string)
+  default = [
+    "lab.arpa",
+  ]
+  description = "The list of domains that will be permitted for server CSRs that must be restricted to 2048 bits (iDRAC)."
 }

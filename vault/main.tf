@@ -1,99 +1,130 @@
+# Configure Hashicorp Vault for use in lab
 terraform {
   required_version = "~> 0.12"
-  backend "gcs" {
-    bucket = "lab-config-terraform-state"
-    prefix = "vault"
+  backend "gcs" {}
+}
+
+provider "vault" {
+  version = "~> 2.7.1"
+  # Provider is configured through environment vars to facilitate bootstrapping
+  # and updates.
+  # See https://registry.terraform.io/providers/hashicorp/vault/latest/docs#provider-arguments
+}
+
+# Enable KV v2 secret store
+resource "vault_mount" "secret" {
+  path = "secret"
+  type = "kv"
+  options = {
+    version = 2
   }
 }
 
-# This is the Google provider that executes as the *CURRENT USER* (human or
-# service account). This provider is used to get an OAUTH2 token that the
-# un-aliased Google/Google Beta provider(s) use for actual resource management.
-provider "google" {
-  alias = "executor"
+# Enable AppRole support
+resource "vault_auth_backend" "approle" {
+  type = "approle"
+  path = "approle"
 }
 
-#
-data "google_client_config" "executor" {
-  provider = google.executor
+# Externally sourced CA is mounted at /pki_ca
+resource "vault_mount" "pki_ca" {
+  path = "pki_ca"
+  type = "pki"
+  # CA should allow upto 10 years, with a default of 1 year
+  default_lease_ttl_seconds = 31536000
+  max_lease_ttl_seconds     = 315360000
 }
 
-# Generate an access token for the Terraform service account, if the current
-# user has the appropriate roles to impersonate the target service account.
-data "google_service_account_access_token" "sa-token" {
-  provider               = google.executor
-  target_service_account = var.tf_sa
-  lifetime               = "1200s"
-  scopes = [
-    "https://www.googleapis.com/auth/cloud-platform",
-  ]
+# Vault managed certs are mounted at /pki
+resource "vault_mount" "pki" {
+  path = "pki"
+  type = "pki"
+  # Certs should default to 1 hour TTL, with maximum of a year
+  default_lease_ttl_seconds = 3600
+  max_lease_ttl_seconds     = 31536000
 }
 
-# This is the Google provider that will be used for resource management. It
-# uses an OAUTH token instead of PKI, allowing effective use of another
-# service account without sharing keys.
-provider "google" {
-  access_token = data.google_service_account_access_token.sa-token.access_token
+resource "vault_policy" "admin" {
+  name   = "admin"
+  policy = <<EOP
+# Manage auth methods broadly across Vault
+path "auth/*"
+{
+  capabilities = ["create", "read", "update", "delete", "list", "sudo"]
 }
 
-# Create a service account that Vault can use
-resource "google_service_account" "vault" {
-  project      = var.project_id
-  account_id   = "vault-sa"
-  display_name = "Hashicorp Vault service account"
+# Create, update, and delete auth methods
+path "sys/auth/*"
+{
+  capabilities = ["create", "update", "delete", "sudo"]
 }
 
-# Generate a service account key to use with Vault
-resource "google_service_account_key" "vault" {
-  service_account_id = google_service_account.vault.name
-  key_algorithm      = "KEY_ALG_RSA_2048"
-  public_key_type    = "TYPE_X509_PEM_FILE"
-  private_key_type   = "TYPE_GOOGLE_CREDENTIALS_FILE"
+# List auth methods
+path "sys/auth"
+{
+  capabilities = ["read"]
 }
 
-# Generate a random name for the bucket - it'll only ever be used by a Vault
-# instance
-resource "random_id" "vault_bucket_name" {
-  byte_length = 8
+# List existing policies
+path "sys/policies/acl"
+{
+  capabilities = ["list"]
 }
 
-# Create the bucket for Vault persistence
-resource "google_storage_bucket" "vault-gcs" {
-  project  = var.project_id
-  name     = random_id.vault_bucket_name.hex
-  location = "US"
-  versioning {
-    enabled = false
-  }
+# Create and manage ACL policies
+path "sys/policies/acl/*"
+{
+  capabilities = ["create", "read", "update", "delete", "list", "sudo"]
 }
 
-# Set IAM policy for the bucket.
-data "google_iam_policy" "vault-gcs" {
-  binding {
-    role = "roles/storage.admin"
-    members = [
-      "group:lab-admins@matthewemes.com",
-      "serviceAccount:${var.tf_sa}",
-    ]
-  }
-
-  binding {
-    role = "roles/storage.objectAdmin"
-    members = [
-      "serviceAccount:${google_service_account.vault.email}",
-    ]
-  }
+# Manage secrets engines
+path "sys/mounts/*"
+{
+  capabilities = ["create", "read", "update", "delete", "list", "sudo"]
 }
 
-resource "google_storage_bucket_iam_policy" "vault-gcs" {
-  bucket      = google_storage_bucket.vault-gcs.name
-  policy_data = data.google_iam_policy.vault-gcs.policy_data
+# List existing secrets engines.
+path "sys/mounts"
+{
+  capabilities = ["read"]
 }
 
-# Allow the Vault SA to generate authentication tokens - actual binding against
-# target accounts will occur elsewhere.
-resource "google_project_iam_member" "vault-sa-key-admin" {
-  project = var.project_id
-  role    = "roles/iam.serviceAccountKeyAdmin"
-  member  = "serviceAccount:${google_service_account.vault.email}"
+# Read health checks
+path "sys/health"
+{
+  capabilities = ["read", "sudo"]
+}
+
+# List, create, update, and delete KV secrets.
+path "secret/*"
+{
+  capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+}
+
+# List, create, update, and delete PKI engine.
+path "pki/*" {
+  capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+}
+
+# List, create, update, and delete PKI CA engine.
+path "pki_ca/*" {
+  capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+}
+
+
+# List, create, update, and delete F5 Anthos engine.
+path "anthos-f5/*" {
+  capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+}
+EOP
+}
+
+resource "vault_policy" "update-token" {
+  name   = "update-token"
+  policy = <<EOP
+# Allow account to retrieve an updated token
+path "auth/token/create" {
+    capabilities = ["update"]
+}
+EOP
 }
