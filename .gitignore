@@ -8,3 +8,15 @@ terraform.config
 # Ignore envrc
 .envrc
 .direnv
+
+# Ignore all json files; these *may* be a credential
+*.json
+
+# Ignore root CA files
+ca/*
+!ca/ca-config.json
+!ca/ca-csr.json
+
+# Ignore generated certificates and supporting files
+certs/*
+!certs/Makefile
