@@ -7,7 +7,7 @@ PERSON_CERTS := memes
 # RFC8375 - https://datatracker.ietf.org/doc/html/rfc8375
 LAN_DOMAIN_NAME := home.arpa
 # Not an RFC8375 but shouldn't conflict with anything
-LAB_DOMAIN_NAME := lab.arpa
+LAB_DOMAIN_NAME := lab.acceleratedgcp.com
 
 # Change as needed
 CA_CERT_PEM := ../ca/acceleratedgcp-root-ca.pem

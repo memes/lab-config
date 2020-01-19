@@ -10,10 +10,10 @@ locals {
 resource "vault_pki_secret_backend_config_urls" "pki_ca" {
   backend = vault_mount.pki_ca.path
   issuing_certificates = [
-    "https://vault.lab.arpa:8200/v1/pki_ca/ca",
+    "https://vault.lab.acceleratedgcp.com:8200/v1/pki_ca/ca",
   ]
   crl_distribution_points = [
-    "https://vault.lab.arpa:8200/v1/pki_ca/crl",
+    "https://vault.lab.acceleratedgcp.com:8200/v1/pki_ca/crl",
   ]
 }
 
@@ -53,10 +53,10 @@ resource "vault_pki_secret_backend_intermediate_set_signed" "intermediate" {
 resource "vault_pki_secret_backend_config_urls" "pki" {
   backend = vault_mount.pki.path
   issuing_certificates = [
-    "https://vault.lab.arpa:8200/v1/pki/ca",
+    "https://vault.lab.acceleratedgcp.com:8200/v1/pki/ca",
   ]
   crl_distribution_points = [
-    "https://vault.lab.arpa:8200/v1/pki/crl",
+    "https://vault.lab.acceleratedgcp.com:8200/v1/pki/crl",
   ]
 }
 
