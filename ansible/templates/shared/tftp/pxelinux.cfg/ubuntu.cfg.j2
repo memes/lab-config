@@ -1,0 +1,18 @@
+# Ubuntu PXE boot options shared on this server
+{{ ansible_managed | comment }}
+
+label ubuntu1804
+  menu label Ubuntu Server ^18.04 LTS
+  kernel images/ubuntu18.04-LTS-netboot-x86_64/linux
+  append initrd=images/ubuntu18.04-LTS-netboot-x86_64/initrd.gz vga=788 --- label cli-expert
+  text help
+  Install Ubuntu Server 18.04 LTS
+  endtext
+
+label ubuntu1804r
+  menu label Ubuntu Server 18.04 LTS (^Rescue)
+  kernel images/ubuntu18.04-LTS-netboot-x86_64/linux
+  append initrd=images/ubuntu18.04-LTS-netboot-x86_64/initrd.gz vga=788 expert/rescue=true
+  text help
+  Install Netboot Ubuntu Server 18.04 LTS in Rescue mode
+  endtext

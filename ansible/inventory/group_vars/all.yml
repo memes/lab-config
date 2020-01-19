@@ -1,0 +1,13 @@
+# Variables that are common to all groups and hosts
+---
+root_ca: ./ca/acceleratedgcp-root-ca.pem
+domain: lab.acceleratedgcp.com
+shared_host: "shared.{{ domain }}"
+shared_http_url: "http://{{ shared_host }}"
+shared_https_url: "https://{{ shared_host }}"
+vault_host: "vault.{{ domain }}"
+vault_url: "https://{{ vault_host }}:8200"
+vault_ipmi_secrets_path: /secret/lab/ipmi
+vault_kv2_ipmi_secrets_path: /secret/data/lab/ipmi
+vault_kickstart_secrets_path: /secret/lab/kickstart
+vault_kv2_kickstart_secrets_path: /secret/data/lab/kickstart

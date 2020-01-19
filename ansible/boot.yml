@@ -1,0 +1,18 @@
+# (Re-)boot the lab servers
+# yamllint disable rule:truthy rule:line-length
+---
+- name: (Re-)boot servers
+  hosts: servers
+  become: no
+  gather_facts: no
+  vars:
+    ipmi_vault_options: "secret={{ vault_kv2_ipmi_secrets_path }} url={{ vault_url }} ca_cert={{ root_ca }}"
+    ipmi_secrets: "{{ lookup('community.hashi_vault.hashi_vault', ipmi_vault_options) }}"
+  tasks:
+    - name: cycle power through IPMI
+      community.general.ipmi_power:
+        name: "{{ ipmi_host }}"
+        user: "{{ ipmi_secrets.user }}"
+        password: "{{ ipmi_secrets.password }}"
+        state: boot
+      delegate_to: 127.0.0.1

@@ -1,0 +1,36 @@
+#!/bin/sh
+#
+# CentOS8 %post onboarding script for Dell R815/R620 servers
+# 1. Install CentOS RPM GPG key(s)
+{{ ansible_managed | comment }}
+
+# set -x
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+error()
+{
+    echo "$0: ERROR: $*" >&2
+    exit 1
+}
+
+info()
+{
+    echo "$0: INFO: $*" >&2
+}
+
+info "CentOS8 onboarding started"
+
+# Install CentOS keys from shared HTTP - these have already had their
+# fingerprints validated as identical to original keys.
+info "Installing CentOS GPG keys from shared server"
+for k in RPM-GPG-KEY-CentOS-Official.asc; do
+    curl -sLo /tmp/${k} {{ shared_http_url }}/keys/${k} || \
+        error "Failed to download key ${k}: curl exit code: $?"
+    rpm --import /tmp/${k} || \
+        error "Failed to import key ${k}: rpm exit code: $?"
+    info "GPG key imported: ${k}"
+    rm -f /tmp/${k}
+done
+
+info "CentOS8 onboarding complete"
+exit 0

@@ -1,0 +1,34 @@
+# CentOS options for PXE installation
+{{ ansible_managed | comment }}
+
+label centos83
+  menu label Install CentOS ^8.3
+  kernel images/centos8.3.2011-x86_64/vmlinuz
+  append initrd=images/centos8.3.2011-x86_64/initrd.img ip=dhcp inst.resolution=1024x768 nomodeset inst.repo={{ shared_http_url }}/software/centos8.3.2011-x86_64/ inst.dd={{ shared_http_url }}/isos/dd-megaraid_sas-07.714.04.00-1.el8_3.elrepo.iso
+  text help
+  Install CentOS 8.3 in VESA mode
+  endtext
+
+label centos83r
+  menu label CentOS 8.3 - ^Rescue
+  kernel images/centos8.3.2011-x86_64/vmlinuz
+  append initrd=images/centos8.3.2011-x86_64/initrd.img ip=dhcp inst.rescue=true inst.resolution=1024x768 nomodeset inst.repo={{ shared_http_url }}/software/centos8.3.2011-x86_64 inst.dd={{ shared_http_url }}/isos/dd-megaraid_sas-07.714.04.00-1.el8_3.elrepo.iso
+  text help
+  Launch CentOS 8.3 in Rescue mode
+  endtext
+
+label centos82
+  menu label Install CentOS ^8.2
+  kernel images/centos8.2.2004-x86_64/vmlinuz
+  append initrd=images/centos8.2.2004-x86_64/initrd.img ip=dhcp inst.resolution=1024x768 nomodeset inst.repo={{ shared_http_url }}/software/centos8.2.2004-x86_64/ inst.dd={{ shared_http_url }}/isos/dd-megaraid_sas-07.710.50.00-1.el8_2.elrepo.iso
+  text help
+  Install CentOS 8.2 in VESA mode
+  endtext
+
+label centos82r
+  menu label CentOS 8.2 - ^Rescue
+  kernel images/centos8.2.2004-x86_64/vmlinuz
+  append initrd=images/centos8.2.2004-x86_64/initrd.img ip=dhcp inst.rescue=true inst.resolution=1024x768 nomodeset inst.repo={{ shared_http_url }}/software/centos8.2.2004-x86_64 inst.dd={{ shared_http_url }}/isos/dd-megaraid_sas-07.710.50.00-1.el8_2.elrepo.iso
+  text help
+  Launch CentOS 8.2 in Rescue mode
+  endtext

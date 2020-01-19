@@ -1,0 +1,103 @@
+# Generic PXE boot menu
+ui vesamenu.c32
+timeout 3000
+totaltimeout 6000
+ontimeout localboot
+include pxelinux.cfg/common.cfg
+menu title PXE Boot options
+
+label localboot
+  menu label ^Boot local disk
+  localboot 0xffff
+
+menu separator
+
+menu begin alpine
+  menu title ^Alpine installers
+  label back
+    menu label ^Back
+    menu default
+    menu exit
+  menu separator
+  include pxelinux.cfg/alpine.cfg
+menu end
+
+menu begin centos
+  menu title ^CentOS installers
+  label back
+    menu label ^Back
+    menu default
+    menu exit
+  menu separator
+  include pxelinux.cfg/centos.cfg
+menu end
+
+menu begin debian
+  menu title ^Debian installers
+  label back
+    menu label ^Back
+    menu default
+    menu exit
+  menu separator
+  include pxelinux.cfg/debian.cfg
+menu end
+
+menu begin esxi
+  menu title ^ESXi
+  label back
+    menu label ^Back
+    menu default
+    menu exit
+  menu separator
+  include pxelinux.cfg/esxi.cfg
+menu end
+
+menu begin kali
+  menu title ^Kali
+  label back
+    menu label ^Back
+    menu default
+    menu exit
+  menu separator
+  include pxelinux.cfg/kali.cfg
+menu end
+
+menu begin photon
+  menu title ^Photon OS installers
+  label back
+    menu label ^Back
+    menu default
+    menu exit
+  menu separator
+  include pxelinux.cfg/photon.cfg
+menu end
+
+menu begin redhat
+  menu title ^RedHat installers
+  label back
+    menu label ^Back
+    menu default
+    menu exit
+  menu separator
+  include pxelinux.cfg/redhat.cfg
+menu end
+
+menu begin tools
+  menu title ^Tools
+  label back
+    menu label ^Back
+    menu default
+    menu exit
+  menu separator
+  include pxelinux.cfg/tools.cfg
+menu end
+
+menu begin ubuntu
+  menu title ^Ubuntu installers
+  label back
+    menu label ^Back
+    menu default
+    menu exit
+  menu separator
+  include pxelinux.cfg/ubuntu.cfg
+menu end

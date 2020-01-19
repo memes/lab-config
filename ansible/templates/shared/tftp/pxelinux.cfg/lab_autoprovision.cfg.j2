@@ -1,0 +1,56 @@
+# This configuration is intended to be included into the machine specific MAC
+# files (see 01-14-fe-b5-c9-73-12 for example). The intent is to automatically
+# boot and install one of the options listed below after a small delay.
+{{ ansible_managed | comment }}
+
+timeout 300
+totaltimeout 600
+
+# NOTE: Default selection is handled by lab_default_target.cfg, which itself is
+# managed by the repave.yml playbook.
+
+menu title PXE autoprovision options
+
+label centos82
+  menu label Autoprovision Cent^OS 8.2
+  kernel images/centos8.2.2004-x86_64/vmlinuz
+  append initrd=images/centos8.2.2004-x86_64/initrd.img vlan=eno1.10:eno1 ip=eno1.10:dhcp inst.text nomodeset inst.repo={{ shared_http_url }}/software/centos8.2.2004-x86_64/ inst.dd={{ shared_http_url }}/isos/dd-megaraid_sas-07.710.50.00-1.el8_2.elrepo.iso inst.ks={{ shared_http_url }}/el8/centos8-minimal.ks
+  text help
+  Install CentOS 8.2 with minimal kickstart for Lab
+  endtext
+
+label esxi67
+  menu label Autoprovision ^ESXi 6.7
+  # NOTE: this target chain-loads an ESXi specific syslinux version
+  com32 pxechn.c32
+  append /esxi/pxelinux.0 -p /esxi/ -c pxelinux.cfg/lab_autoprovision.cfg
+
+label rhel82
+  menu label Autoprovision ^RHEL 8.2
+  kernel images/rhel8.2-x86_64/vmlinuz
+  append initrd=images/rhel8.2-x86_64/initrd.img vlan=eno1.10:eno1 ip=eno1.10:dhcp inst.text nomodeset inst.repo={{ shared_http_url }}/software/rhel8.2-x86_64/ inst.dd={{ shared_http_url }}/isos/dd-megaraid_sas-07.710.50.00-1.el8_2.elrepo.iso inst.ks={{ shared_http_url }}/el8/rhel8-minimal.ks
+  text help
+  Install RHEL 8.2 with minimal kickstart for Lab
+  endtext
+
+label ubuntu1804
+  menu label Autoprovision Ubuntu ^Server 18.04 LTS
+  kernel images/ubuntu18.04-LTS-netboot-x86_64/linux
+  append initrd=images/ubuntu18.04-LTS-netboot-x86_64/initrd.gz auto url={{ shared_host }} locale=en_US.UTF-8 console-setup/ask_detect=false console-setup/layoutcode=us keyboard-configuration/layoutcode=us netcfg/get_hostname=unknown netcfg/get_domain={{ domain }} interface=eno1 netcfg/dhcp_timeout=60 netcfg/use_vlan=true netcfg/vlan_id=10
+  text help
+  Install Ubuntu Server 18.04 LTS with minimal preseed for lab
+  endtext
+
+menu separator
+
+label localboot
+  menu label ^Boot local disk
+  localboot 0xffff
+
+# Since the physical servers will pick-up this configuration through MAC matching,
+# give an option for interactive selection of full PXE menu that unrecognised
+# instances get.
+label full
+  menu label ^Full PXE boot options
+  kernel vesamenu.c32
+  APPEND pxelinux.cfg/default

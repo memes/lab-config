@@ -1,0 +1,174 @@
+# Minimal Ubuntu Server (bionic) installation for Dell R815/R620 lab servers; this will be
+# the basis for all other preseed files.
+{{ ansible_managed | comment }}
+
+d-i	debian-installer/language string en
+d-i debian-installer/locale select en_US.UTF-8
+d-i	debian-installer/country string US
+d-i	localechooser/languagelist select en
+d-i localechooser/supported-locales multiselect en_US.UTF-8
+d-i	localechooser/preferred-locale select en_US.UTF-8
+d-i keyboard-configuration/xkb-keymap select us
+d-i	keyboard-configuration/layoutcode string us
+d-i	keyboard-configuration/variant select American English
+
+### Network configuration
+d-i netcfg/choose_interface select eno1
+d-i netcfg/use_vlan boolean true
+d-i netcfg/vlan_id string 10
+d-i netcfg/get_hostname string unknown
+d-i netcfg/get_domain string {{ domain }}
+d-i netcfg/wireless_wep string
+d-i hw-detect/load_firmware boolean true
+d-i mirror/country string US
+d-i	mirror/http/countries select US
+d-i	mirror/http/mirror	select	CC.archive.ubuntu.com
+d-i	mirror/http/hostname string CC.archive.ubuntu.com
+d-i mirror/http/directory string /ubuntu/
+d-i mirror/http/proxy string
+d-i	mirror/https/countries select US
+d-i	mirror/https/mirror	select	CC.archive.ubuntu.com
+d-i	mirror/https/hostname string CC.archive.ubuntu.com
+d-i mirror/https/directory string /ubuntu/
+d-i mirror/https/proxy string
+d-i	mirror/codename	string	bionic
+d-i mirror/suite select bionic
+
+### Account setup
+d-i passwd/root-login boolean true
+user-setup-udeb passwd/root-login boolean true
+d-i passwd/root-password-crypted password {{ root_password | password_hash('sha512') }}
+d-i passwd/make-user boolean true
+user-setup-udeb passwd/make-user        boolean true
+d-i passwd/user-fullname string Matthew Emes
+user-setup-udeb passwd/user-fullname    string  Matthew Emes
+d-i passwd/username string memes
+user-setup-udeb passwd/username string memes
+d-i passwd/user-password-crypted password {{ memes_password | password_hash('sha512') }}
+
+### Clock and time zone setup
+d-i clock-setup/utc boolean true
+d-i time/zone string Etc/UTC
+d-i clock-setup/ntp boolean true
+clock-setup	clock-setup/ntp-server string 172.17.0.1
+
+### Partitioning
+## NOTE: using a disposable volgroup (vgdummy) to ensure the active volumes are on
+## spinning disks and only boot is on USB drive.
+d-i partman-md/device_remove_md boolean true
+d-i partman-lvm/device_remove_lvm boolean true
+d-i partman-basicfilesystems/choose_label string gpt
+d-i partman-basicfilesystems/default_label string gpt
+d-i partman-partitioning/choose_label string gpt
+d-i partman-partitioning/default_label string gpt
+d-i partman/choose_label string gpt
+d-i partman/default_label string gpt
+partman-partitioning partman-partitioning/choose_label select gpt
+d-i partman/mount_style select uuid
+d-i partman-efi/non_efi_system boolean true
+d-i partman-auto/method string lvm
+d-i partman-auto-lvm/guided_size string max
+d-i partman-auto/disk string /dev/sda /dev/sdb
+d-i partman-auto/expert_recipe string \
+    pvs ::                            \
+        1 1 1 free                    \
+            $bios_boot{ }             \
+            method{ biosgrub }        \
+            device{ /dev/sda }        \
+        .                             \
+        200 200 200 fat32             \
+            $primary{ }               \
+            method{ efi }             \
+            device{ /dev/sda }        \
+            format{ }                 \
+        .                             \
+        2048 2048 2048 xfs            \
+            $primary{ }               \
+            $bootable{ }              \
+            label{ boot }             \
+            method{ format }          \
+            device{ /dev/sda }        \
+            format{ }                 \
+            use_filesystem{ }         \
+            filesystem{ xfs }         \
+            mountpoint{ /boot }       \
+        .                             \
+        4096 1000 32768 ext3          \
+            $primary{ }               \
+            method{ lvm }             \
+            device{ /dev/sda }        \
+            vg_name{ vg.1 }           \
+        .                             \
+        102400 500 10000000 ext3      \
+            $primary{ }               \
+            method{ lvm }             \
+            device{ /dev/sdb }        \
+            vg_name{ vg.0 }           \
+        .                             \
+    vg0 ::                            \
+        4096 4096 4096 linux-swap     \
+            $lvmok{ }                 \
+            in_vg{ vg.0 }             \
+            lv_name{ swap }           \
+            method{ swap }            \
+            format{ }                 \
+        .                             \
+        102400 1000 -1 xfs            \
+            $lvmok{ }                 \
+            in_vg{ vg.0 }             \
+            lv_name{ root }           \
+            label{ root }             \
+            method{ format }          \
+            format{ }                 \
+            use_filesystem{ }         \
+            filesystem{ xfs }         \
+            mountpoint{ / }           \
+        .
+d-i partman-lvm/confirm boolean true
+d-i	partman-lvm/confirm_nooverwrite	boolean	true
+d-i	partman-lvm/confirm_write_new_label boolean true
+d-i partman/choose_partition select finish
+partman-base partman/choose_partition select 90finish__________finish
+partman-base partman/confirm boolean true
+partman-base partman/confirm_nooverwrite boolean true
+partman-lvm partman-lvm/confirm boolean true
+partman-lvm partman-lvm/mainmenu select finish
+partman-partitioning partman-partitioning/confirm_resize boolean true
+partman-partitioning partman-partitioning/confirm_write_new_label boolean true
+
+### Base system installation
+d-i base-installer/install-recommends boolean true
+d-i base-installer/kernel/image string linux-image-686
+
+### Apt setup
+d-i apt-setup/non-free boolean true
+d-i apt-setup/contrib boolean true
+d-i apt-setup/services-select multiselect security, updates
+d-i apt-setup/security_host string security.ubuntu.com
+d-i debian-installer/allow_unauthenticated boolean false
+
+### Package selection
+tasksel tasksel/first multiselect standard
+d-i pkgsel/include string openssh-server sudo apt-transport-https curl gnupg
+d-i pkgsel/upgrade select safe-upgrade
+pkgsel pkgsel/update-policy select none
+popularity-contest popularity-contest/participate boolean false
+
+### Boot loader installation
+d-i grub-installer/only_debian boolean true
+d-i grub-installer/with_other_os boolean true
+d-i grub-installer/bootdev string /dev/sda
+d-i debian-installer/add-kernel-opts string vga=788 nomodeset text
+
+### Finishing up the installation
+d-i finish-install/keep-consoles boolean false
+d-i finish-install/reboot_in_progress note
+d-i debian-installer/exit/halt boolean false
+d-i debian-installer/exit/poweroff boolean false
+d-i preseed/late_command string in-target usermod -a -G sudo memes; \
+    in-target curl -sLo /root/post-onboard-debian.sh {{ shared_http_url }}/scripts/post-onboard-debian.sh; \
+    in-target curl -sLo /root/post-onboard-ssh-pubkey.sh {{ shared_http_url }}/scripts/post-onboard-ssh-pubkey.sh; \
+    in-target curl -sLo /root/post-onboard-ubuntu-netplan.sh {{ shared_http_url }}/scripts/post-onboard-ubuntu-netplan.sh; \
+    in-target /bin/sh /root/post-onboard-debian.sh; \
+    in-target /bin/sh /root/post-onboard-ssh-pubkey.sh; \
+    in-target /bin/sh /root/post-onboard-ubuntu-netplan.sh

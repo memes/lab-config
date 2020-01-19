@@ -1,0 +1,27 @@
+# Shutdown the lab servers
+# yamllint disable rule:truthy rule:line-length
+---
+- name: Power off servers
+  hosts: servers
+  become: no
+  gather_facts: no
+  vars:
+    ipmi_vault_options: "secret={{ vault_kv2_ipmi_secrets_path }} url={{ vault_url }} ca_cert={{ root_ca }}"
+    ipmi_secrets: "{{ lookup('community.hashi_vault.hashi_vault', ipmi_vault_options) }}"
+  tasks:
+    - name: Shutdown through IPMI
+      community.general.ipmi_power:
+        name: "{{ ipmi_host }}"
+        user: "{{ ipmi_secrets.user }}"
+        password: "{{ ipmi_secrets.password }}"
+        state: shutdown
+        timeout: 60
+      delegate_to: 127.0.0.1
+      ignore_errors: yes
+    - name: Power off through IPMI
+      community.general.ipmi_power:
+        name: "{{ ipmi_host }}"
+        user: "{{ ipmi_secrets.user }}"
+        password: "{{ ipmi_secrets.password }}"
+        state: 'off'
+      delegate_to: 127.0.0.1

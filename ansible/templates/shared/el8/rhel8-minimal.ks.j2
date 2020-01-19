@@ -1,0 +1,69 @@
+# Minimal RedHat 8 installation for Dell R815/R620 lab servers; this will be the
+# basis for all other kickstarts.
+{{ ansible_managed | comment }}
+
+%pre --log=/root/pre-onboard.log
+#!/bin/sh
+curl -so /root/pre-onboard-el8.sh {{ shared_http_url }}/scripts/pre-onboard-el8.sh && \
+    sh /root/pre-onboard-el8.sh
+%end
+
+# Force text console installation without interaction
+eula --agreed
+reboot
+text --non-interactive
+skipx
+keyboard --vckeymap=us --xlayouts='us'
+lang en_US.UTF-8
+syspurpose --sla="Self-Support"
+
+# Install bootloader, efi, and /boot to sda (USB) with LVM for data on PERC (sdb)
+ignoredisk --only-use=sda,sdb
+clearpart --all --initlabel --drives=sda,sdb
+bootloader --location=mbr --boot-drive=sda --append=" crashkernel=auto"
+part biosboot --fstype="biosboot" --ondisk=sda --size=1
+part /boot/efi --fstype="efi" --ondisk=sda --size=200
+part /boot --fstype="xfs" --ondisk=sda --size=2048
+part pv.0 --fstype="lvmpv" --ondisk=sdb --size=204800 --grow
+volgroup vg.0 --pesize=4096 pv.0
+logvol / --fstype="xfs" --size=10240  --grow --name=root --vgname=vg.0
+logvol swap --fstype="swap" --size=4096 --name=swap --vgname=vg.0
+
+# Network information
+network --bootproto=dhcp --device=eno1 --ipv6=auto --activate --vlanid=10
+network --bootproto=dhcp --device=eno1 --onboot=no --noipv4 --noipv6 --no-activate --nodefroute
+network --bootproto=dhcp --device=team0 --noipv4 --noipv6 --activate --teamslaves="eno2'{}',eno3'{}',eno4'{}'" --teamconfig="{\"runner\": {\"name\": \"loadbalance\", \"tx_hash\": [\"eth\", \"vlan\", \"ip\"], \"tx_balancer\": { \"name\": \"basic\"}}, \"link_watch\": {\"name\": \"ethtool\"}}"
+network --bootproto=dhcp --device=team0 --ipv6=auto --activate --nodefroute --vlanid=100
+network --bootproto=dhcp --device=team0 --ipv6=auto --activate --nodefroute --vlanid=200
+%include /tmp/hostname.ks
+
+# NTP
+services --enabled="chronyd"
+timezone Etc/UTC --isUtc --ntpservers=172.17.0.1
+
+rootpw --iscrypted {{ root_password | password_hash('sha512') }}
+user --groups=wheel --name=memes --iscrypted --password={{ memes_password | password_hash('sha512') }}
+
+%packages
+@^minimal-environment
+kexec-tools
+%end
+
+%addon com_redhat_kdump --enable --reserve-mb='auto'
+%end
+
+%anaconda
+pwpolicy root --minlen=6 --minquality=1 --notstrict --nochanges --notempty
+pwpolicy user --minlen=6 --minquality=1 --notstrict --nochanges --emptyok
+pwpolicy luks --minlen=6 --minquality=1 --notstrict --nochanges --notempty
+%end
+
+%post --log=/root/post-onboard.log
+#!/bin/sh
+curl -sLo /root/post-onboard-el8.sh {{ shared_http_url }}/scripts/post-onboard-el8.sh && \
+    sh /root/post-onboard-el8.sh
+curl -sLo /root/post-onboard-rhel8.sh {{ shared_http_url }}/scripts/post-onboard-rhel8.sh && \
+    sh /root/post-onboard-rhel8.sh
+curl -sLo /root/post-onboard-ssh-pubkey.sh {{ shared_http_url }}/scripts/post-onboard-ssh-pubkey.sh && \
+    sh /root/post-onboard-ssh-pubkey.sh
+%end

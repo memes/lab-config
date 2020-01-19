@@ -1,0 +1,38 @@
+# Install vCenter on an ESXi host using govc utility. Deprecated.
+# yamllint disable rule:truthy rule:line-length
+#
+# This playbook has the advantage of installing OVA directly from HTTPS shared
+# server but has been deprecated in favour of using Ansible community modules
+# in vcenter playbook.
+---
+- name: Install vCenter
+  hosts: servers
+  gather_facts: no
+  become: no
+  vars:
+    ks_vault_options: "secret={{ vault_kv2_kickstart_secrets_path }} url={{ vault_url }} ca_cert={{ root_ca }}"
+    ks_secrets: "{{ lookup('community.hashi_vault.hashi_vault', ks_vault_options) }}"
+  tasks:
+    - name: Import vCenter OVA
+      vars:
+        vcenter_root_password: "{{ ks_secrets.root }}"
+      ansible.builtin.shell: |
+        GOVC_USERNAME=root GOVC_PASSWORD='{{ ks_secrets.root }}' govc import.ova -k=true -u=https://{{ inventory_hostname }} -options=- {{ vcenter_ova_url }} <<EOF
+        {{ lookup('template', 'templates/vsphere/vcsa.json.j2', convert_data=False) | string }}
+        EOF
+      run_once: yes
+      delegate_to: 127.0.0.1
+    - name: Change vCenter VM type
+      ansible.builtin.command: govc vm.change -k=true -u=https://{{ inventory_hostname }} -vm vcenter -g vmwarePhoton64Guest
+      environment:
+        GOVC_USERNAME: root
+        GOVC_PASSWORD: "{{ ks_secrets.root }}"
+      run_once: yes
+      delegate_to: 127.0.0.1
+    - name: Run vCenter VM
+      ansible.builtin.command: govc vm.power -k=true -u=https://{{ inventory_hostname }} -on vcenter
+      environment:
+        GOVC_USERNAME: root
+        GOVC_PASSWORD: "{{ ks_secrets.root }}"
+      run_once: yes
+      delegate_to: 127.0.0.1

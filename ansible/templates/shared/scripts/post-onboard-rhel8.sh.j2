@@ -1,0 +1,55 @@
+#!/bin/sh
+#
+# RedHat8 %post onboarding script for Dell R815/R620 servers
+# 1. Install RedHat RPM GPG key(s)
+{{ ansible_managed | comment }}
+
+# set -x
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+error()
+{
+    echo "$0: ERROR: $*" >&2
+    exit 1
+}
+
+info()
+{
+    echo "$0: INFO: $*" >&2
+}
+
+info "RHEL8 onboarding started"
+
+# Install RHEL keys from shared HTTP - these have already had their
+# fingerprints validated as identical to original keys.
+info "Installing RHEL GPG keys from shared server"
+for k in RPM-GPG-KEY-redhat-release.asc; do
+    curl -sLo /tmp/${k} {{ shared_http_url }}/keys/${k} || \
+        error "Failed to download key ${k}: curl exit code: $?"
+    rpm --import /tmp/${k} || \
+        error "Failed to import key ${k}: rpm exit code: $?"
+    info "GPG key imported: ${k}"
+    rm -f /tmp/${k}
+done
+
+# Register if RHN values are present
+RHN_USER="{{ rhn_user }}"
+RHN_PASSWORD="{{ rhn_password }}"
+if [ -z "${RHN_USER}" -o -z "${RHN_PASSWORD}" ]; then
+        info "Missing one or both of RHN user and password; not registering with RHN"
+    else
+        info "Registering system with RHN"
+        subscription-manager register \
+            --username "${RHN_USER}" \
+            --password "${RHN_PASSWORD}" \
+            --auto-attach \
+            --force || \
+            error "Failed to register system: 'subscription-manager register' exit code: $?"
+        RHN_RELEASE="$(rpm -qi redhat-release | awk '/^Version +:/ {print $3}')"
+        subscription-manager release --set=${RHN_RELEASE} || \
+            error "Failed to pin release to ${RHN_RELEASE}: 'subscription-manger release' exit code: $?"
+    fi
+fi
+
+info "RHEL8 onboarding complete"
+exit 0

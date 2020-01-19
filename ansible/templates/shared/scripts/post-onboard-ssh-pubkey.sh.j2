@@ -1,0 +1,37 @@
+#!/bin/sh
+#
+# Common onboarding script that updates authorised public keys
+{{ ansible_managed | comment }}
+
+# set -x
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+error()
+{
+    echo "$0: ERROR: $*" >&2
+    exit 1
+}
+
+info()
+{
+    echo "$0: INFO: $*" >&2
+}
+
+info "Common SSH pubkey onboarding script started"
+
+# Update authorized_keys for root and memes
+if [ -n "{{ ssh_pubkey }}" ]; then
+    info "Adding SSH pubkey to authorized_keys"
+    mkdir -p /root/.ssh /home/memes/.ssh
+    echo "{{ ssh_pubkey }}" > /root/.ssh/authorized_keys
+    echo "{{ ssh_pubkey }}" > /home/memes/.ssh/authorized_keys
+    chmod 0700 /root/.ssh /home/memes/.ssh
+    chmod 0644 /root/.ssh/authorized_keys /home/memes/.ssh/authorized_keys
+    chown -R root:root /root/.ssh
+    chown -R memes:memes /home/memes/.ssh
+else
+    info "SSH pubkey is missing; continuing"
+fi
+
+info "Common SSH pubkey onboarding script finished"
+exit 0

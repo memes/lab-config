@@ -1,0 +1,72 @@
+#!/bin/sh
+#
+# Netplan post-onboarding script Dell R815/R620 servers running Ubuntu.
+# 1. update netplan
+{{ ansible_managed | comment }}
+
+# set -x
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+error()
+{
+    echo "$0: ERROR: $*" >&2
+    exit 1
+}
+
+info()
+{
+    echo "$0: INFO: $*" >&2
+}
+
+info "Ubuntu netplan onboarding script started"
+
+cat <<EOF > /etc/netplan/02-bond0.yaml
+# Setup bonding interface for vlans
+{{ ansible_managed | comment }}
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    eno2:
+      dhcp4: no
+      dhcp6: no
+    eno3:
+      dhcp4: no
+      dhcp6: no
+    eno4:
+      dhcp4: no
+      dhcp6: no
+  bonds:
+    bond0:
+      interfaces:
+        - eno2
+        - eno3
+        - eno4
+      parameters:
+        mode: 'balance-tlb'
+        transmit-hash-policy: 'layer2+3'
+  vlans:
+    bond0.100:
+      dhcp4: yes
+      dhcp6: yes
+      id: 100
+      link: bond0
+      dhcp4-overrides:
+        route-metric: 200
+      dhcp6-overrides:
+        route-metric: 200
+    bond0.200:
+      dhcp4: yes
+      dhcp6: yes
+      id: 200
+      link: bond0
+      dhcp4-overrides:
+        route-metric: 200
+      dhcp6-overrides:
+        route-metric: 200
+EOF
+chown root:root /etc/netplan/02-bond0.yaml
+chmod 0640 /etc/netplan/02-bond0.yaml
+
+info "Ubuntu netplan onboarding script finished"
+exit 0

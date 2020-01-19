@@ -1,0 +1,99 @@
+#!/bin/sh
+#
+# Common onboarding script for Dell R815/R620 servers running CentOS/RHEL 8
+# 1. add Lab CA certificate
+# 2. add repos for DSU and elrepo
+# 3. install Vault
+#    a. set root/memes password from secret
+#    b. install SSH pubkey from secret
+{{ ansible_managed | comment }}
+
+# set -x
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+error()
+{
+    echo "$0: ERROR: $*" >&2
+    exit 1
+}
+
+info()
+{
+    echo "$0: INFO: $*" >&2
+}
+
+info "El8 onboarding script started"
+
+info "Disabling non-vlan interfaces"
+sed -i -e 's/^ONBOOT=yes/ONBOOT=no/' /etc/sysconfig/network-scripts/ifcfg-eno{1,2,3,4} ||
+    info "Failed to disable ONBOOT for eno1/2/3/4; Continuing."
+info "Removing default route from teamed interfaces"
+sed -i -e 's/^DEFROUTE=yes/DEFROUTE=no/' \
+    -e 's/^IPV6_DEFROUTE=yes/IPV6_DEFROUTE=no/' \
+    /etc/sysconfig/network-scripts/ifcfg-team*  ||
+    info "Failed to remove DEFROUTE declarations from ifcfg-team0*; Continuing."
+
+# Install CA certificate
+info "Installing AcceleratedGCP root CA certificate as trusted"
+mkdir -p /etc/pki/ca-trust/source/anchors
+curl -sLo /etc/pki/ca-trust/source/anchors/acceleratedgcp-root-ca.pem \
+    {{ shared_http_url }}/certs/acceleratedgcp-root-ca.pem || \
+    info "Failed to download Lab CA certificate; continuing"
+update-ca-trust extract || \
+    info "Failed to update CA trust repository: update-ca-trust exit code: $?"
+
+# Install DSU and ELRepo keys from shared HTTP - these have already had their
+# fingerprints validated as identical to original keys.
+info "Installing GPG keys from shared server"
+for k in 0x756ba70b1019ced6.asc 0x1285491434D8786F.asc 0xca77951d23b66a9d.asc \
+    0x3CA66B4946770C59.asc RPM-GPG-KEY-elrepo.asc; do
+    curl -sLo /tmp/${k} {{ shared_http_url }}/keys/${k} || \
+        error "Failed to download key ${k}: curl exit code: $?"
+    rpm --import /tmp/${k} || \
+        error "Failed to import key ${k}: rpm exit code: $?"
+    info "GPG key imported: ${k}"
+    rm -f /tmp/${k}
+done
+
+# Add DSU repo definition
+info "Adding DSU repo definition"
+cat > /etc/yum.repos.d/dell-system-update.repo <<EOF
+[dell-system-update_independent]
+name=dell-system-update_independent
+baseurl=https://linux.dell.com/repo/hardware/dsu/os_independent/
+gpgcheck=1
+gpgkey=https://linux.dell.com/repo/pgp_pubkeys/0x756ba70b1019ced6.asc
+       https://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc
+       https://linux.dell.com/repo/pgp_pubkeys/0xca77951d23b66a9d.asc
+       https://linux.dell.com/repo/pgp_pubkeys/0x3CA66B4946770C59.asc
+enabled=1
+exclude=dell-system-update*.i386
+
+[dell-system-update_dependent]
+name=dell-system-update_dependent
+mirrorlist=https://linux.dell.com/repo/hardware/dsu/mirrors.cgi?osname=el\$releasever&basearch=\$basearch&native=1
+gpgcheck=1
+gpgkey=https://linux.dell.com/repo/pgp_pubkeys/0x756ba70b1019ced6.asc
+       https://linux.dell.com/repo/pgp_pubkeys/0x1285491434D8786F.asc
+       https://linux.dell.com/repo/pgp_pubkeys/0xca77951d23b66a9d.asc
+       https://linux.dell.com/repo/pgp_pubkeys/0x3CA66B4946770C59.asc
+enabled=1
+EOF
+
+# Enable ElRepo for megaraid drivers, etc. - GPG key was installed above so this
+# should be safeish to install directly from repo.
+info "Installing ElRepo repo"
+dnf install -qy https://www.elrepo.org/elrepo-release-8.el8.elrepo.noarch.rpm || \
+    error "Failed to install ElRepo RPM from internet: dnf exit code: $?"
+
+# Install Vault from shared repository; this binary has been verified
+if ! command -v vault > /dev/null 2>/dev/null; then
+    info "Installing Vault from shared server"
+    curl -sLo /usr/local/bin/vault {{ shared_http_url }}/software/vault/vault_{{ vault_client_version }}_linux_amd64 || \
+        error "Failed to download Vault release binary: curl exit code: $?"
+    chmod 0755 /usr/local/bin/vault
+    chown root:root /usr/local/bin/vault
+fi
+
+info "El8 onboarding script finished"
+exit 0

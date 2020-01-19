@@ -1,0 +1,129 @@
+# Minimal ESXi kickstart for Lab
+{{ ansible_managed | comment }}
+
+# Accept the VMware End User License Agreement
+vmaccepteula
+
+# Set the root password
+rootpw --iscrypted {{ root_password | password_hash('sha512') }}
+
+# Clear *all* existing partitions
+clearpart --alldrives --overwritevmfs
+
+# Create a new datastore on the local disk
+part local --onfirstdisk=local
+
+# Install to internal USB stick
+install --overwritevmfs --novmfsondisk --firstdisk=usb
+
+# Set keyboard
+keyboard 'US Default'
+
+# Set the network on vmnic0 network adapter
+network --device=vmnic0 --bootproto=dhcp --addvmportgroup=0 --vlanid=10
+
+# Restart the server but don't open the DVD tray
+reboot --noeject
+
+# Setup the base system on firstboot; vmgmt networking, NTP, etc.
+%firstboot --interpreter=busybox
+
+# put host into maintenance mode
+esxcli system maintenanceMode set --enable=true
+
+# Configure vSwitch(es)
+esxcli network vswitch standard uplink add --vswitch-name=vSwitch0 --uplink-name=vmnic0
+esxcli network vswitch standard uplink add --vswitch-name=vSwitch0 --uplink-name=vmnic2
+esxcli network vswitch standard policy failover set --vswitch-name=vSwitch0 --active-uplinks=vmnic0,vmnic2 --load-balancing=portid
+# esxcli network vswitch standard uplink add --vswitch-name=vSwitch1 --uplink-name=vmnic1
+# esxcli network vswitch standard uplink add --vswitch-name=vSwitch1 --uplink-name=vmnic3
+# esxcli network vswitch standard policy failover set --vswitch-name=vSwitch1 --active-uplinks=vmnic1,vmnic3 --load-balancing=iphash
+
+# remove default VM Network
+esxcli network vswitch standard portgroup remove --vswitch-name=vSwitch0 --portgroup-name='VM Network'
+
+# Add/setup Management Network, vmgmt, and vmotion portgroups
+esxcli network vswitch standard portgroup set --portgroup-name='Management Network' --vlan-id=10
+esxcli network vswitch standard portgroup policy failover set --portgroup-name='Management Network' --active-uplinks=vmnic0 --standby-uplinks=vmnic2 --load-balancing=portid --failback false
+esxcli network vswitch standard portgroup add --vswitch-name=vSwitch0 --portgroup-name=vmgmt
+esxcli network vswitch standard portgroup set --portgroup-name=vmgmt --vlan-id=10
+esxcli network vswitch standard portgroup policy failover set --portgroup-name=vmgmt --active-uplinks=vmnic0 --standby-uplinks=vmnic2--load-balancing=portid --failback true
+# esxcli network vswitch standard portgroup add --vswitch-name=vSwitch0 --portgroup-name=vmotion
+# esxcli network vswitch standard portgroup set --portgroup-name=vmotion --vlan-id=20
+# esxcli network vswitch standard portgroup policy failover set --portgroup-name=vmotion --active-uplinks=vmnic2 --standby-uplinks=vmnic0 --load-balancing=portid --failback true
+
+# Define the default TCP/IP stack
+esxcli network ip netstack set --netstack=defaultTcpIpStack --ipv6enabled=true --ccalo=newreno
+esxcli network ip route ipv4 add --netstack=defaultTcpIpStack --network=default --gateway=172.17.0.1
+esxcli network ip route ipv6 add --netstack=defaultTcpIpStack --network=default --gateway=2001:470:49a5:1::1
+esxcli network ip dns server add --server=172.17.0.1 --netstack=defaultTcpIpStack
+esxcli network ip dns server add --server=2001:470:49a5:1::1 --netstack=defaultTcpIpStack
+esxcli network ip dns search add --domain={{ domain }} --netstack=defaultTcpIpStack
+
+# Setup vMotion network stack and add vmk1 as vMotion port
+# esxcli network ip netstack add --netstack=vmotion --disabled=true
+# esxcli network ip netstack set --netstack=vmotion --ipv6enabled=true --ccalo=newreno --enabled=true
+# esxcli network ip route ipv4 add --netstack=vmotion --network=default --gateway=172.18.0.1
+# esxcli network ip route ipv6 add --netstack=vmotion --network=default --gateway=2001:470:49a5:2::1
+# esxcli network ip dns server add --server=172.18.0.1 --netstack=vmotion
+# esxcli network ip dns server add --server=2001:470:49a5:2::1 --netstack=vmotion
+# esxcli network ip dns search add --domain={{ domain }} --netstack=vmotion
+# esxcli network ip interface add --interface-name=vmk1 --mtu=1500 --netstack=vmotion --portgroup-name=vmotion
+# esxcli network ip interface tag add --interface-name=vmk1 --tagname=VMotion
+# esxcli network ip interface ipv4 set --interface-name=vmk1 --type=dhcp
+# esxcli network ip interfadce ipv6 set --interface-name=vmk1 --enable-ipv6=true --enable-dhcpv6=true
+
+# enable & start ssh and esx shell (disable it for production environments)
+vim-cmd hostsvc/enable_ssh
+vim-cmd hostsvc/start_ssh
+vim-cmd hostsvc/enable_esx_shell
+vim-cmd hostsvc/start_esx_shell
+
+# Suppress shell warning (no SSH warning)
+esxcli system settings advanced set -o /UserVars/SuppressShellWarning -i 1
+
+# enable high performance mode (always high clock rate --> higher energy consumption)
+esxcli system settings advanced set --option=/Power/CpuPolicy --string-value='High Performance'
+
+# NTP Configuration --> https://kb.vmware.com/s/article/1005092
+cat > /etc/ntp.conf << EOC
+restrict 127.0.0.1
+restrict ::1
+restrict default kod nomodify notrap
+driftfile /etc/ntp.drift
+server 172.17.0.1
+server 2001:470:49a5:1::1
+EOC
+chkconfig ntpd on
+
+# Rename datastore to match hostname
+vim-cmd hostsvc/datastore/rename local "$(hostname -s)"
+
+# Install iDRAC VIB
+esxcli software vib install -v {{ shared_http_url }}/software/vib20/dcism/Dell_bootbank_dcism_3.6.0.ESXi6-2249.vib
+
+# Perform post-onboard actions
+#wget -O /tmp/post-onboard-esxi.sh {{ shared_http_url }}/scripts/post-onboard-esxi.sh
+#sh /tmp/post-onboard-esxi.sh
+
+# Create memes account as Admin
+esxcli system account add --id=memes --password='{{ memes_password }}' --password-confirmation='{{ memes_password }}'
+esxcli system permission set --id=memes --role=Admin
+
+# Add public SSH key to root and memes accounts
+mkdir -m 0755 -p /etc/ssh/keys-root /etc/ssh/keys-memes
+cat <<EOF >> /etc/ssh/keys-root/authorized_keys
+{{ ssh_pubkey }}
+EOF
+cat <<EOF >> /etc/ssh/keys-memes/authorized_keys
+{{ ssh_pubkey }}
+EOF
+chown -R root:root /etc/ssh/keys-root
+chown -R memes:memes /etc/ssh/keys-memes
+chmod 1600 /etc/ssh/keys-root/authorized_keys /etc/ssh/keys-memes/authorized_keys
+
+# Exit maintenance mode
+esxcli system maintenanceMode set --enable=false
+
+# reboot host
+esxcli system shutdown reboot --reason='reboot after PXE installation'

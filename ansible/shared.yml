@@ -1,0 +1,292 @@
+# Update shared server
+# yamllint disable rule:truthy rule:line-length
+---
+- name: Update shared services and files
+  hosts: shared
+  become: yes
+  vars:
+    ks_vault_options: "secret={{ vault_kv2_kickstart_secrets_path }} url={{ vault_url }} ca_cert={{ root_ca }}"
+    ks_secrets: "{{ lookup('community.hashi_vault.hashi_vault', ks_vault_options) }}"
+  tasks:
+    - name: Install required packages
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - samba
+        - nfs-kernel-server
+        - rpcbind
+        - tftpd-hpa
+        - pxelinux
+        - syslinux
+        - "debian-installer-{{ ansible_distribution_major_version }}-netboot-amd64"
+        - nginx
+    - name: Manage shared file system configs
+      ansible.builtin.template:
+        src: "templates/shared/etc/{{ item }}.j2"
+        dest: "/etc/{{ item }}"
+        force: yes
+        owner: root
+        group: root
+        mode: 0644
+      loop:
+        - exports
+        - default/nfs-common
+        - default/nfs-kernel-server
+        - samba/smb.conf
+      notify:
+        - restart NFS
+        - restart Samba
+    - name: Set NFS kernel modprobe file
+      ansible.builtin.template:
+        src: templates/shared/etc/modprobe.d/nfs-modules.conf.j2
+        dest: "/etc/modprobe.d/nfs-modules.conf"
+        owner: root
+        group: root
+        mode: 0644
+    - name: Set NFS kernel module params
+      ansible.posix.sysctl:
+        name: "{{ item['param'] }}"
+        value: "{{ item['value'] }}"
+        sysctl_file: /etc/sysctl.d/90-nfs-static-ports.conf
+        sysctl_set: yes
+        # If modules aren't loaded yet, the param keys will be undefined; ignore
+        ignoreerrors: yes
+        reload: yes
+        state: present
+      loop:
+        - param: fs.nfs.nfs_callback_tcpport
+          value: 32764
+        - param: fs.nfs.nlm_tcpport
+          value: 32768
+        - param: fs.nfs.nlm_udpport
+          value:
+      tags:
+        # Emes - reverted
+        - never
+    - name: Create directories for TFTP
+      ansible.builtin.file:
+        path: "/srv/{{ item }}"
+        state: directory
+        owner: tftp
+        group: root
+        mode: 0755
+      loop:
+        - tftp
+        - tftp/esxi
+        - tftp/esxi/pxelinux.cfg
+        - tftp/esxi/images
+        - tftp/images
+        - tftp/images/debian{{ ansible_distribution_major_version }}-x86_64
+        - tftp/pxelinux.cfg
+    - name: Copy syslinux BIOS files for TFTP
+      ansible.builtin.copy:
+        remote_src: yes
+        src: /usr/lib/syslinux/modules/bios/
+        dest: /srv/tftp/
+        force: yes
+        owner: tftp
+        group: root
+    - name: Copy pxelinux BIOS files for TFTP
+      ansible.builtin.copy:
+        remote_src: yes
+        src: "/usr/lib/PXELINUX/"
+        dest: "/srv/tftp/"
+        force: yes
+        owner: tftp
+        group: root
+    - name: Copy Debian netboot files for TFTP
+      ansible.builtin.copy:
+        remote_src: yes
+        src: "/usr/lib/debian-installer/images/{{ ansible_distribution_major_version }}/amd64/text/debian-installer/amd64/{{ item }}"
+        dest: "/srv/tftp/images/debian{{ ansible_distribution_major_version }}-x86_64/{{ item }}"
+        force: yes
+        owner: tftp
+        group: root
+      loop:
+        - linux
+        - initrd.gz
+    - name: Copy static PXE configurations
+      ansible.builtin.copy:
+        src: "files/shared/tftp/{{ item }}"
+        dest: "/srv/tftp/{{ item }}"
+        force: yes
+        owner: tftp
+        group: root
+        mode: 0644
+      loop:
+        - pxelinux.cfg/01-14-fe-b5-c9-73-12
+        - pxelinux.cfg/01-d4-ae-52-94-b1-a6
+        - pxelinux.cfg/01-d4-ae-52-98-b7-a8
+        - pxelinux.cfg/common.cfg
+        - pxelinux.cfg/default
+        - pxelinux.cfg/esxi.cfg
+        - pxelinux.cfg/splash.png
+        - pxelinux.cfg/tools.cfg
+        - esxi/pxelinux.cfg/common.cfg
+        - esxi/pxelinux.cfg/default
+        - esxi/pxelinux.cfg/lab_autoprovision.cfg
+        - esxi/pxelinux.cfg/splash.png
+    - name: Copy templated PXE configurations
+      ansible.builtin.template:
+        src: "templates/shared/tftp/{{ item }}.j2"
+        dest: "/srv/tftp/{{ item }}"
+        force: yes
+        owner: tftp
+        group: root
+        mode: 0644
+      loop:
+        - pxelinux.cfg/alpine.cfg
+        - pxelinux.cfg/centos.cfg
+        - pxelinux.cfg/debian.cfg
+        - pxelinux.cfg/kali.cfg
+        - pxelinux.cfg/lab_autoprovision.cfg
+        - pxelinux.cfg/lab_default_target.cfg
+        - pxelinux.cfg/photon.cfg
+        - pxelinux.cfg/redhat.cfg
+        - pxelinux.cfg/ubuntu.cfg
+        - esxi/images/dell_emc_esxi67-x86_64/lab.cfg
+    - name: Start tftpd-hpa
+      ansible.builtin.service:
+        name: tftpd-hpa
+        state: started
+        enabled: yes
+    - name: Update CA cert
+      ansible.builtin.copy:
+        src: ../ca/acceleratedgcp-root-ca.pem
+        dest: /usr/local/share/ca-certificates/acceleratedgcp-root-ca.crt
+        force: yes
+        owner: root
+        group: root
+        mode: 0644
+      notify:
+        - update ca certs
+    - name: Update HTTPS TLS cert
+      ansible.builtin.copy:
+        src: "../certs/{{ shared_host }}.pem"
+        dest: "/etc/ssl/certs/{{ shared_host }}.pem"
+        force: yes
+        owner: root
+        group: root
+        mode: 0644
+      notify:
+        - restart nginx
+    - name: Update HTTPS TLS key
+      ansible.builtin.copy:
+        src: "../certs/{{ shared_host }}.key"
+        dest: "/etc/ssl/private/{{ shared_host }}.key"
+        force: yes
+        owner: root
+        group: root
+        mode: 0600
+      notify:
+        - restart nginx
+    - name: Configure nginx for shared
+      ansible.builtin.template:
+        src: templates/shared/nginx/shared.j2
+        dest: /etc/nginx/sites-available/shared
+        force: yes
+        owner: root
+        group: root
+        mode: 0644
+      notify:
+        - restart nginx
+    - name: Enable shared nginx site
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/shared
+        dest: /etc/nginx/sites-enabled/shared
+        owner: root
+        group: root
+        state: link
+      notify:
+        - restart nginx
+    - name: Disable default nginx site
+      ansible.builtin.file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify:
+        - restart nginx
+    - name: Create directories for shared files
+      ansible.builtin.file:
+        path: "/srv/shared/{{ item }}"
+        state: directory
+        owner: root
+        group: shared
+        mode: 0775
+      loop:
+        - certs
+        - d-i
+        - d-i/bionic
+        - el8
+        - esxi
+        - keys
+        - kubernetes
+        - scripts
+    - name: Copy CA file
+      ansible.builtin.copy:
+        src: ../ca/acceleratedgcp-root-ca.pem
+        dest: /srv/shared/certs/
+        force: yes
+        owner: root
+        group: shared
+        mode: 0664
+    - name: Update static key files
+      ansible.builtin.copy:
+        src: "files/shared/keys/{{ item }}"
+        dest: "/srv/shared/keys/{{ item }}"
+        force: yes
+        owner: root
+        group: shared
+        mode: 0664
+      loop:
+        - 0x1285491434D8786F.asc
+        - 0x3CA66B4946770C59.asc
+        - 0x756ba70b1019ced6.asc
+        - 0xca77951d23b66a9d.asc
+        - RPM-GPG-KEY-CentOS-Official.asc
+        - RPM-GPG-KEY-elrepo.asc
+        - RPM-GPG-KEY-redhat-release.asc
+    - name: Update templated lab files
+      vars:
+        administrator_password: "{{ ks_secrets.administrator }}"
+        memes_password: "{{ ks_secrets.memes }}"
+        rhn_password: "{{ ks_secrets.rhn_password }}"
+        rhn_user: "{{ ks_secrets.rhn_user }}"
+        ssh_pubkey: "{{ ks_secrets.ssh_pubkey }}"
+        root_password: "{{ ks_secrets.root }}"
+      ansible.builtin.template:
+        src: "templates/shared/{{ item }}.j2"
+        dest: "/srv/shared/{{ item }}"
+        force: yes
+        owner: root
+        group: shared
+        mode: 0664
+      loop:
+        - d-i/bionic/preseed.cfg
+        - el8/centos8-minimal.ks
+        - esxi/esxi67.ks
+        - el8/rhel8-minimal.ks
+        - kubernetes/memes-rbac.yml
+        - scripts/post-onboard-centos8.sh
+        - scripts/post-onboard-debian.sh
+        - scripts/post-onboard-el8.sh
+        - scripts/post-onboard-rhel8.sh
+        - scripts/post-onboard-ssh-pubkey.sh
+        - scripts/post-onboard-ubuntu-netplan.sh
+        - scripts/pre-onboard-el8.sh
+
+  handlers:
+    - name: restart NFS
+      ansible.builtin.service:
+        name: nfs-kernel-server
+        state: restarted
+    - name: restart Samba
+      ansible.builtin.service:
+        name: smbd
+        state: restarted
+    - name: update ca certs
+      ansible.builtin.command: /usr/sbin/update-ca-certificates
+    - name: restart nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted

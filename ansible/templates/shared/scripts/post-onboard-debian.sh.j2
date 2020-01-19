@@ -1,0 +1,63 @@
+#!/bin/sh
+#
+# Common post-onboarding script Dell R815/R620 servers running Debian or Ubuntu.
+# 1. determine hostname from eno1 mac
+# 2. install CA certificate
+{{ ansible_managed | comment }}
+
+# set -x
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+error()
+{
+    echo "$0: ERROR: $*" >&2
+    exit 1
+}
+
+info()
+{
+    echo "$0: INFO: $*" >&2
+}
+
+info "Debian/Ubuntu onboarding script started"
+
+# TODO: @memes - hacky
+mac="$(ip link show eno1 2>/dev/null | awk '/link\/ether/ { print $2 }' 2>/dev/null | tr [:upper:] [:lower:] 2>/dev/null)"
+case "${mac}" in
+    d4:ae:52:98:b7:a8)
+        host=eternal
+        ;;
+    d4:ae:52:94:b1:a6)
+        host=mystic
+        ;;
+    14:fe:b5:c9:73:12)
+        host=gustav
+        ;;
+    *)
+        host=unknown
+        ;;
+esac
+info "Setting hostname to ${host}.{{ domain }}"
+echo "${host}.{{ domain }}" > /etc/hostname || \
+    info "Failed to set hostname to ${host}: exit code: $?"
+
+# Install CA certificate
+info "Installing AcceleratedGCP root CA certificate as trusted"
+mkdir -p /usr/local/share/ca-certificates
+curl -sLo /usr/local/share/ca-certificates/acceleratedgcp-root-ca.crt \
+    {{ shared_http_url }}/certs/acceleratedgcp-root-ca.pem || \
+    info "Failed to download Lab CA certificate; continuing"
+update-ca-certificates || \
+    info "Failed to update CA trust repository: update-ca-certificates exit code: $?"
+
+# Install Vault from shared repository; this binary has been verified
+if ! command -v vault > /dev/null 2>/dev/null; then
+    info "Installing Vault from shared server"
+    curl -sLo /usr/local/bin/vault {{ shared_http_url }}/software/vault/vault_{{ vault_client_version }}_linux_amd64 || \
+        error "Failed to download Vault release binary: curl exit code: $?"
+    chmod 0755 /usr/local/bin/vault
+    chown root:root /usr/local/bin/vault
+fi
+
+info "Debian/Ubuntu onboarding script finished"
+exit 0

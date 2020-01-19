@@ -1,0 +1,27 @@
+#!/bin/sh
+#
+# Common pre-onboarding script Dell R815/R620 servers running CentOS/RHEL 8
+# 1. determine hostname from eno1 mac
+{{ ansible_managed | comment }}
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# TODO: @memes - hacky
+mac="$(ip link show eno1 2>/dev/null | awk '/link\/ether/ { print $2 }' 2>/dev/null | tr [:upper:] [:lower:] 2>/dev/null)"
+case "${mac}" in
+    d4:ae:52:98:b7:a8)
+        host=eternal
+        ;;
+    d4:ae:52:94:b1:a6)
+        host=mystic
+        ;;
+    14:fe:b5:c9:73:12)
+        host=gustav
+        ;;
+    *)
+        host=unknown
+        ;;
+esac
+cat > /tmp/hostname.ks <<EOF
+network --hostname=${host}.{{ domain }}
+EOF
+exit 0

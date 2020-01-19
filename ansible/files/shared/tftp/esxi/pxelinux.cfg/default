@@ -1,0 +1,27 @@
+# Default ESXi menu - this is chain-loaded from the main PXE menu
+# see ../../pxelinux.cfg/esxi.cfg
+ui vesamenu.c32
+timeout 3000
+totaltimeout 6000
+ontimeout localboot
+default localboot
+include pxelinux.cfg/common.cfg
+menu title ESXi Options
+
+label dell_67
+  menu label ^Dell EMC customised ESXi 6.7
+  kernel images/dell_emc_esxi67-x86_64/mboot.c32
+  append -c images/dell_emc_esxi67-x86_64/boot.cfg
+  append 2
+
+label vanilla_67
+  menu label ^Vanilla ESXi 6.7
+  kernel images/esxi67-x86_64/mboot.c32
+  append -c images/esxi67-x86_64/boot.cfg
+  append 2
+
+menu separator
+
+label localboot
+  menu label ^Boot local disk
+  localboot 0xffff

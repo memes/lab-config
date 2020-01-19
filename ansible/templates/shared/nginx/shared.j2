@@ -1,0 +1,18 @@
+# Configure an HTTP/HTTPS server for shared content
+{{ ansible_managed | comment }}
+
+server {
+        listen 80 default_server;
+        listen [::]:80 default_server;
+        listen 443 ssl default_server;
+        listen [::]:443 ssl default_server;
+        ssl_certificate /etc/ssl/certs/{{ shared_host }}.pem;
+        ssl_certificate_key /etc/ssl/private/{{ shared_host }}.key;
+
+        server_name _;
+        root /srv/shared;
+        location / {
+                autoindex on;
+                try_files $uri $uri/ uri.http =404;
+        }
+}

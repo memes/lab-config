@@ -1,0 +1,202 @@
+# Configure initial vSphere installation through vCenter instance
+# yamllint disable rule:truthy rule:line-length
+---
+- name: Bootstrap vSphere lab
+  hosts: servers
+  gather_facts: no
+  become: no
+  vars:
+    ks_vault_options: "secret={{ vault_kv2_kickstart_secrets_path }} url={{ vault_url }} ca_cert={{ root_ca }}"
+    ks_secrets: "{{ lookup('community.hashi_vault.hashi_vault', ks_vault_options) }}"
+  tasks:
+    - name: Verify ESXi is active
+      community.vmware.vmware_about_info:
+        hostname: "{{ inventory_hostname }}"
+        username: root
+        password: "{{ ks_secrets.root }}"
+        validate_certs: no
+      delegate_to: 127.0.0.1
+    - name: Verify vCenter is active
+      community.vmware.vmware_about_info:
+        hostname: "{{ vcenter_hostname }}"
+        username: "administrator@{{ domain }}"
+        password: "{{ ks_secrets.administrator }}"
+        validate_certs: no
+      run_once: yes
+      delegate_to: 127.0.0.1
+    - name: Create datacenter
+      community.vmware.vmware_datacenter:
+        hostname: "{{ vcenter_hostname }}"
+        username: "administrator@{{ domain }}"
+        password: "{{ ks_secrets.administrator }}"
+        validate_certs: no
+        datacenter_name: "{{ vsphere_datacenter }}"
+        state: present
+      run_once: yes
+      delegate_to: 127.0.0.1
+    - name: Create dSwitch
+      community.vmware.vmware_dvswitch:
+        hostname: "{{ vcenter_hostname }}"
+        username: "administrator@{{ domain }}"
+        password: "{{ ks_secrets.administrator }}"
+        validate_certs: no
+        datacenter_name: "{{ vsphere_datacenter }}"
+        switch: "{{ vsphere_dvswitch }}"
+        version: 6.6.0
+        mtu: 1500
+        discovery_operation: listen
+        discovery_proto: lldp
+        uplink_quantity: 4
+        uplink_prefix: uplink_
+        health_check:
+          teaming_failover: true
+          teaming_failover_interval: 1
+        state: present
+      run_once: yes
+      delegate_to: 127.0.0.1
+    - name: Create portgroup on distributed switch
+      community.vmware.vmware_dvs_portgroup:
+        hostname: "{{ vcenter_hostname }}"
+        username: "administrator@{{ domain }}"
+        password: "{{ ks_secrets.administrator }}"
+        validate_certs: no
+        switch_name: "{{ vsphere_dvswitch }}"
+        portgroup_name: "{{ item.name }}"
+        num_ports: 8
+        portgroup_type: earlyBinding
+        vlan_id: "{{ item.id }}"
+        state: present
+      loop:
+        - id: 20
+          name: vmotion
+        - id: 100
+          name: vint
+        - id: 200
+          name: vext
+      run_once: yes
+      delegate_to: 127.0.0.1
+    - name: Create cluster
+      community.vmware.vmware_cluster:
+        hostname: "{{ vcenter_hostname }}"
+        username: "administrator@{{ domain }}"
+        password: "{{ ks_secrets.administrator }}"
+        validate_certs: no
+        datacenter_name: "{{ vsphere_datacenter }}"
+        cluster_name: "{{ vsphere_cluster }}"
+        # Ignore all default DRS, HA, and vSAN properties as explicit tasks will
+        # handle those requirements
+        ignore_drs: yes
+        ignore_ha: yes
+        ignore_vsan: yes
+      run_once: yes
+      delegate_to: 127.0.0.1
+    - name: Add ESXi hosts to cluster
+      community.vmware.vmware_host:
+        hostname: "{{ vcenter_hostname }}"
+        username: "administrator@{{ domain }}"
+        password: "{{ ks_secrets.administrator }}"
+        validate_certs: no
+        datacenter_name: "{{ vsphere_datacenter }}"
+        cluster_name: "{{ vsphere_cluster }}"
+        esxi_hostname: "{{ inventory_hostname }}"
+        esxi_username: root
+        esxi_password: "{{ ks_secrets.root }}"
+        state: present
+      delegate_to: 127.0.0.1
+    - name: Enable vSAN on cluster
+      community.vmware.vmware_cluster_vsan:
+        hostname: "{{ vcenter_hostname }}"
+        username: "administrator@{{ domain }}"
+        password: "{{ ks_secrets.administrator }}"
+        validate_certs: no
+        datacenter_name: "{{ vsphere_datacenter }}"
+        cluster_name: "{{ vsphere_cluster }}"
+        enable_vsan: yes
+        vsan_auto_claim_storage: yes
+      run_once: yes
+      delegate_to: 127.0.0.1
+      tags:
+        # TODO: @memes
+        # Disabling vSAN as not all hosts have SSD and can't be bothered to
+        # setup nested ESXi.
+        - never
+      when: False
+    - name: Enable HA on cluster
+      community.vmware.vmware_cluster_ha:
+        hostname: "{{ vcenter_hostname }}"
+        username: "administrator@{{ domain }}"
+        password: "{{ ks_secrets.administrator }}"
+        validate_certs: no
+        datacenter_name: "{{ vsphere_datacenter }}"
+        cluster_name: "{{ vsphere_cluster }}"
+        enable_ha: yes
+      run_once: yes
+      delegate_to: 127.0.0.1
+      # tags:
+      #   # TODO: @memes
+      #   - never
+    - name: Enable DRS on cluster
+      community.vmware.vmware_cluster_drs:
+        hostname: "{{ vcenter_hostname }}"
+        username: "administrator@{{ domain }}"
+        password: "{{ ks_secrets.administrator }}"
+        validate_certs: no
+        datacenter_name: "{{ vsphere_datacenter }}"
+        cluster_name: "{{ vsphere_cluster }}"
+        enable_drs: yes
+        drs_default_vm_behavior: partiallyAutomated
+      run_once: yes
+      delegate_to: 127.0.0.1
+      # tags:
+      #   # TODO: @memes
+      #   - never
+- name: vCenter Accounts
+  hosts: vcenter.lab.acceleratedgcp.com
+  gather_facts: no
+  become: no
+  vars:
+    ks_vault_options: "secret={{ vault_kv2_kickstart_secrets_path }} url={{ vault_url }} ca_cert={{ root_ca }}"
+    ks_secrets: "{{ lookup('community.hashi_vault.hashi_vault', ks_vault_options) }}"
+  tasks:
+    - name: Does memes account exist in vCenter
+      community.vmware.vcenter_domain_user_group_info:
+        hostname: "{{ inventory_hostname }}"
+        username: "administrator@{{ domain }}"
+        password: "{{ ks_secrets.administrator }}"
+        validate_certs: false
+        domain: "{{ domain }}"
+        search_string: "{{ domain }}\\memes"
+        exact_match: true
+      register: gather_domain_user_info_result
+      delegate_to: 127.0.0.1
+      tags:
+        # TODO: @memes
+        - never
+    - name: Create memes account if needed
+      command: >-
+        /usr/lib/vmware-vmafd/bin/dir-cli user create
+        --account "memes"
+        --user-password "{{ ks_secrets.memes }}"
+        --login "administrator@{{ domain }}"
+        --password "{{ ks_secrets.administrator }}"
+        --first-name "Matthew"
+        --last-name "Emes"
+      changed_when: true
+      when:
+        - gather_domain_user_info_result.domain_user_groups | length == 0
+      tags:
+        # TODO: @memes
+        - never
+    - name: Add memes account to admin group, if needed
+      command: >-
+        /usr/lib/vmware-vmafd/bin/dir-cli group modify
+        --name Administrators
+        --add memes
+        --login "administrator@{{ domain }}"
+        --password "{{ ks_secrets.administrator }}"
+      changed_when: true
+      when:
+        - gather_domain_user_info_result.domain_user_groups | length == 0
+      tags:
+        # TODO: @memes
+        - never

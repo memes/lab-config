@@ -1,0 +1,19 @@
+[global]
+    workgroup = HOME
+    map to guest = Bad User
+    log file = /var/log/samba/log.%m
+    max log size = 1000
+    logging = file
+    log level = 1
+    server role = standalone server
+
+[shared]
+    path = /srv/shared/
+    browsable = yes
+    read only = no
+    guest ok = yes
+    read list = guest nobody
+    write list = memes
+    force group = +shared
+    create mask = 0644
+    directory mask = 0755

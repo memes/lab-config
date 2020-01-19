@@ -1,0 +1,8 @@
+# NFS settings - applied changes from http://wiki.debian.org/SecuringNFS
+{{ ansible_managed | comment }}
+NEED_STATD=yes
+# Emes - reverted
+# STATDOPTS="--port 32765 --outgoing-port 32766"
+STATDOPTS=
+NEED_IDMAPD=
+NEED_GSSD=

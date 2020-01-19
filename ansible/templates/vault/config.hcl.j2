@@ -1,0 +1,20 @@
+{{ ansible_managed | comment }}
+api_addr = "{{ vault_url }}"
+cluster_addr = "{{ vault_cluster_url }}"
+ui = true
+
+storage "gcs" {
+  bucket = "{{ vault_gcs }}"
+}
+
+listener "tcp" {
+  address = "0.0.0.0:8200"
+  tls_disable = {{ vault_tls_disable | string | lower }}
+  tls_cert_file = "{{ vault_tls_cert_file }}"
+  tls_key_file = "{{ vault_tls_key_file }}"
+}
+
+telemetry {
+  prometheus_retention_time ="4h"
+  disable_hostname = true
+}

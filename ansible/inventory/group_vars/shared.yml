@@ -1,0 +1,9 @@
+# Shared server configuration
+---
+# lab_target will be the default PXE option for repave servers. Must be one
+# of the labels defined for PXE auto-deploy.
+lab_target: ubuntu1804
+nfs_export_shared_cidrs:
+  - 172.16.0.0/12
+  - 2001:470:49a5::/48
+vault_client_version: '1.3.1'

@@ -1,0 +1,9 @@
+# NFS Kernel - updated from http://wiki.debian.org/SecuringNFS
+{{ ansible_managed | comment }}
+RPCNFSDCOUNT=8
+RPCNFSDPRIORITY=0
+# Emes - reverted
+# RPCMOUNTDOPTS="--port 32767 --manage-gids"
+RPCMOUNTDOPTS="--manage-gids"
+NEED_SVCGSSD="no"
+RPCSVCGSSDOPTS=""
