@@ -112,13 +112,31 @@ vault operator unseal
 
 <!-- markdownlint-disable MD033 MD034 -->
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+## Requirements
+
+| Name | Version |
+|------|---------|
+| terraform | ~> 0.12 |
+| vault | ~> 2.7.1 |
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| vault | ~> 2.7.1 |
+
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|:----:|:-----:|:-----:|
-| person\_domains | The list of domains that will be permitted for person \(VPN\) CSRs. | list(string) | `[ "home.arpa", "lab.acceleratedgcp.com" ]` | no |
-| server\_2048\_domains | The list of domains that will be permitted for server CSRs that must be restricted to 2048 bits \(iDRAC\). | list(string) | `[ "lab.acceleratedgcp.com" ]` | no |
-| server\_domains | The list of domains that will be permitted for server CSRs. | list(string) | `[ "home.arpa", "lab.acceleratedgcp.com" ]` | no |
+|------|-------------|------|---------|:--------:|
+| f5\_anthos\_project\_id | The GCP project id for F5/Anthos integration lab. | `string` | n/a | yes |
+| person\_domains | The list of domains that will be permitted for person (VPN) CSRs. | `list(string)` | <pre>[<br>  "home.arpa",<br>  "lab.acceleratedgcp.com"<br>]</pre> | no |
+| server\_2048\_domains | The list of domains that will be permitted for server CSRs that must be restricted to 2048 bits (iDRAC). | `list(string)` | <pre>[<br>  "lab.acceleratedgcp.com"<br>]</pre> | no |
+| server\_domains | The list of domains that will be permitted for server CSRs. | `list(string)` | <pre>[<br>  "home.arpa",<br>  "lab.acceleratedgcp.com"<br>]</pre> | no |
+
+## Outputs
+
+No output.
 
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 <!-- markdownlint-enable MD033 MD034 -->

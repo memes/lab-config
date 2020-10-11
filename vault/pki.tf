@@ -4,7 +4,8 @@
 
 locals {
   # Change when it is time to rotate intermediate cert
-  intermediate_cn = "Accelerated GCP Lab Intermediate CA 2022"
+  # TODO: @memes - wrong year in intermediate for 2023. D'Oh
+  intermediate_cn = "Accelerated GCP Lab Intermediate CA 2024"
 }
 
 resource "vault_pki_secret_backend_config_urls" "pki_ca" {

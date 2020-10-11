@@ -23,3 +23,8 @@ variable "server_2048_domains" {
   ]
   description = "The list of domains that will be permitted for server CSRs that must be restricted to 2048 bits (iDRAC)."
 }
+
+variable "f5_anthos_project_id" {
+  type        = string
+  description = "The GCP project id for F5/Anthos integration lab."
+}
