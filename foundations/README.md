@@ -15,17 +15,31 @@ Accelerated GCP Lab. These resources will be created:
     drive)
 
 <!-- markdownlint-disable MD033 MD034 -->
-<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->## Requirements
+## Requirements
+
+| Name | Version |
+|------|---------|
+| terraform | ~> 0.14 |
+| google | 3.53.0 |
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| google | 3.53.0 |
+| random | n/a |
+
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|:----:|:-----:|:-----:|
-| apis | A list of APIs to enable for the project. | list(string) | `[ "cloudapis.googleapis.com", "compute.googleapis.com", "logging.googleapis.com", "monitoring.googleapis.com", "oslogin.googleapis.com", "servicemanagement.googleapis.com", "serviceusage.googleapis.com", "storage-api.googleapis.com", "storage-component.googleapis.com", "iam.googleapis.com", "cloudresourcemanager.googleapis.com", "drive.googleapis.com" ]` | no |
-| billing\_account | The GCP billing account to apply to the project. Executing user must have IAM permissions to associate the project to the billing account. | string | n/a | yes |
-| folder\_id | An optional folder identifier under which the project will be created. Default is an empty string. | string | `""` | no |
-| project\_id | The unique identifier to use with the created project. Must be globally unique. | string | n/a | yes |
-| terraform\_sa\_impersonators | An optional list of users and/or groups that will be granted ability to impersonate the Terraform service account. Members must be fully-qualified with 'user:' or 'group:'. | list(string) | `[]` | no |
-| tf\_sa\_roles | A list of IAM roles to assign to the Terraform service account. | list(string) | `[ "roles/compute.admin", "roles/iam.serviceAccountAdmin", "roles/iam.serviceAccountKeyAdmin", "roles/iam.serviceAccountTokenCreator", "roles/iam.serviceAccountUser", "roles/storage.admin", "roles/resourcemanager.projectIamAdmin" ]` | no |
+|------|-------------|------|---------|:--------:|
+| apis | A list of APIs to enable for the project. | `list(string)` | <pre>[<br>  "cloudapis.googleapis.com",<br>  "compute.googleapis.com",<br>  "logging.googleapis.com",<br>  "monitoring.googleapis.com",<br>  "oslogin.googleapis.com",<br>  "servicemanagement.googleapis.com",<br>  "serviceusage.googleapis.com",<br>  "storage-api.googleapis.com",<br>  "storage-component.googleapis.com",<br>  "iam.googleapis.com",<br>  "cloudresourcemanager.googleapis.com",<br>  "drive.googleapis.com"<br>]</pre> | no |
+| billing\_account | The GCP billing account to apply to the project. Executing user must have IAM permissions to associate the project to the billing account. | `string` | n/a | yes |
+| folder\_id | An optional folder identifier under which the project will be created. Default is an empty string. | `string` | `""` | no |
+| project\_id | The unique identifier to use with the created project. Must be globally unique. | `string` | n/a | yes |
+| terraform\_sa\_impersonators | An optional list of users and/or groups that will be granted ability to impersonate the Terraform service account. Members must be fully-qualified with 'user:' or 'group:'. | `list(string)` | `[]` | no |
+| tf\_sa\_roles | A list of IAM roles to assign to the Terraform service account. | `list(string)` | <pre>[<br>  "roles/compute.admin",<br>  "roles/iam.serviceAccountAdmin",<br>  "roles/iam.serviceAccountKeyAdmin",<br>  "roles/iam.serviceAccountTokenCreator",<br>  "roles/iam.serviceAccountUser",<br>  "roles/storage.admin",<br>  "roles/resourcemanager.projectIamAdmin"<br>]</pre> | no |
 
 ## Outputs
 

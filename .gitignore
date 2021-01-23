@@ -4,6 +4,7 @@ terraform.tfstate*
 terraform.tfvars
 *.auto.tfvars
 terraform.config
+.terrform.lock.hcl
 
 # Ignore envrc
 .envrc

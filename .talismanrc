@@ -1,0 +1,4 @@
+---
+fileignoreconfig:
+- filename: foundations/README.md
+  checksum: fd2192c7b2d3604ce53c299cc9543e064b5f863400a83b338e256422457fb577

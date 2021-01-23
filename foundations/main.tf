@@ -3,15 +3,18 @@
 # tools.
 
 terraform {
-  required_version = "~> 0.12"
+  required_version = "~> 0.14"
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "3.53.0"
+    }
+  }
   # Once the Terraform state bucket has been created, uncomment these lines and
   # re-init Terraform so that state can be transferred to GCS.
   # NOTE: the configuration values for bucket and prefix *MUST* be provided during
   # `terraform init -backend-config=CONFIG-FILE`
   backend "gcs" {}
-}
-
-provider "google" {
 }
 
 # Create the lab-config project
