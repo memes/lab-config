@@ -1,0 +1,10 @@
+# Alpine installers available through PXE
+{{ ansible_managed | comment }}
+
+label alpine3
+  menu label Install Alpine 3.x
+  kernel images/alpine3.12.1-x86_64/vmlinuz-lts
+  append initrd=images/alpine3.12.1-x86_64/initramfs-lts ip=dhcp repo={{ shared_http_url }}/software/alpine3.12.1-x86_64/apks/ modloop={{ shared_http_url }}/software/alpine3.12.1-x86_64/boot/modloop-lts nomodeset vesa
+  text help
+  Boot Alpine 3.x
+  endtext

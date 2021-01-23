@@ -2,3 +2,5 @@
 fileignoreconfig:
 - filename: foundations/README.md
   checksum: fd2192c7b2d3604ce53c299cc9543e064b5f863400a83b338e256422457fb577
+- filename: ansible/templates/shared/cloud-init/focal/user-data.j2
+  checksum: 0051568faed5ef973ee769b567a2b0c07a0588820df6e0e28799c9e29faa9af7
