@@ -3,11 +3,11 @@
 # tools.
 
 terraform {
-  required_version = "~> 0.14"
+  required_version = "~> 0.15"
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "3.53.0"
+      version = "~> 3.65"
     }
   }
   # Once the Terraform state bucket has been created, uncomment these lines and

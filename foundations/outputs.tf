@@ -21,6 +21,7 @@ output "vault_bucket" {
 output "vault_key" {
   description = "The GCP service account JSON key file, base64 encoded, that must be used to authenticate as the Vault service account."
   value       = google_service_account_key.vault.private_key
+  sensitive   = true
 }
 
 output "opnsense_sa" {
