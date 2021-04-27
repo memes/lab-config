@@ -4,3 +4,7 @@ fileignoreconfig:
   checksum: e85d645a06e7d163da013173ab38affb6bafc57b0f426776c4484f0cc1146de1
 - filename: ansible/templates/shared/cloud-init/focal/user-data.j2
   checksum: 0051568faed5ef973ee769b567a2b0c07a0588820df6e0e28799c9e29faa9af7
+- filename: vault/oidc.tf
+  checksum: c7c0fb7ee7fe4c95e22accc8c3bb6f03c26d8fd3eebb741421a13e95b618ab1c
+- filename: vault/README.md
+  checksum: 0672df6d565d602139cfad19ab1839300c0ba7dd35488624a71a96351bb51bc0

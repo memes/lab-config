@@ -28,3 +28,28 @@ variable "f5_anthos_project_id" {
   type        = string
   description = "The GCP project id for F5/Anthos integration lab."
 }
+
+variable "gsuite_client_id" {
+  type        = string
+  description = "The GSuite OIDC client id."
+}
+
+variable "gsuite_client_secret" {
+  type        = string
+  description = "The GSuite OIDC client secret."
+}
+
+variable "gsuite_service_account_cred_path" {
+  type        = string
+  description = "The path to the JSON credentials for a GCP service account with access to GSuite user data."
+}
+
+variable "gsuite_admin_impersonate_account" {
+  type        = string
+  description = "The GSuite administrative user account that will be impersonated for API calls."
+}
+
+variable "gsuite_admin_group" {
+  type        = string
+  description = "GSuite group that will be granted Vault admin role on authentication."
+}
