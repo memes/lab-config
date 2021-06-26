@@ -1,0 +1,81 @@
+# Original generated from kubeadm config print init-defaults --component-configs=KubeletConfiguration
+{{ ansible_managed | comment }}
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: InitConfiguration
+bootstrapTokens:
+  - groups:
+      - system:bootstrappers:kubeadm:default-node-token
+    token: {{ kubeadm_token }}
+    ttl: 4h0m0s
+    usages:
+      - signing
+      - authentication
+certificateKey: {{ kubeadm_cert_key }}
+localAPIEndpoint:
+  advertiseAddress: {{ ansible_host }}
+  bindPort: 6443
+nodeRegistration:
+  criSocket: unix:///var/run/crio/crio.sock
+  name: {{ inventory_hostname }}
+  taints:
+    - effect: NoSchedule
+      key: node-role.kubernetes.io/master
+---
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: ClusterConfiguration
+apiServer:
+  timeoutForControlPlane: 4m0s
+certificatesDir: /etc/kubernetes/pki
+clusterName: {{ kubernetes_cluster_name | default('lab') }}
+controllerManager: {}
+controlPlaneEndpoint: {{ kubernetes_api_server }}
+dns:
+  type: CoreDNS
+etcd:
+  local:
+    dataDir: /var/lib/etcd
+imageRepository: k8s.gcr.io
+kubernetesVersion: v{{ kubernetes_version }}
+networking:
+  dnsDomain: {{ kubernetes_dns_domain | default('cluster.local') }}
+  serviceSubnet: {{ kubernetes_service_cidr | default('10.1.0.0/22') }}
+  podSubnet: {{ kubernetes_pod_cidr | default('10.0.0.0/17') }}
+scheduler: {}
+---
+apiVersion: kubelet.config.k8s.io/v1beta1
+authentication:
+  anonymous:
+    enabled: false
+  webhook:
+    cacheTTL: 0s
+    enabled: true
+  x509:
+    clientCAFile: /etc/kubernetes/pki/ca.crt
+authorization:
+  mode: Webhook
+  webhook:
+    cacheAuthorizedTTL: 0s
+    cacheUnauthorizedTTL: 0s
+cgroupDriver: systemd
+clusterDNS:
+  - {{ kubernetes_dns_service | default('10.1.0.10') }}
+clusterDomain: {{ kubernetes_dns_domain | default('cluster.local') }}
+cpuManagerReconcilePeriod: 0s
+evictionPressureTransitionPeriod: 0s
+fileCheckFrequency: 0s
+healthzBindAddress: 127.0.0.1
+healthzPort: 10248
+httpCheckFrequency: 0s
+imageMinimumGCAge: 0s
+kind: KubeletConfiguration
+logging: {}
+nodeStatusReportFrequency: 0s
+nodeStatusUpdateFrequency: 0s
+rotateCertificates: true
+runtimeRequestTimeout: 0s
+shutdownGracePeriod: 0s
+shutdownGracePeriodCriticalPods: 0s
+staticPodPath: /etc/kubernetes/manifests
+streamingConnectionIdleTimeout: 0s
+syncFrequency: 0s
+volumeStatsAggPeriod: 0s

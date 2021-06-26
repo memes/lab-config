@@ -8,3 +8,9 @@ fileignoreconfig:
   checksum: c7c0fb7ee7fe4c95e22accc8c3bb6f03c26d8fd3eebb741421a13e95b618ab1c
 - filename: vault/README.md
   checksum: 0672df6d565d602139cfad19ab1839300c0ba7dd35488624a71a96351bb51bc0
+- filename: ansible/templates/kubernetes/kubeadm.yml.j2
+  checksum: f28ad7e9c475fdd23e7a69b4c6a9eee0f6a6739cd95e25e2b25db7a748b67285
+- filename: ansible/kubernetes.yml
+  checksum: 47fd1c8258d6a1f38cdcbc5b60e5db48192fbc3266240647ab7a7a3e38baad85
+- filename: ansible/templates/kubernetes/calico.yaml.j2
+  checksum: e2a97263eb17aaa8e4ce6bfb040440fe962eaeabf3b1a6b6c83e1b67ab1dd60e

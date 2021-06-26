@@ -1,0 +1,5 @@
+# Persistent module configuration for Kubernetes/CRI-O
+{{ ansible_managed | comment }}
+{% for mod in cri_required_modules %}
+{{ mod }}
+{% endfor %}
