@@ -12,19 +12,10 @@ resource "vault_jwt_auth_backend" "oidc" {
     provider                 = "gsuite"
     gsuite_service_account   = var.gsuite_service_account_cred_path
     gsuite_admin_impersonate = var.gsuite_admin_impersonate_account
-    # Manually update this from command line to make sure it is setting all
-    # params correctly and ignore changes until fixed.
-    # https://github.com/hashicorp/terraform-provider-vault/issues/957
-    # fetch_groups = true
-    # fetch_user_info = false
-    # groups_recurse_max_depth = 5
-    user_custom_schemas = ""
-  }
-
-  lifecycle {
-    ignore_changes = [
-      provider_config,
-    ]
+    fetch_groups             = true
+    fetch_user_info          = false
+    groups_recurse_max_depth = 5
+    user_custom_schemas      = ""
   }
 }
 
@@ -58,23 +49,4 @@ resource "vault_identity_group_alias" "admins_alias" {
   name           = var.gsuite_admin_group
   mount_accessor = vault_jwt_auth_backend.oidc.accessor
   canonical_id   = vault_identity_group.admins.id
-}
-
-resource "local_file" "oidc_json" {
-  filename = "oidc.json"
-  content = jsonencode({
-    oidc_discovery_url = "https://accounts.google.com"
-    oidc_client_id     = var.gsuite_client_id
-    oidc_client_secret = var.gsuite_client_secret
-    default_role       = "domain_user"
-    provider_config = {
-      provider                 = "gsuite"
-      gsuite_service_account   = var.gsuite_service_account_cred_path
-      gsuite_admin_impersonate = var.gsuite_admin_impersonate_account
-      fetch_groups             = true
-      fetch_user_info          = false
-      groups_recurse_max_depth = 5
-      user_custom_schemas      = ""
-    }
-  })
 }

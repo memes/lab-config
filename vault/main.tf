@@ -1,13 +1,13 @@
 # Configure Hashicorp Vault for use in lab
 terraform {
-  required_version = "~> 0.15"
+  required_version = "~> 1.0"
   required_providers {
     vault = {
       # Provider is configured through environment vars to facilitate bootstrapping
       # and updates.
       # See https://registry.terraform.io/providers/hashicorp/vault/latest/docs#provider-arguments
       source  = "hashicorp/vault"
-      version = "~> 2.19"
+      version = "~> 3.0"
     }
   }
   backend "gcs" {}

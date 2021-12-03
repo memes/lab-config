@@ -90,29 +90,6 @@ vault login -method=oidc
       VAULT_SKIP_VERIFY=true terraform apply -auto-approve
       ```
 
-   1. Update OIDC configuration for GSuite
-
-      Due to provider [bug 957](https://github.com/hashicorp/terraform-provider-vault/issues/957), the full configuration for OIDC authentication via GSuite is not provided by Terraform. Manually apply the configuration update below, substituting the correct values.
-
-      ```shell
-      vault write -tls-skip-verify auth/oidc/config - <<EOF
-      {
-         "oidc_discovery_url": "https://accounts.google.com",
-         "oidc_client_id": "GSUITE_CLIENT_ID",
-         "oidc_client_secret": "GSUITE_CLIENT_SECRET",
-         "default_role": "domain_user",
-         "provider_config": {
-            "provider": "gsuite",
-            "gsuite_service_account": "PATH_TO_JSON_CREDS_ON_VAULT_SERVER",
-            "gsuite_admin_impersonate": "DOMAIN_ADMIN_EMAIL",
-            "fetch_groups": true,
-            "fetch_user_info": false,
-            "groups_recurse_max_depth": 5,
-            "user_custom_schemas": ""
-         }
-      }
-      ```
-
 1. Enable TLS for Vault
 
    1. Regenerate Vault certificate
@@ -148,15 +125,14 @@ vault login -method=oidc
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 0.15 |
-| <a name="requirement_vault"></a> [vault](#requirement\_vault) | ~> 2.19 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.0 |
+| <a name="requirement_vault"></a> [vault](#requirement\_vault) | ~> 3.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_local"></a> [local](#provider\_local) | n/a |
-| <a name="provider_vault"></a> [vault](#provider\_vault) | ~> 2.19 |
+| <a name="provider_vault"></a> [vault](#provider\_vault) | 3.0.1 |
 
 ## Modules
 
@@ -166,7 +142,6 @@ No modules.
 
 | Name | Type |
 |------|------|
-| [local_file.oidc_json](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [vault_approle_auth_backend_role.ipmi-secrets](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/approle_auth_backend_role) | resource |
 | [vault_approle_auth_backend_role.kickstart-secrets](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/approle_auth_backend_role) | resource |
 | [vault_auth_backend.approle](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/auth_backend) | resource |
