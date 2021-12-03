@@ -1,48 +1,51 @@
-# Update shared server
-# yamllint disable rule:truthy
+# Manage Vault service
+# yamllint disable rule:truthy rule:line-length
 ---
-- name: Update Vault service
+- name: Install/update Vault service
   hosts: vault
   become: yes
   tasks:
-    - name: Vault group
-      ansible.builtin.group:
-        name: vault
-        system: yes
-    - name: Vault user
-      ansible.builtin.user:
-        name: vault
-        group: vault
-        append: no
-        system: yes
-        shell: /bin/false
-        password: "!"
-        create_home: false
-        home: "{{ vault_home }}"
+    - name: Add Hashicorp apt key
+      ansible.builtin.apt_key:
+        url: https://apt.releases.hashicorp.com/gpg
         state: present
-    - name: Set vault home permissions
-      ansible.builtin.file:
-        path: "{{ vault_home }}"
-        state: directory
-        mode: 0750
+      when: ansible_os_family == "Debian"
+    - name: Add Hashicorp apt repo
+      ansible.builtin.apt_repository:
+        repo: deb [arch=amd64] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main
+        state: present
+      when: ansible_os_family == "Debian"
+    - name: Add Hashicorp yum repo
+      ansible.builtin.get_url:
+        url: https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
+        dest: /etc/yum.repos.d/
         owner: root
-        group: vault
+        group: root
+        mode: 0644
+      when: ansible_os_family == "RedHat"
+    - name: Install Vault
+      ansible.builtin.package:
+        name: vault
+        state: present
     - name: Update Vault configuration
       ansible.builtin.template:
-        src: templates/vault/config.hcl.j2
-        dest: "{{ vault_home }}/config.hcl"
+        src: templates/vault.d/{{ item }}.j2
+        dest: "/etc/vault.d/{{ item }}"
         force: yes
-        owner: vault
+        owner: root
         group: vault
         mode: 0640
+      loop:
+        - vault.hcl
+        - vault.env
       notify:
         - restart Vault
     - name: Copy Vault TLS files
       ansible.builtin.copy:
         src: "../certs/{{ item }}"
-        dest: "{{ vault_home }}/{{ item }}"
+        dest: "{{ vault_home }}/tls/{{ item }}"
         force: yes
-        owner: vault
+        owner: root
         group: vault
         mode: 0640
       loop:
@@ -55,19 +58,9 @@
         src: "{{ vault_gcp_sa_creds_file }}"
         dest: "{{ vault_home }}/vault-sa.json"
         force: yes
-        owner: vault
+        owner: root
         group: vault
         mode: 0640
-      notify:
-        - restart Vault
-    - name: Install systemd unit
-      ansible.builtin.template:
-        src: templates/vault/vault.service.j2
-        dest: /etc/systemd/system/vault.service
-        force: yes
-        owner: root
-        group: root
-        mode: 0644
       notify:
         - restart Vault
     - name: Enable systemd unit
