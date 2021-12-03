@@ -14,3 +14,5 @@ fileignoreconfig:
   checksum: 47fd1c8258d6a1f38cdcbc5b60e5db48192fbc3266240647ab7a7a3e38baad85
 - filename: ansible/templates/kubernetes/calico.yaml.j2
   checksum: e2a97263eb17aaa8e4ce6bfb040440fe962eaeabf3b1a6b6c83e1b67ab1dd60e
+- filename: ansible/templates/vsphere/vcsa.json.j2
+  checksum: ae2b3fedd597c8f36e71befff3cc0003557bae1b2a48f9d828bb7826d7f18f00
