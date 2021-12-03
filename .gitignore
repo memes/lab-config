@@ -6,9 +6,10 @@ terraform.tfvars
 terraform.config
 .terraform.lock.hcl
 
-# Ignore envrc
+# Ignore envrc and asdf
 .envrc
 .direnv
+.tool-versions
 
 # Ignore all json files; these *may* be a credential
 *.json
