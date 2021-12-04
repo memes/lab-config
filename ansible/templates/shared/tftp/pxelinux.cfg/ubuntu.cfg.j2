@@ -2,11 +2,11 @@
 {{ ansible_managed | comment }}
 
 label ubuntu2004
-  menu label Ubuntu Server ^20.04 LTS
+  menu label Ubuntu Server ^20.04.3 LTS
   kernel images/ubuntu20.04-LTS-x86_64/vmlinuz
-  append initrd=images/ubuntu20.04-LTS-x86_64/initrd root=/dev/ram0 ramdisk_size=1500000 vga=normal fb=false ip=dhcp url={{ shared_http_url }}/isos/ubuntu-20.04.2-live-server-amd64.iso
+  append initrd=images/ubuntu20.04-LTS-x86_64/initrd root=/dev/ram0 ramdisk_size=1500000 vga=normal fb=false ip=dhcp url={{ shared_http_url }}/isos/ubuntu-20.04.3-live-server-amd64.iso
   text help
-  Install Ubuntu Server 20.04 LTS from Live server DVD
+  Install Ubuntu Server 20.04.3 LTS from Live server DVD
   endtext
 
 label ubuntu1804
@@ -15,12 +15,4 @@ label ubuntu1804
   append initrd=images/ubuntu18.04-LTS-netboot-x86_64/initrd.gz vga=788 --- label cli-expert
   text help
   Install Ubuntu Server 18.04 LTS
-  endtext
-
-label ubuntu1804r
-  menu label Ubuntu Server 18.04 LTS (^Rescue)
-  kernel images/ubuntu18.04-LTS-netboot-x86_64/linux
-  append initrd=images/ubuntu18.04-LTS-netboot-x86_64/initrd.gz vga=788 expert/rescue=true
-  text help
-  Install Netboot Ubuntu Server 18.04 LTS in Rescue mode
   endtext
