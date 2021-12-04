@@ -120,7 +120,6 @@
         - pxelinux.cfg/01-d4-ae-52-98-b7-a8
         - pxelinux.cfg/common.cfg
         - pxelinux.cfg/default
-        - pxelinux.cfg/esxi.cfg
         - pxelinux.cfg/splash.png
         - pxelinux.cfg/tools.cfg
         - esxi/pxelinux.cfg/common.cfg
@@ -136,13 +135,11 @@
         group: root
         mode: 0644
       loop:
-        - pxelinux.cfg/alpine.cfg
         - pxelinux.cfg/centos.cfg
         - pxelinux.cfg/debian.cfg
         - pxelinux.cfg/kali.cfg
         - pxelinux.cfg/lab_autoprovision.cfg
         - pxelinux.cfg/lab_default_target.cfg
-        - pxelinux.cfg/photon.cfg
         - pxelinux.cfg/redhat.cfg
         - pxelinux.cfg/ubuntu.cfg
         - esxi/images/dell_emc_esxi67-x86_64/lab.cfg

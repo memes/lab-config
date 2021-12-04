@@ -1,7 +1,7 @@
 # Debian installation options via PXE
 #
-# NOTE: This Debian uses content of whatever netboot version has been installed
-# on the shared server.
+# NOTE: This Debian menu boots a netboot image that matches the installed version
+# of Debian on the shared server.
 {{ ansible_managed | comment }}
 
 label debian{{ ansible_distribution_major_version }}
