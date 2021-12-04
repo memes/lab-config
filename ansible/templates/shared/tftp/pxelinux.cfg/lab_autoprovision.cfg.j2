@@ -11,12 +11,12 @@ totaltimeout 600
 
 menu title PXE autoprovision options
 
-label centos82
-  menu label Autoprovision Cent^OS 8.2
-  kernel images/centos8.2.2004-x86_64/vmlinuz
-  append initrd=images/centos8.2.2004-x86_64/initrd.img vlan=eno1.10:eno1 ip=eno1.10:dhcp inst.text nomodeset inst.repo={{ shared_http_url }}/software/centos8.2.2004-x86_64/ inst.dd={{ shared_http_url }}/isos/dd-megaraid_sas-07.710.50.00-1.el8_2.elrepo.iso inst.ks={{ shared_http_url }}/el8/centos8-minimal.ks
+label centos85
+  menu label Autoprovision ^CentOS 8.5
+  kernel images/centos8.5.2111-x86_64/vmlinuz
+  append initrd=images/centos8.5.2111-x86_64/initrd.img vlan=eno1.10:eno1 ip=eno1.10:dhcp inst.text nomodeset inst.repo={{ shared_http_url }}/software/centos8.5.2111-x86_64 inst.dd={{ shared_http_url }}/isos/dd-megaraid_sas-07.717.02.00-1.el8_5.elrepo.iso inst.ks={{ shared_http_url }}/el8/centos8-minimal.ks
   text help
-  Install CentOS 8.2 with minimal kickstart for Lab
+  Install CentOS 8.5 with minimal kickstart for Lab
   endtext
 
 label esxi67
@@ -25,12 +25,12 @@ label esxi67
   com32 pxechn.c32
   append /esxi/pxelinux.0 -p /esxi/ -c pxelinux.cfg/lab_autoprovision.cfg
 
-label rhel82
-  menu label Autoprovision ^RHEL 8.2
-  kernel images/rhel8.2-x86_64/vmlinuz
-  append initrd=images/rhel8.2-x86_64/initrd.img vlan=eno1.10:eno1 ip=eno1.10:dhcp inst.text nomodeset inst.repo={{ shared_http_url }}/software/rhel8.2-x86_64/ inst.dd={{ shared_http_url }}/isos/dd-megaraid_sas-07.710.50.00-1.el8_2.elrepo.iso inst.ks={{ shared_http_url }}/el8/rhel8-minimal.ks
+label rhel85
+  menu label Autoprovision ^RHEL 8.5
+  kernel images/rhel8.5-x86_64/vmlinuz
+  append initrd=images/rhel8.5-x86_64/initrd.img vlan=eno1.10:eno1 ip=eno1.10:dhcp inst.text nomodeset inst.repo={{ shared_http_url }}/software/rhel8.5-x86_64 inst.dd={{ shared_http_url }}/isos/dd-megaraid_sas-07.717.02.00-1.el8_5.elrepo.iso inst.ks={{ shared_http_url }}/el8/rhel8-minimal.ks
   text help
-  Install RHEL 8.2 with minimal kickstart for Lab
+  Install RHEL 8.5 with minimal kickstart for Lab
   endtext
 
 label ubuntu2004

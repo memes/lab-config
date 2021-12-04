@@ -1,18 +1,26 @@
 # RedHat PXE boot options shared on this server
 {{ ansible_managed | comment }}
 
-label rhel82
-  menu label Install RHEL ^8.2
-  kernel images/rhel8.2-x86_64/vmlinuz
-  append initrd=images/rhel8.2-x86_64/initrd.img ip=dhcp inst.resolution=1024x768 nomodeset inst.repo={{ shared_http_url }}/software/rhel8.2-x86_64/ inst.dd={{ shared_http_url }}/isos/dd-megaraid_sas-07.710.50.00-1.el8_2.elrepo.iso
+label rhel85
+  menu label Install RHEL 8.^5
+  kernel images/rhel8.5-x86_64/vmlinuz
+  append initrd=images/rhel8.5-x86_64/initrd.img ip=dhcp inst.resolution=1024x768 nomodeset inst.repo={{ shared_http_url }}/software/rhel8.5-x86_64 inst.dd={{ shared_http_url }}/isos/dd-megaraid_sas-07.717.02.00-1.el8_5.elrepo.iso
   text help
   Install RedHat Enterprise Linux 8 in VESA mode
   endtext
 
-label rhel82r
-  menu label RHEL 8.2 - ^Rescue
-  kernel images/rhel8.2-x86_64/vmlinuz
-  append initrd=images/rhel8.2-x86_64/initrd.img rescue
+label rhel85r
+  menu label RHEL 8.5 - ^Rescue
+  kernel images/rhel8.5-x86_64/vmlinuz
+  append initrd=images/rhel8.5-x86_64/initrd.img rescue
   text help
-  Launch RHEL 8 Rescue mode
+  Install RedHat Enterprise Linux 8.5 in rescue mode
+  endtext
+
+label rhel82
+  menu label Install RHEL 8.^2
+  kernel images/rhel8.2-x86_64/vmlinuz
+  append initrd=images/rhel8.2-x86_64/initrd.img ip=dhcp inst.resolution=1024x768 nomodeset inst.repo={{ shared_http_url }}/software/rhel8.2-x86_64 inst.dd={{ shared_http_url }}/isos/dd-megaraid_sas-07.710.50.00-1.el8_2.elrepo.iso
+  text help
+  Install RedHat Enterprise Linux 8 in VESA mode
   endtext

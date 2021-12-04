@@ -17,14 +17,14 @@ keyboard --vckeymap=us --xlayouts='us'
 lang en_US.UTF-8
 syspurpose --sla="Self-Support"
 
-# Install bootloader, efi, and /boot to sda (USB) with LVM for data on PERC (sdb)
+# Install bootloader, efi, and /boot to sdb (USB) with LVM for data on PERC (sda)
 ignoredisk --only-use=sda,sdb
 clearpart --all --initlabel --drives=sda,sdb
-bootloader --location=mbr --boot-drive=sda --append=" crashkernel=auto"
-part biosboot --fstype="biosboot" --ondisk=sda --size=1
-part /boot/efi --fstype="efi" --ondisk=sda --size=200
-part /boot --fstype="xfs" --ondisk=sda --size=2048
-part pv.0 --fstype="lvmpv" --ondisk=sdb --size=204800 --grow
+bootloader --location=mbr --boot-drive=sdb --driveorder=sdb,sda --append=" crashkernel=auto"
+part biosboot --fstype="biosboot" --ondisk=sdb --size=1
+part /boot/efi --fstype="efi" --ondisk=sdb --size=200
+part /boot --fstype="xfs" --ondisk=sdb --size=2048
+part pv.0 --fstype="lvmpv" --ondisk=sda --size=204800 --grow
 volgroup vg.0 --pesize=4096 pv.0
 logvol / --fstype="xfs" --size=10240  --grow --name=root --vgname=vg.0
 logvol swap --fstype="swap" --size=4096 --name=swap --vgname=vg.0
@@ -54,7 +54,7 @@ kexec-tools
 
 %anaconda
 pwpolicy root --minlen=6 --minquality=1 --notstrict --nochanges --notempty
-pwpolicy user --minlen=6 --minquality=1 --notstrict --nochanges --emptyok
+pwpolicy user --minlen=6 --minquality=1 --notstrict --nochanges --notempty
 pwpolicy luks --minlen=6 --minquality=1 --notstrict --nochanges --notempty
 %end
 
