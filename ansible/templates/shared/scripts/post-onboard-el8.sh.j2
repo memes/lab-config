@@ -46,7 +46,7 @@ update-ca-trust extract || \
 # fingerprints validated as identical to original keys.
 info "Installing GPG keys from shared server"
 for k in 0x756ba70b1019ced6.asc 0x1285491434D8786F.asc 0xca77951d23b66a9d.asc \
-    0x3CA66B4946770C59.asc RPM-GPG-KEY-elrepo.asc; do
+    0x3CA66B4946770C59.asc RPM-GPG-KEY-elrepo.asc hashicorp.asc; do
     curl -sLo /tmp/${k} {{ shared_http_url }}/keys/${k} || \
         error "Failed to download key ${k}: curl exit code: $?"
     rpm --import /tmp/${k} || \
@@ -86,14 +86,13 @@ info "Installing ElRepo repo"
 dnf install -qy https://www.elrepo.org/elrepo-release-8.el8.elrepo.noarch.rpm || \
     error "Failed to install ElRepo RPM from internet: dnf exit code: $?"
 
-# Install Vault from shared repository; this binary has been verified
-if ! command -v vault > /dev/null 2>/dev/null; then
-    info "Installing Vault from shared server"
-    curl -sLo /usr/local/bin/vault {{ shared_http_url }}/software/vault/vault_{{ vault_client_version }}_linux_amd64 || \
-        error "Failed to download Vault release binary: curl exit code: $?"
-    chmod 0755 /usr/local/bin/vault
-    chown root:root /usr/local/bin/vault
-fi
+# Add the Hashicorp repo
+dnf config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
+
+# Install Vault from Hashicorp repo, but don't run as a service
+dnf install -y vault
+systemctl stop vault.service
+systemctl mask vault.service
 
 info "El8 onboarding script finished"
 exit 0

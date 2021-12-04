@@ -245,6 +245,7 @@
         - 0x3CA66B4946770C59.asc
         - 0x756ba70b1019ced6.asc
         - 0xca77951d23b66a9d.asc
+        - hashicorp.asc
         - RPM-GPG-KEY-CentOS-Official.asc
         - RPM-GPG-KEY-elrepo.asc
         - RPM-GPG-KEY-redhat-release.asc

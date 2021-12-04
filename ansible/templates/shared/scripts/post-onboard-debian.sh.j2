@@ -50,14 +50,15 @@ curl -sLo /usr/local/share/ca-certificates/acceleratedgcp-root-ca.crt \
 update-ca-certificates || \
     info "Failed to update CA trust repository: update-ca-certificates exit code: $?"
 
-# Install Vault from shared repository; this binary has been verified
-if ! command -v vault > /dev/null 2>/dev/null; then
-    info "Installing Vault from shared server"
-    curl -sLo /usr/local/bin/vault {{ shared_http_url }}/software/vault/vault_{{ vault_client_version }}_linux_amd64 || \
-        error "Failed to download Vault release binary: curl exit code: $?"
-    chmod 0755 /usr/local/bin/vault
-    chown root:root /usr/local/bin/vault
-fi
+# Install pre-verified Hashicorp GPG key from shared server
+curl -fsSL {{ shared_http_url }}/keys/hashicorp.asc | apt-key add -
+
+# Install Vault from Hashicorp repo, but don't run as a service
+apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+apt-get update
+apt-get install -y vault
+systemctl stop vault.service
+systemctl mask vault.service
 
 info "Debian/Ubuntu onboarding script finished"
 exit 0

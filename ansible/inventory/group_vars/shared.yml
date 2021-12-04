@@ -6,4 +6,3 @@ lab_target: ubuntu2004
 nfs_export_shared_cidrs:
   - 172.16.0.0/12
   - 2001:470:49a5::/48
-vault_client_version: '1.6.1'
