@@ -47,6 +47,8 @@
         state: enabled
       loop: "{{ k8s_master_allow_fw}}"
       when: (k8s_master | default(False)) and (ansible_distribution == "Ubuntu")
+      tags:
+        - base
     - name: Configure ufw for master IPv6
       community.general.ufw:
         port: "{{ item['port'] }}"
@@ -58,6 +60,8 @@
         state: enabled
       loop: "{{ k8s_master_allow_fw}}"
       when: (k8s_master | default(False)) and (ansible_distribution == "Ubuntu")
+      tags:
+        - base
     - name: Configure ufw for worker IPv4
       community.general.ufw:
         port: "{{ item['port'] }}"
@@ -69,6 +73,8 @@
         state: enabled
       loop: "{{ k8s_worker_allow_fw }}"
       when: (k8s_worker | default(True)) and (ansible_distribution == "Ubuntu")
+      tags:
+        - base
     - name: Configure ufw for worker IPv6
       community.general.ufw:
         port: "{{ item['port'] }}"
@@ -80,6 +86,8 @@
         state: enabled
       loop: "{{ k8s_worker_allow_fw }}"
       when: (k8s_worker | default(True)) and (ansible_distribution == "Ubuntu")
+      tags:
+        - base
     - name: Configure firewalld for master
       ansible.posix.firewalld:
         port: "{{ item['port'] | replace(':', '-') }}/{{ item['protocol'] }}"
@@ -88,6 +96,8 @@
         state: enabled
       loop: "{{ k8s_master_allow_fw }}"
       when: (k8s_master | default(False)) and (ansible_os_family == "RedHat")
+      tags:
+        - base
     - name: Configure firewalld for worker
       ansible.posix.firewalld:
         port: "{{ item['port'] | replace(':', '-') }}/{{ item['protocol'] }}"
@@ -96,6 +106,8 @@
         state: enabled
       loop: "{{ k8s_worker_allow_fw }}"
       when: (k8s_worker | default(True)) and (ansible_os_family == "RedHat")
+      tags:
+        - base
     - name: Configure persistent modules for CRI
       ansible.builtin.template:
         src: templates/kubernetes/k8s-cri.conf.j2
@@ -103,11 +115,15 @@
         owner: root
         group: root
         mode: 0644
+      tags:
+        - base
     - name: Add modules
       community.general.modprobe:
         name: "{{ item }}"
         state: present
       loop: "{{ cri_required_modules }}"
+      tags:
+        - base
     - name: Set persistent sysctl params for Kubernetes/CRI
       ansible.posix.sysctl:
         name: "{{ item['param'] }}"
@@ -117,13 +133,19 @@
         reload: yes
         state: present
       loop: "{{ k8s_sysctl }}"
+      tags:
+        - base
     - name: disable swap
       ansible.builtin.command: swapoff -a
+      tags:
+        - base
     - name: remove swapfs
       ansible.posix.mount:
         path: none
         fstype: swap
         state: absent
+      tags:
+        - base
     - name: Disable SELinux on CentOS/RHEL
       ansible.posix.selinux:
         state: disabled
@@ -132,22 +154,28 @@
       # should it be forced/flushed prior to kube install?
       notify:
         - reboot
+      tags:
+        - base
     - name: Add CRI-O apt keys (Debian)
       ansible.builtin.apt_key:
         url: "{{ item }}"
         state: present
       loop:
-        - "https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:{{ crio_version }}/Debian_Testing/Release.key"
-        - "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/Debian_Testing/Release.key"
+        - "https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:{{ crio_version }}/Debian_{{ ansible_distribution_version }}/Release.key"
+        - "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/Debian_{{ ansible_distribution_version }}/Release.key"
       when: ansible_distribution == "Debian"
+      tags:
+        - base
     - name: Add CRI-O apt repos (Debian)
       ansible.builtin.apt_repository:
         repo: "{{ item }}"
         state: present
       loop:
-        - "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/Debian_Testing/ /"
-        - "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/Debian_Testing/ /"
+        - "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/Debian_{{ ansible_distribution_version }}/ /"
+        - "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/Debian_{{ ansible_distribution_version }}/ /"
       when: ansible_distribution == "Debian"
+      tags:
+        - base
     - name: Add CRI-O apt keys (Ubuntu)
       ansible.builtin.apt_key:
         url: "{{ item }}"
@@ -156,6 +184,8 @@
         - "https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:{{ crio_version }}/x{{ ansible_distribution }}_{{ ansible_distribution_version }}/Release.key"
         - "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/x{{ ansible_distribution }}_{{ ansible_distribution_version }}/Release.key"
       when: ansible_distribution == "Ubuntu"
+      tags:
+        - base
     - name: Add CRI-O apt repos (Ubuntu)
       ansible.builtin.apt_repository:
         repo: "{{ item }}"
@@ -164,6 +194,8 @@
         - "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/x{{ ansible_distribution }}_{{ ansible_distribution_version }}/ /"
         - "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/x{{ ansible_distribution }}_{{ ansible_distribution_version }}/ /"
       when: ansible_distribution == "Ubuntu"
+      tags:
+        - base
     - name: Add CRI-O repos for CentOS
       ansible.builtin.get_url:
         url: "{{ item }}"
@@ -175,16 +207,22 @@
         - "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ ansible_distribution }}_{{ ansible_distribution_major_version }}/devel:kubic:libcontainers:stable.repo"
         - "https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:{{ crio_version }}/{{ ansible_distribution }}_{{ ansible_distribution_major_version }}/devel:kubic:libcontainers:stable:cri-o:{{ crio_version}}.repo"
       when: ansible_distribution == "CentOS"
+      tags:
+        - base
     - name: Add Kubernetes apt keys
       ansible.builtin.apt_key:
         url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
         state: present
       when: ansible_os_family == "Debian"
+      tags:
+        - base
     - name: Add Kubernetes apt repo
       ansible.builtin.apt_repository:
         repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
         state: present
       when: ansible_os_family == "Debian"
+      tags:
+        - base
     - name: Add Kubernetes yum repo
       ansible.builtin.yum_repository:
         name: kubernetes
@@ -196,32 +234,44 @@
         repo_gpgcheck: yes
         gpgkey: https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
       when: ansible_distribution == "CentOS"
+      tags:
+        - base
     - name: Install CRI-O
       ansible.builtin.package:
         name: cri-o
         state: present
+      tags:
+        - base
     - name: Install CRI-O-runc for Debian/Ubuntu
       ansible.builtin.package:
         name: cri-o-runc
         state: present
       when: ansible_os_family == "Debian"
+      tags:
+        - base
     # Ubuntu 18.04 LTS overlay modules doesn't support metacopy param
     - name: Get overlay module params
       ansible.builtin.shell: modinfo -p overlay | grep -q metacopy
       ignore_errors: yes
       register: overlay_metacopy
+      tags:
+        - base
     - name: Rewrite overlay mountopt for /etc/containers/storage
       ansible.builtin.lineinfile:
         path: /etc/containers/storage.conf
         regexp: '^mountopt'
         line: mountopt = "nodev"
       when: overlay_metacopy.rc == 1
+      tags:
+        - base
     - name: Enable CRI-O unit
       ansible.builtin.systemd:
-        name: cri-o
+        name: crio
         enabled: yes
         state: restarted
         daemon_reload: yes
+      tags:
+        - base
     - name: Install kubectl, kubeadm, and kubelet for Debian/Ubuntu
       ansible.builtin.package:
         name: "{{ item }}"
@@ -231,6 +281,8 @@
         - "kubelet={{ kubernetes_version }}-00"
         - "kubeadm={{ kubernetes_version }}-00"
       when: ansible_os_family == "Debian"
+      tags:
+        - base
     - name: Hold kubectl, kubeadm, and kubelet on Debian/Ubuntu
       ansible.builtin.dpkg_selections:
         name: "{{ item }}"
@@ -240,6 +292,8 @@
         - kubelet
         - kubeadm
       when: ansible_os_family == "Debian"
+      tags:
+        - base
     - name: Install kubectl, kubeadm, and kubelet for CentOS/RHEL
       ansible.builtin.package:
         name: "{{ item }}"
@@ -249,20 +303,28 @@
         - "kubelet-{{ kubernetes_version }}"
         - "kubeadm-{{ kubernetes_version }}"
       when: ansible_os_family == "RedHat"
+      tags:
+        - base
     - name: Enable kubelet unit
       ansible.builtin.systemd:
         name: kubelet
         enabled: yes
         state: started
         daemon_reload: yes
+      tags:
+        - init
     - name: Generate kubeadm join token
       ansible.builtin.command: kubeadm token generate
       register: kubeadm_token_command
       run_once: yes
+      tags:
+        - init
     - name: Generate kubeadm cert token
       ansible.builtin.command: kubeadm certs certificate-key
       register: kubeadm_cert_key_command
       run_once: yes
+      tags:
+        - init
     - name: Generate kubeadm configuration (first master)
       vars:
         kubeadm_token: "{{ kubeadm_token_command.stdout }}"
@@ -275,34 +337,63 @@
         mode: 0644
       run_once: yes
       when: k8s_master | default(False)
+      tags:
+        - init
     - name: Execute kubeadm (first master)
-      ansible.builtin.command: kubeadm init --config=/var/tmp/kubeadm.yml --upload-certs
+      ansible.builtin.command: "kubeadm init --node-name={{ inventory_hostname }} --config=/var/tmp/kubeadm.yml --upload-certs"
       args:
         creates: /etc/kubernetes/admin.conf
       run_once: yes
       when: k8s_master | default(False)
-    - name: Create memes account
-      ansible.builtin.shell: |
-        kubeadm alpha kubeconfig user --config=/var/tmp/kubeadm.yml --client-name memes@{{ domain }} > /var/tmp/memes.conf
-      args:
-        creates: /var/tmp/memes.conf
+      tags:
+        - init
+    - name: Create admin user account(s)
+      ansible.builtin.command: "kubeadm kubeconfig user --config=/var/tmp/kubeadm.yml --client-name {{ item }}@{{ domain }}"
+      register: kubeconfig
+      loop: "{{ k8s_admins | default(['memes']) }}"
       run_once: yes
       when: k8s_master | default(False)
-    - name: Retrieve memes kubeconfig
-      ansible.builtin.fetch:
-        src: /var/tmp/memes.conf
-        dest: ../memes.conf
-        flat: yes
+      tags:
+        - users
+    - name: Write user kubeconfig(s) locally
+      local_action: ansible.builtin.template force=yes src=templates/kubernetes/kubeconfig.user.j2 dest=../kubeconfig.{{ item.item }}
       run_once: yes
-      when: k8s_master | default(False)
-    - name: Bind memes account as cluster-admin
-      ansible.builtin.command: "kubectl apply -f {{ shared_https_url }}/kubernetes/memes-rbac.yml --kubeconfig=/etc/kubernetes/admin.conf "
+      become: no
+      when: item.rc == 0
+      loop: "{{ kubeconfig.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+      tags:
+        - users
+    - name: Write admin accounts YAML
+      ansible.builtin.template:
+        src: templates/kubernetes/admin-user-rbac.yml.j2
+        dest: /var/tmp/{{ item.item }}-admin-rbac.yml
+        owner: root
+        group: root
+        mode: 0644
       run_once: yes
-      when: k8s_master | default(False)
+      when: k8s_master | default(False) and item.rc == 0
+      loop: "{{ kubeconfig.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+      tags:
+        - users
+    - name: Execute admin account bindings
+      ansible.builtin.command: "kubectl apply -f /var/tmp/{{ item.item }}-admin-rbac.yml --kubeconfig=/etc/kubernetes/admin.conf"
+      run_once: yes
+      when: k8s_master | default(False) and item.rc == 0
+      loop: "{{ kubeconfig.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+      tags:
+        - users
     - name: Check for NetworkManager conf.d
       ansible.builtin.stat:
         path: /etc/NetworkManager/conf.d
       register: nm_conf_d
+      tags:
+        - calico
     - name: Add NetworkManager override for Calico
       ansible.builtin.template:
         src: templates/kubernetes/nm-calico.conf.j2
@@ -311,23 +402,27 @@
         group: root
         mode: 0644
       when: nm_conf_d.stat.isdir is defined and nm_conf_d.stat.isdir
+      tags:
+        - calico
     - name: Reload NetworkManager configuration
       ansible.builtin.command: nmcli connection reload
       when: nm_conf_d.stat.isdir is defined and nm_conf_d.stat.isdir
+      tags:
+        - calico
     - name: Install calicoctl
       ansible.builtin.shell: |
-        curl -sLO https://github.com/projectcalico/calicoctl/releases/download/{{ calico_version }}/calicoctl && chmod 0755 calicoctl && mv calicoctl /usr/local/bin/
+        curl -sLo /usr/local/bin/calicoctl https://github.com/projectcalico/calicoctl/releases/download/{{ calico_version }}/calicoctl && chmod 0755 /usr/local/bin/calicoctl
       when: k8s_master | default(False)
+      tags:
+        - calico
     - name: Install Calico (first master)
       ansible.builtin.command: kubectl apply --kubeconfig=/etc/kubernetes/admin.conf -f https://docs.projectcalico.org/manifests/calico.yaml
       args:
         creates: /var/log/calico/cni/cni.log
       run_once: yes
       when: k8s_master | default(False)
-    - name: Delete Calico default-ipv4-ippool
-      ansible.builtin.shell: KUBECONFIG=/etc/kubernetes/admin.conf calicoctl delete IPPool default-ipv4-ippool
-      run_once: yes
-      when: k8s_master | default(False)
+      tags:
+        - calico
     - name: Generate Calico configuration (first master)
       ansible.builtin.template:
         src: templates/kubernetes/calico-bgp.yml.j2
@@ -337,35 +432,47 @@
         mode: 0644
       run_once: yes
       when: k8s_master | default(False)
+      tags:
+        - calico
     - name: Configure Calico BGP
-      ansible.builtin.shell: KUBECONFIG=/etc/kubernetes/admin.conf calicoctl apply -f /var/tmp/calico-bgp.yml
+      ansible.builtin.shell: KUBECONFIG=/etc/kubernetes/admin.conf /usr/local/bin/calicoctl apply -f /var/tmp/calico-bgp.yml
       run_once: yes
       when: k8s_master | default(False)
+      tags:
+        - calico
     - name: Get base kubeadm join command
       # ansible.builtin.shell: openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'
       ansible.builtin.command: kubeadm token create --print-join-command
       register: kubeadm_join_command
       when: k8s_master | default(False)
       run_once: yes
+      tags:
+        - join
     - name: Get kubeadm cert hash
       ansible.builtin.shell: kubeadm init phase upload-certs --upload-certs 2>/dev/null | tail -n1
       register: kubeadm_cert_hash
       when: k8s_master | default(False)
       run_once: yes
+      tags:
+        - join
     - name: Join other kubeadm servers
-      ansible.builtin.command: "{{ kubeadm_join_command.stdout }} {{ (k8s_master | default(False)) | ternary('--control-plane --certificate-key ' + kubeadm_cert_hash.stdout, '', '') }} --cri-socket=/var/run/crio/crio.sock --node-name={{ inventory_hostname }}"
+      ansible.builtin.command: "{{ kubeadm_join_command.stdout }} {{ (k8s_master | default(False)) | ternary('--control-plane --apiserver-advertise-address ' + ansible_host + ' --certificate-key ' + kubeadm_cert_hash.stdout, '', '') }} --node-name={{ inventory_hostname }}"
       args:
         creates: /etc/kubernetes/kubelet.conf
+      tags:
+        - join
     - name: Remove scheduling taints
       ansible.builtin.command: kubectl taint nodes {{ inventory_hostname }} node-role.kubernetes.io/master- --kubeconfig=/etc/kubernetes/admin.conf
       when: (k8s_master | default(False)) and (k8s_worker | default(True))
+      tags:
+        - init
+        - join
     - name: Clean up tmp files
       ansible.builtin.file:
         path: "{{ item }}"
         state: absent
       loop:
         - /var/tmp/kubeadm.yml
-        - /var/tmp/memes.conf
         - /var/tmp/calico-bgp.yml
       run_once: yes
       when: (k8s_master | default(False))

@@ -22,3 +22,7 @@ ca/*
 # Ignore generated certificates and supporting files
 certs/*
 !certs/Makefile
+
+# Ignore kubeconfigs
+kubeconfig*
+!ansible/templates/kubernetes/kubeconfig.memes.j2

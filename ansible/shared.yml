@@ -268,7 +268,6 @@
         - el8/centos8-minimal.ks
         - esxi/esxi67.ks
         - el8/rhel8-minimal.ks
-        - kubernetes/memes-rbac.yml
         - scripts/post-onboard-centos8.sh
         - scripts/post-onboard-debian.sh
         - scripts/post-onboard-el8.sh
