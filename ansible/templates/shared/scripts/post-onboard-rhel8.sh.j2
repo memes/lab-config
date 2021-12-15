@@ -32,5 +32,24 @@ for k in RPM-GPG-KEY-redhat-release.asc; do
     rm -f /tmp/${k}
 done
 
+# Register if RHN values are present
+RHN_USER="{{ rhn_user | default('') }}"
+RHN_PASSWORD="{{ rhn_password  | default('') }}"
+if [ -z "${RHN_USER}" -o -z "${RHN_PASSWORD}" ]; then
+        info "Missing one or both of RHN user and password; not registering with RHN"
+    else
+        info "Registering system with RHN"
+        subscription-manager register \
+            --username "${RHN_USER}" \
+            --password "${RHN_PASSWORD}" \
+            --auto-attach \
+            --force || \
+            error "Failed to register system: 'subscription-manager register' exit code: $?"
+        RHN_RELEASE="$(rpm -qi redhat-release | awk '/^Version +:/ {print $3}')"
+        subscription-manager release --set=${RHN_RELEASE} || \
+            error "Failed to pin release to ${RHN_RELEASE}: 'subscription-manger release' exit code: $?"
+    fi
+fi
+
 info "RHEL8 onboarding complete"
 exit 0

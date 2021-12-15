@@ -181,8 +181,8 @@
         url: "{{ item }}"
         state: present
       loop:
-        - "https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:{{ crio_version }}/x{{ ansible_distribution }}_{{ ansible_distribution_version }}/Release.key"
-        - "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/x{{ ansible_distribution }}_{{ ansible_distribution_version }}/Release.key"
+        - "https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:{{ crio_version }}/xUbuntu_{{ ansible_distribution_version }}/Release.key"
+        - "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ ansible_distribution_version }}/Release.key"
       when: ansible_distribution == "Ubuntu"
       tags:
         - base
@@ -191,12 +191,12 @@
         repo: "{{ item }}"
         state: present
       loop:
-        - "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/x{{ ansible_distribution }}_{{ ansible_distribution_version }}/ /"
-        - "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/x{{ ansible_distribution }}_{{ ansible_distribution_version }}/ /"
+        - "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ ansible_distribution_version }}/ /"
+        - "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/xUbuntu_{{ ansible_distribution_version }}/ /"
       when: ansible_distribution == "Ubuntu"
       tags:
         - base
-    - name: Add CRI-O repos for CentOS
+    - name: Add CRI-O repos for CentOS/RHEL
       ansible.builtin.get_url:
         url: "{{ item }}"
         dest: /etc/yum.repos.d/
@@ -204,9 +204,9 @@
         group: root
         mode: 0644
       loop:
-        - "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ ansible_distribution }}_{{ ansible_distribution_major_version }}/devel:kubic:libcontainers:stable.repo"
-        - "https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:{{ crio_version }}/{{ ansible_distribution }}_{{ ansible_distribution_major_version }}/devel:kubic:libcontainers:stable:cri-o:{{ crio_version}}.repo"
-      when: ansible_distribution == "CentOS"
+        - "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/CentOS_{{ ansible_distribution_major_version }}/devel:kubic:libcontainers:stable.repo"
+        - "https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:{{ crio_version }}/CentOS_{{ ansible_distribution_major_version }}/devel:kubic:libcontainers:stable:cri-o:{{ crio_version}}.repo"
+      when: ansible_os_family == "RedHat"
       tags:
         - base
     - name: Add Kubernetes apt keys
@@ -233,7 +233,7 @@
         gpgcheck: yes
         repo_gpgcheck: yes
         gpgkey: https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
-      when: ansible_distribution == "CentOS"
+      when: ansible_os_family == "RedHat"
       tags:
         - base
     - name: Install CRI-O

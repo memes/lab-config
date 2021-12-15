@@ -22,3 +22,5 @@ fileignoreconfig:
   checksum: 1f153ddc558e53a4771e143471809b07a9e3d23560687e9472647034dacd25b1
 - filename: ansible/files/shared/keys/hashicorp.asc
   checksum: e58c16d914a1588ce00652262e0b748233bdf281a7ee251b50e870ac8993536b
+- filename: ansible/templates/shared/scripts/post-onboard-rhel8.sh.j2
+  checksum: 14abd52835ccb67398afd39a6aa7a9a48aa4676abc29399eed7f500ac4320e51
