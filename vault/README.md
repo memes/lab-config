@@ -128,12 +128,6 @@ vault login -method=oidc
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.0 |
 | <a name="requirement_vault"></a> [vault](#requirement\_vault) | ~> 3.0 |
 
-## Providers
-
-| Name | Version |
-|------|---------|
-| <a name="provider_vault"></a> [vault](#provider\_vault) | 3.0.1 |
-
 ## Modules
 
 No modules.

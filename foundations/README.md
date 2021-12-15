@@ -23,13 +23,6 @@ Accelerated GCP Lab. These resources will be created:
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.0 |
 | <a name="requirement_google"></a> [google](#requirement\_google) | ~> 4.0 |
 
-## Providers
-
-| Name | Version |
-|------|---------|
-| <a name="provider_google"></a> [google](#provider\_google) | 4.2.0 |
-| <a name="provider_random"></a> [random](#provider\_random) | 3.1.0 |
-
 ## Modules
 
 No modules.
@@ -58,10 +51,10 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_apis"></a> [apis](#input\_apis) | A list of APIs to enable for the project. | `list(string)` | <pre>[<br>  "cloudapis.googleapis.com",<br>  "compute.googleapis.com",<br>  "logging.googleapis.com",<br>  "monitoring.googleapis.com",<br>  "oslogin.googleapis.com",<br>  "servicemanagement.googleapis.com",<br>  "serviceusage.googleapis.com",<br>  "storage-api.googleapis.com",<br>  "storage-component.googleapis.com",<br>  "iam.googleapis.com",<br>  "cloudresourcemanager.googleapis.com",<br>  "drive.googleapis.com"<br>]</pre> | no |
 | <a name="input_billing_account"></a> [billing\_account](#input\_billing\_account) | The GCP billing account to apply to the project. Executing user must have IAM permissions to associate the project to the billing account. | `string` | n/a | yes |
-| <a name="input_folder_id"></a> [folder\_id](#input\_folder\_id) | An optional folder identifier under which the project will be created. Default is an empty string. | `string` | `""` | no |
 | <a name="input_project_id"></a> [project\_id](#input\_project\_id) | The unique identifier to use with the created project. Must be globally unique. | `string` | n/a | yes |
+| <a name="input_apis"></a> [apis](#input\_apis) | A list of APIs to enable for the project. | `list(string)` | <pre>[<br>  "cloudapis.googleapis.com",<br>  "compute.googleapis.com",<br>  "logging.googleapis.com",<br>  "monitoring.googleapis.com",<br>  "oslogin.googleapis.com",<br>  "servicemanagement.googleapis.com",<br>  "serviceusage.googleapis.com",<br>  "storage-api.googleapis.com",<br>  "storage-component.googleapis.com",<br>  "iam.googleapis.com",<br>  "cloudresourcemanager.googleapis.com",<br>  "drive.googleapis.com"<br>]</pre> | no |
+| <a name="input_folder_id"></a> [folder\_id](#input\_folder\_id) | An optional folder identifier under which the project will be created. Default is an empty string. | `string` | `""` | no |
 | <a name="input_terraform_sa_impersonators"></a> [terraform\_sa\_impersonators](#input\_terraform\_sa\_impersonators) | An optional list of users and/or groups that will be granted ability to impersonate the Terraform service account. Members must be fully-qualified with 'user:' or 'group:'. | `list(string)` | `[]` | no |
 | <a name="input_tf_sa_roles"></a> [tf\_sa\_roles](#input\_tf\_sa\_roles) | A list of IAM roles to assign to the Terraform service account. | `list(string)` | <pre>[<br>  "roles/compute.admin",<br>  "roles/iam.serviceAccountAdmin",<br>  "roles/iam.serviceAccountKeyAdmin",<br>  "roles/iam.serviceAccountTokenCreator",<br>  "roles/iam.serviceAccountUser",<br>  "roles/storage.admin",<br>  "roles/resourcemanager.projectIamAdmin"<br>]</pre> | no |
 
