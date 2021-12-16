@@ -120,27 +120,6 @@
         - pxelinux.cfg/tools.cfg
         - esxi/pxelinux.cfg/default
         - esxi/pxelinux.cfg/lab_autoprovision.cfg
-    - name: Create symlinks for shared ESXi consistent menu settings
-      ansible.builtin.file:
-        src: "/srv/tftp/{{ item }}"
-        path: "/srv/tftp/esxi/{{ item }}"
-        state: link
-        force: yes
-        owner: tftp
-        group: root
-        mode: 0644
-      loop:
-        - pxelinux.cfg/common.cfg
-    - name: Create symlinks for server MACs to autoprovision
-      ansible.builtin.file:
-        src: "/srv/tftp/pxelinux.cfg/lab_autoprovision.cfg"
-        path: "/srv/tftp/pxelinux.cfg/{{ item }}"
-        state: link
-        force: yes
-        owner: tftp
-        group: root
-        mode: 0644
-      loop: "{{ autoprovision_macs | map('regex_replace', ':', '-') | map('lower') | list }}"
     - name: Copy templated PXE configurations
       ansible.builtin.template:
         src: "templates/shared/tftp/{{ item }}.j2"
@@ -158,6 +137,27 @@
         - pxelinux.cfg/redhat.cfg
         - pxelinux.cfg/ubuntu.cfg
         - esxi/images/dell_emc_esxi67-x86_64/lab.cfg
+    - name: Create hard-links for shared ESXi consistent menu settings
+      ansible.builtin.file:
+        src: "/srv/tftp/{{ item }}"
+        path: "/srv/tftp/esxi/{{ item }}"
+        state: hard
+        force: yes
+        owner: tftp
+        group: root
+        mode: 0644
+      loop:
+        - pxelinux.cfg/common.cfg
+    - name: Create hard-links for server MACs to autoprovision
+      ansible.builtin.file:
+        src: "/srv/tftp/pxelinux.cfg/lab_autoprovision.cfg"
+        path: "/srv/tftp/pxelinux.cfg/{{ item }}"
+        state: hard
+        force: yes
+        owner: tftp
+        group: root
+        mode: 0644
+      loop: "{{ autoprovision_macs | map('regex_replace', ':', '-') | map('lower') | list }}"
     - name: Start tftpd-hpa
       ansible.builtin.service:
         name: tftpd-hpa
