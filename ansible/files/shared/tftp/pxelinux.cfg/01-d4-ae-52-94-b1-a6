@@ -1,5 +1,0 @@
-# Dell R620 (mystic)
-ui vesamenu.c32
-include pxelinux.cfg/common.cfg
-include pxelinux.cfg/lab_default_target.cfg
-include pxelinux.cfg/lab_autoprovision.cfg

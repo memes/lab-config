@@ -1,11 +1,10 @@
 # Default ESXi menu - this is chain-loaded from the main PXE menu
 # see ../../pxelinux.cfg/esxi.cfg
-ui vesamenu.c32
+include pxelinux.cfg/common.cfg
 timeout 3000
 totaltimeout 6000
 ontimeout localboot
 default localboot
-include pxelinux.cfg/common.cfg
 menu title ESXi Options
 
 label dell_67

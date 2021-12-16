@@ -115,17 +115,32 @@
         group: root
         mode: 0644
       loop:
-        - pxelinux.cfg/01-14-fe-b5-c9-73-12
-        - pxelinux.cfg/01-d4-ae-52-94-b1-a6
-        - pxelinux.cfg/01-d4-ae-52-98-b7-a8
         - pxelinux.cfg/common.cfg
         - pxelinux.cfg/default
-        - pxelinux.cfg/splash.png
         - pxelinux.cfg/tools.cfg
-        - esxi/pxelinux.cfg/common.cfg
         - esxi/pxelinux.cfg/default
         - esxi/pxelinux.cfg/lab_autoprovision.cfg
-        - esxi/pxelinux.cfg/splash.png
+    - name: Create symlinks for shared ESXi consistent menu settings
+      ansible.builtin.file:
+        src: "/srv/tftp/{{ item }}"
+        path: "/srv/tftp/esxi/{{ item }}"
+        state: link
+        force: yes
+        owner: tftp
+        group: root
+        mode: 0644
+      loop:
+        - pxelinux.cfg/common.cfg
+    - name: Create symlinks for server MACs to autoprovision
+      ansible.builtin.file:
+        src: "/srv/tftp/pxelinux.cfg/lab_autoprovision.cfg"
+        path: "/srv/tftp/pxelinux.cfg/{{ item }}"
+        state: link
+        force: yes
+        owner: tftp
+        group: root
+        mode: 0644
+      loop: "{{ autoprovision_macs | map('regex_replace', ':', '-') | map('lower') | list }}"
     - name: Copy templated PXE configurations
       ansible.builtin.template:
         src: "templates/shared/tftp/{{ item }}.j2"

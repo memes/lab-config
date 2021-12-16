@@ -6,3 +6,7 @@ lab_target: ubuntu2004
 nfs_export_shared_cidrs:
   - 172.16.0.0/12
   - 2001:470:49a5::/48
+autoprovision_macs:
+  - 01-14-fe-b5-c9-73-12
+  - 01-d4-ae-52-94-b1-a6
+  - 01-d4-ae-52-98-b7-a8

@@ -1,9 +1,8 @@
 # Generic PXE boot menu
-ui vesamenu.c32
+include pxelinux.cfg/common.cfg
 timeout 3000
 totaltimeout 6000
 ontimeout localboot
-include pxelinux.cfg/common.cfg
 menu title Accelerated GCP Lab PXE Options
 
 label localboot
@@ -42,7 +41,7 @@ label esxi
   append /esxi/pxelinux.0 -p /esxi/
   text help
   Load VMware ESXi installation and upgrade menu.
-  NOTE: this will chainload an older syslinux/pxelinux without option to return to this full menu of options.
+  NOTE: this will chainload an older syslinux/pxelinux without Back option.
   endtext
 
 menu begin redhat
