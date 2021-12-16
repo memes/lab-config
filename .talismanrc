@@ -24,3 +24,5 @@ fileignoreconfig:
   checksum: e58c16d914a1588ce00652262e0b748233bdf281a7ee251b50e870ac8993536b
 - filename: ansible/templates/shared/scripts/post-onboard-rhel8.sh.j2
   checksum: 14abd52835ccb67398afd39a6aa7a9a48aa4676abc29399eed7f500ac4320e51
+- filename: ansible/templates/shared/esxi/esxi67.ks.j2
+  checksum: c06affb65ca287d809cb0d7850a9a08719d6325f6916c2e4ad5ceb845f86a945
