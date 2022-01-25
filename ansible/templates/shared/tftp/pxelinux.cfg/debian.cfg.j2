@@ -6,16 +6,16 @@
 
 label debian{{ ansible_distribution_major_version }}
   menu label ^Debian {{ ansible_distribution_major_version }}
-  kernel images/debian{{ ansible_distribution_major_version }}-x86_64/linux
-  append initrd=images/debian{{ ansible_distribution_major_version }}-x86_64/initrd.gz vga=normal fb=false
+  kernel ::boot/debian{{ ansible_distribution_major_version }}-x86_64/linux
+  append initrd=::boot/debian{{ ansible_distribution_major_version }}-x86_64/initrd.gz vga=normal fb=false
   text help
   Install Debian {{ ansible_distribution_major_version }} using minimal network installer image in text mode.
   endtext
 
 label deb{{ ansible_distribution_major_version }}rescue
 	menu label Debian {{ ansible_distribution_major_version }} ^Rescue mode
-	kernel images/debian{{ ansible_distribution_major_version }}-x86_64/linux
-	append initrd=images/debian{{ ansible_distribution_major_version }}-x86_64/initrd.gz vga=normal fb=false rescue/enable=true
+	kernel ::boot/debian{{ ansible_distribution_major_version }}-x86_64/linux
+	append initrd=::boot/debian{{ ansible_distribution_major_version }}-x86_64/initrd.gz vga=normal fb=false rescue/enable=true
   text help
   Launch Debian {{ ansible_distribution_major_version }} in Rescue mode
   endtext

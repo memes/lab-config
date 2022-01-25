@@ -3,16 +3,16 @@
 
 label ubuntu2004
   menu label Ubuntu Server ^20.04.3 LTS
-  kernel images/ubuntu20.04-LTS-x86_64/vmlinuz
-  append initrd=images/ubuntu20.04-LTS-x86_64/initrd root=/dev/ram0 ramdisk_size=1500000 vga=normal fb=false ip=dhcp url={{ shared_http_url }}/isos/ubuntu-20.04.3-live-server-amd64.iso
+  kernel ::boot/ubuntu20.04-LTS-x86_64/vmlinuz
+  append initrd=::boot/ubuntu20.04-LTS-x86_64/initrd root=/dev/ram0 ramdisk_size=1500000 vga=normal fb=false ip=dhcp url={{ shared_http_url }}/isos/ubuntu-20.04.3-live-server-amd64.iso
   text help
   Install Ubuntu Server 20.04.3 LTS from Live server DVD
   endtext
 
 label ubuntu1804
   menu label Ubuntu Server ^18.04 LTS
-  kernel images/ubuntu18.04-LTS-netboot-x86_64/linux
-  append initrd=images/ubuntu18.04-LTS-netboot-x86_64/initrd.gz vga=788 --- label cli-expert
+  kernel ::boot/ubuntu18.04-LTS-netboot-x86_64/linux
+  append initrd=::boot/ubuntu18.04-LTS-netboot-x86_64/initrd.gz vga=788 --- label cli-expert
   text help
   Install Ubuntu Server 18.04 LTS
   endtext

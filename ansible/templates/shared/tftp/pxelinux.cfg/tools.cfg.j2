@@ -1,11 +1,16 @@
+# Tools and utilities
+{{ ansible_managed | comment }}
+
+{% if bios | default(False) %}
 # memtest+
 label memtest
   menu label ^memtest
-  kernel images/tools/memtest
+  kernel ::boot/tools/memtest
+{% endif %}
 
 # ShredOS is a packaged fork of Darik's boot and nuke
 # Not much use on servers with PERC cards
 label shredos
   menu label ^shredos
-  kernel images/tools/shredos
+  kernel ::boot/tools/shredos
   append console=tty3 loglevel=3 loadkeys=us nwipe_options="--autonuke --method=dodshort"

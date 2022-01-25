@@ -7,12 +7,16 @@
   tasks:
     - name: set PXE target on shared
       ansible.builtin.template:
-        src: templates/shared/tftp/pxelinux.cfg/lab_default_target.cfg.j2
-        dest: /srv/tftp/pxelinux.cfg/lab_default_target.cfg
+        src: templates/shared/tftp/pxelinux.cfg//lab_default_target.cfg.j2
+        dest: /srv/tftp/{{ item }}/pxelinux.cfg/lab_default_target.cfg
         force: yes
         owner: root
         group: root
         mode: 0644
+      loop:
+        - bios
+        - efi32
+        - efi64
 - name: Force reboot into PXE
   hosts: servers
   become: no

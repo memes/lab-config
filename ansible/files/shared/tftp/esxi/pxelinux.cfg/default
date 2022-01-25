@@ -9,14 +9,14 @@ menu title ESXi Options
 
 label dell_67
   menu label ^Dell EMC customised ESXi 6.7
-  kernel images/dell_emc_esxi67-x86_64/mboot.c32
-  append -c images/dell_emc_esxi67-x86_64/boot.cfg
+  kernel ::boot/dell_emc_esxi67-x86_64/mboot.c32
+  append -c boot.cfg
   append 2
 
 label vanilla_67
   menu label ^Vanilla ESXi 6.7
-  kernel images/esxi67-x86_64/mboot.c32
-  append -c images/esxi67-x86_64/boot.cfg
+  kernel ::boot/esxi67-x86_64/mboot.c32
+  append -c boot.cfg
   append 2
 
 menu separator
