@@ -149,7 +149,7 @@ d-i debian-installer/allow_unauthenticated boolean false
 
 ### Package selection
 tasksel tasksel/first multiselect standard
-d-i pkgsel/include string openssh-server sudo apt-transport-https curl gnupg
+d-i pkgsel/include string openssh-server sudo apt-transport-https curl gnupg dbus-user-session
 d-i pkgsel/upgrade select safe-upgrade
 pkgsel pkgsel/update-policy select none
 popularity-contest popularity-contest/participate boolean false
@@ -158,7 +158,7 @@ popularity-contest popularity-contest/participate boolean false
 d-i grub-installer/only_debian boolean true
 d-i grub-installer/with_other_os boolean true
 d-i grub-installer/bootdev string /dev/sda
-d-i debian-installer/add-kernel-opts string vga=788 nomodeset text
+d-i debian-installer/add-kernel-opts string systemd.unified_cgroup_hierarchy=1
 
 ### Finishing up the installation
 d-i finish-install/keep-consoles boolean false

@@ -19,7 +19,7 @@ lang en_US.UTF-8
 # Install bootloader, efi, and /boot to sdb (USB) with LVM for data on PERC (sda)
 ignoredisk --only-use=sda,sdb
 clearpart --all --initlabel --drives=sda,sdb
-bootloader --location=mbr --boot-drive=sdb --driveorder=sdb,sda --append=" crashkernel=auto"
+bootloader --location=mbr --boot-drive=sdb --driveorder=sdb,sda --append=" crashkernel=auto systemd.unified_cgroup_hierarchy=1"
 part biosboot --fstype="biosboot" --ondisk=sdb --size=1
 part /boot/efi --fstype="efi" --ondisk=sdb --size=200
 part /boot --fstype="xfs" --ondisk=sdb --size=2048

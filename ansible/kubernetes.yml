@@ -146,6 +146,16 @@
         state: absent
       tags:
         - base
+    - name: mount bpffs on Ubuntu 18.04
+      ansible.posix.mount:
+        path: /sys/fs/bpf
+        src: bpffs
+        fstype: bpf
+        opts: rw,nosuid,nodev,noexec,relatime,mode=700
+        state: mounted
+      when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "18"
+      tags:
+        - base
     - name: Disable SELinux on CentOS/RHEL
       ansible.posix.selinux:
         state: disabled
