@@ -15,10 +15,10 @@ vsphere_datacenter: lab
 vsphere_cluster: cluster0
 vsphere_dvswitch: dvSwitch0
 # Kubernetes
-crio_version: '1.22'
-kubernetes_version: '1.23.0'
+crio_version: '1.23'
+kubernetes_version: '1.23.3'
 kubernetes_api_server: 'control.{{ domain }}'
-calico_version: v3.21.2
+calico_version: v3.21.4
 kubernetes_pod_cidr: 10.0.0.0/17
 kubernetes_service_cidr: 10.1.0.0/22
 kubernetes_external_cidr: 10.2.0.0/24
