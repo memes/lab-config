@@ -19,6 +19,7 @@ vsphere_dvswitch: dvSwitch0
 crio_version: '1.22'
 kubernetes_version: '1.23.3'
 kubernetes_api_server: 'control.{{ domain }}'
+kubernetes_api_address: '172.17.1.2'
 calico_version: v3.21.4
 kubernetes_pod_cidr: 10.0.0.0/17
 kubernetes_service_cidr: 10.1.0.0/22

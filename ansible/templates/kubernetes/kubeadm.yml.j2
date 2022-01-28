@@ -15,8 +15,11 @@ nodeRegistration:
 ---
 apiVersion: kubeadm.k8s.io/v1beta3
 kind: ClusterConfiguration
+apiServer:
+  certSANs:
+    - {{ kubernetes_api_server }}
 clusterName: {{ kubernetes_cluster_name | default('lab') }}
-controlPlaneEndpoint: {{ kubernetes_api_server }}
+controlPlaneEndpoint: {{ kubernetes_api_address }}
 networking:
   dnsDomain: {{ kubernetes_dns_domain | default('cluster.local') }}
   serviceSubnet: {{ kubernetes_service_cidr | default('10.1.0.0/22') }}

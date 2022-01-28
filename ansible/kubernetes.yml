@@ -322,7 +322,7 @@
         state: started
         daemon_reload: yes
       tags:
-        - init
+        - base
     - name: Generate kubeadm join token
       ansible.builtin.command: kubeadm token generate
       register: kubeadm_token_command
@@ -353,6 +353,29 @@
       ansible.builtin.command: "kubeadm init --node-name={{ inventory_hostname }} --config=/var/tmp/kubeadm.yml --upload-certs"
       args:
         creates: /etc/kubernetes/admin.conf
+      run_once: yes
+      when: k8s_master | default(False)
+      tags:
+        - init
+    - name: Generate CoreDNS configuration (first master)
+      ansible.builtin.template:
+        src: templates/kubernetes/coredns-corefile.yml.j2
+        dest: /var/tmp/coredns-corefile.yml
+        owner: root
+        group: root
+        mode: 0644
+      run_once: yes
+      when: k8s_master | default(False)
+      tags:
+        - init
+    - name: Apply CoreDNS configuration (first master)
+      ansible.builtin.command: "kubectl apply -f /var/tmp/coredns-corefile.yml --kubeconfig=/etc/kubernetes/admin.conf"
+      run_once: yes
+      when: k8s_master | default(False)
+      tags:
+        - init
+    - name: Redeploy CoreDNS (first master)
+      ansible.builtin.command: kubectl --kubeconfig=/etc/kubernetes/admin.conf delete pod -n kube-system -l k8s-app=kube-dns
       run_once: yes
       when: k8s_master | default(False)
       tags:
@@ -398,6 +421,32 @@
         label: "{{ item.item }}"
       tags:
         - users
+    - name: Get base kubeadm join command
+      # ansible.builtin.shell: openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'
+      ansible.builtin.command: kubeadm token create --print-join-command
+      register: kubeadm_join_command
+      when: k8s_master | default(False)
+      run_once: yes
+      tags:
+        - join
+    - name: Get kubeadm cert hash
+      ansible.builtin.shell: kubeadm init phase upload-certs --upload-certs 2>/dev/null | tail -n1
+      register: kubeadm_cert_hash
+      when: k8s_master | default(False)
+      run_once: yes
+      tags:
+        - join
+    - name: Join other kubeadm servers
+      ansible.builtin.command: "{{ kubeadm_join_command.stdout }} {{ (k8s_master | default(False)) | ternary('--control-plane --apiserver-advertise-address ' + ansible_host + ' --certificate-key ' + kubeadm_cert_hash.stdout, '', '') }} --node-name={{ inventory_hostname }}"
+      args:
+        creates: /etc/kubernetes/kubelet.conf
+      tags:
+        - join
+    - name: Remove scheduling taints
+      ansible.builtin.command: kubectl taint nodes {{ inventory_hostname }} node-role.kubernetes.io/master- --kubeconfig=/etc/kubernetes/admin.conf
+      when: (k8s_master | default(False)) and (k8s_worker | default(True))
+      tags:
+        - taints
     - name: Check for NetworkManager conf.d
       ansible.builtin.stat:
         path: /etc/NetworkManager/conf.d
@@ -425,21 +474,48 @@
       when: k8s_master | default(False)
       tags:
         - calico
-    - name: Install Calico (first master)
-      ansible.builtin.command: kubectl apply --kubeconfig=/etc/kubernetes/admin.conf -f https://docs.projectcalico.org/manifests/calico.yaml
+    - name: Generate Calico configurations (first master)
+      ansible.builtin.template:
+        src: templates/kubernetes/{{ item }}.j2
+        dest: /var/tmp/{{ item }}
+        owner: root
+        group: root
+        mode: 0644
+      loop:
+        - calico-custom-resources.yml
+        - calico-bgp.yml
+        - calico-endpoints.yml
+      run_once: yes
+      when: k8s_master | default(False)
+      tags:
+        - calico
+    - name: Install Calico Operator (first master)
+      ansible.builtin.command: kubectl apply --kubeconfig=/etc/kubernetes/admin.conf -f https://docs.projectcalico.org/manifests/tigera-operator.yaml
       args:
         creates: /var/log/calico/cni/cni.log
       run_once: yes
       when: k8s_master | default(False)
       tags:
         - calico
-    - name: Generate Calico configuration (first master)
-      ansible.builtin.template:
-        src: templates/kubernetes/calico-bgp.yml.j2
-        dest: /var/tmp/calico-bgp.yml
-        owner: root
-        group: root
-        mode: 0644
+    - name: Pause for 30 seconds
+      ansible.builtin.pause:
+        seconds: 30
+      tags:
+        - calico
+    - name: Apply Calico Operator configuration (first master)
+      ansible.builtin.command: kubectl apply --kubeconfig=/etc/kubernetes/admin.conf -f /var/tmp/calico-custom-resources.yml
+      run_once: yes
+      when: k8s_master | default(False)
+      tags:
+        - calico
+    - name: Pause for 600 seconds
+      ansible.builtin.pause:
+        seconds: 600
+      tags:
+        - calico
+    - name: Update Calico Felix configuration
+      ansible.builtin.shell: |
+        KUBECONFIG=/etc/kubernetes/admin.conf /usr/local/bin/calicoctl patch felixconfiguration default --patch='{"spec": {"ipipEnabled": false, "vxlanEnabled": false}}'
       run_once: yes
       when: k8s_master | default(False)
       tags:
@@ -450,40 +526,51 @@
       when: k8s_master | default(False)
       tags:
         - calico
-    - name: Get base kubeadm join command
-      # ansible.builtin.shell: openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'
-      ansible.builtin.command: kubeadm token create --print-join-command
-      register: kubeadm_join_command
-      when: k8s_master | default(False)
+    - name: Update Calico API endpoints ConfigMap (first master)
+      ansible.builtin.command: kubectl apply --kubeconfig=/etc/kubernetes/admin.conf -f /var/tmp/calico-endpoints.yml
       run_once: yes
-      tags:
-        - join
-    - name: Get kubeadm cert hash
-      ansible.builtin.shell: kubeadm init phase upload-certs --upload-certs 2>/dev/null | tail -n1
-      register: kubeadm_cert_hash
       when: k8s_master | default(False)
+      tags:
+        - never
+    - name: Pause for 120 seconds
+      ansible.builtin.pause:
+        seconds: 120
+      tags:
+        - never
+    - name: Redeploy tigera-operator (first master)
+      ansible.builtin.command: kubectl --kubeconfig=/etc/kubernetes/admin.conf delete pod -n tigera-operator -l k8s-app=tigera-operator
       run_once: yes
+      when: k8s_master | default(False)
       tags:
-        - join
-    - name: Join other kubeadm servers
-      ansible.builtin.command: "{{ kubeadm_join_command.stdout }} {{ (k8s_master | default(False)) | ternary('--control-plane --apiserver-advertise-address ' + ansible_host + ' --certificate-key ' + kubeadm_cert_hash.stdout, '', '') }} --node-name={{ inventory_hostname }}"
-      args:
-        creates: /etc/kubernetes/kubelet.conf
+        - never
+    - name: Pause for 30 seconds
+      ansible.builtin.pause:
+        seconds: 30
       tags:
-        - join
-    - name: Remove scheduling taints
-      ansible.builtin.command: kubectl taint nodes {{ inventory_hostname }} node-role.kubernetes.io/master- --kubeconfig=/etc/kubernetes/admin.conf
-      when: (k8s_master | default(False)) and (k8s_worker | default(True))
+        - never
+    - name: Disable kube-proxy
+      ansible.builtin.shell: |
+        kubectl patch daemonset kube-proxy --kubeconfig=/etc/kubernetes/admin.conf -n kube-system --patch '{"spec":{"template":{"spec":{"nodeSelector":{"non-calico": "true"}}}}}'
+      run_once: yes
+      when: k8s_master | default(False)
       tags:
-        - init
-        - join
+        - never
+    - name: Enable eBPF for Calico
+      ansible.builtin.shell: |
+        kubectl patch installation.operator.tigera.io default --kubeconfig=/etc/kubernetes/admin.conf --type merge --patch '{"spec":{"calicoNetwork":{"linuxDataplane":"BPF", "hostPorts":null}}}'
+      run_once: yes
+      when: k8s_master | default(False)
+      tags:
+        - never
     - name: Clean up tmp files
       ansible.builtin.file:
         path: "{{ item }}"
         state: absent
       loop:
         - /var/tmp/kubeadm.yml
+        - /var/tmp/calico-custom-resources.yml
         - /var/tmp/calico-bgp.yml
+        - /var/tmp/calico-endpoints.yml
       run_once: yes
       when: (k8s_master | default(False))
       tags:

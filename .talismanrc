@@ -11,7 +11,7 @@ fileignoreconfig:
 - filename: ansible/templates/kubernetes/kubeadm.yml.j2
   checksum: f28ad7e9c475fdd23e7a69b4c6a9eee0f6a6739cd95e25e2b25db7a748b67285
 - filename: ansible/kubernetes.yml
-  checksum: 842da50257e5c17310e068626a39fcefd25c0ffe914df6b92671b2709588fd22
+  checksum: 9c375a41fff60b02d74d9026226a2e66e0ac7254b5163c3bf01b1ebaf37bd474
 - filename: ansible/templates/kubernetes/calico.yaml.j2
   checksum: e2a97263eb17aaa8e4ce6bfb040440fe962eaeabf3b1a6b6c83e1b67ab1dd60e
 - filename: ansible/templates/vsphere/vcsa.json.j2

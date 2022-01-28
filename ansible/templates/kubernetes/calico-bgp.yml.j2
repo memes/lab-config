@@ -24,15 +24,3 @@ metadata:
 spec:
   peerIP: 172.17.0.1
   asNumber: 64512
----
-apiVersion: projectcalico.org/v3
-kind: IPPool
-metadata:
-  name: default
-spec:
-    cidr: {{ kubernetes_pod_cidr | default('10.0.0.0/17') }}
-    blocksize: 24
-    ipipMode: Never
-    vxlanMode: Never
-    natOutgoing: false
-    nodeSelector: all()
