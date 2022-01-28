@@ -15,7 +15,8 @@ vsphere_datacenter: lab
 vsphere_cluster: cluster0
 vsphere_dvswitch: dvSwitch0
 # Kubernetes
-crio_version: '1.23'
+# Can't use cri-o 1.23 with k8s 1.23 due to https://github.com/cri-o/cri-o/issues/5527
+crio_version: '1.22'
 kubernetes_version: '1.23.3'
 kubernetes_api_server: 'control.{{ domain }}'
 calico_version: v3.21.4
