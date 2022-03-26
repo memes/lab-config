@@ -4,7 +4,7 @@
 label rhel85
   menu label Install RHEL 8.^5
   kernel ::boot/rhel8.5-x86_64/vmlinuz
-  append initrd=::boot/rhel8.5-x86_64/initrd.img ip=dhcp inst.resolution=1024x768 nomodeset inst.repo={{ shared_http_url }}/software/rhel8.5-x86_64 inst.dd={{ shared_http_url }}/isos/dd-megaraid_sas-07.717.02.00-1.el8_5.elrepo.iso
+  append initrd=::boot/rhel8.5-x86_64/initrd.img ip=dhcp inst.resolution=1024x768 nomodeset inst.repo={{ default_shared_http_url }}/software/rhel8.5-x86_64 inst.dd={{ default_shared_http_url }}/isos/dd-megaraid_sas-07.717.02.00-1.el8_5.elrepo.iso
   text help
   Install RedHat Enterprise Linux 8 in VESA mode
   endtext
@@ -20,7 +20,7 @@ label rhel85r
 label rhel82
   menu label Install RHEL 8.^2
   kernel ::boot/rhel8.2-x86_64/vmlinuz
-  append initrd=::boot/rhel8.2-x86_64/initrd.img ip=dhcp inst.resolution=1024x768 nomodeset inst.repo={{ shared_http_url }}/software/rhel8.2-x86_64 inst.dd={{ shared_http_url }}/isos/dd-megaraid_sas-07.710.50.00-1.el8_2.elrepo.iso
+  append initrd=::boot/rhel8.2-x86_64/initrd.img ip=dhcp inst.resolution=1024x768 nomodeset inst.repo={{ default_shared_http_url }}/software/rhel8.2-x86_64 inst.dd={{ default_shared_http_url }}/isos/dd-megaraid_sas-07.710.50.00-1.el8_2.elrepo.iso
   text help
   Install RedHat Enterprise Linux 8 in VESA mode
   endtext

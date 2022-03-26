@@ -47,13 +47,13 @@
           guestinfo.cis.appliance.ntp.servers: '172.17.0.1'
           guestinfo.cis.deployment.autoconfig: 'True'
           guestinfo.cis.deployment.node.type: embedded
-          guestinfo.cis.vmdir.username: "administrator@{{ domain }}"
+          guestinfo.cis.vmdir.username: "administrator@{{ lab_domain }}"
           guestinfo.cis.vmdir.password: "{{ ks_secrets.administrator }}"
           guestinfo.cis.vmdir.site-name: lab
-          guestinfo.cis.vmdir.domain-name: "{{ domain }}"
+          guestinfo.cis.vmdir.domain-name: "{{ lab_domain }}"
           guestinfo.cis.ceip_enabled: 'False'
           vami.domain.VMware-vCenter-Server-Appliance: "{{ vcenter_hostname }}"
-          vami.searchpath.VMware-vCenter-Server-Appliance: "{{ domain }}"
+          vami.searchpath.VMware-vCenter-Server-Appliance: "{{ lab_domain }}"
         inject_ovf_env: yes
         wait_for_ip_address: no
         power_on: no

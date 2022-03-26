@@ -4,7 +4,7 @@
 label ubuntu2004
   menu label Ubuntu Server ^20.04.3 LTS
   kernel ::boot/ubuntu20.04-LTS-x86_64/vmlinuz
-  append initrd=::boot/ubuntu20.04-LTS-x86_64/initrd root=/dev/ram0 ramdisk_size=1500000 vga=normal fb=false ip=dhcp url={{ shared_http_url }}/isos/ubuntu-20.04.3-live-server-amd64.iso
+  append initrd=::boot/ubuntu20.04-LTS-x86_64/initrd root=/dev/ram0 ramdisk_size=1500000 vga=normal fb=false ip=dhcp url={{ default_shared_http_url }}/isos/ubuntu-20.04.4-live-server-amd64.iso
   text help
   Install Ubuntu Server 20.04.3 LTS from Live server DVD
   endtext

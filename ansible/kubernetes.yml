@@ -381,7 +381,7 @@
       tags:
         - init
     - name: Create admin user account(s)
-      ansible.builtin.command: "kubeadm kubeconfig user --config=/var/tmp/kubeadm.yml --client-name {{ item }}@{{ domain }}"
+      ansible.builtin.command: "kubeadm kubeconfig user --config=/var/tmp/kubeadm.yml --client-name {{ item }}@{{ lab_domain }}"
       register: kubeconfig
       loop: "{{ k8s_admins | default(['memes']) }}"
       run_once: yes

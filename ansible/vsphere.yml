@@ -19,7 +19,7 @@
     - name: Verify vCenter is active
       community.vmware.vmware_about_info:
         hostname: "{{ vcenter_hostname }}"
-        username: "administrator@{{ domain }}"
+        username: "administrator@{{ lab_domain }}"
         password: "{{ ks_secrets.administrator }}"
         validate_certs: no
       run_once: yes
@@ -27,7 +27,7 @@
     - name: Create datacenter
       community.vmware.vmware_datacenter:
         hostname: "{{ vcenter_hostname }}"
-        username: "administrator@{{ domain }}"
+        username: "administrator@{{ lab_domain }}"
         password: "{{ ks_secrets.administrator }}"
         validate_certs: no
         datacenter_name: "{{ vsphere_datacenter }}"
@@ -37,7 +37,7 @@
     - name: Create dSwitch
       community.vmware.vmware_dvswitch:
         hostname: "{{ vcenter_hostname }}"
-        username: "administrator@{{ domain }}"
+        username: "administrator@{{ lab_domain }}"
         password: "{{ ks_secrets.administrator }}"
         validate_certs: no
         datacenter_name: "{{ vsphere_datacenter }}"
@@ -57,7 +57,7 @@
     - name: Create portgroup on distributed switch
       community.vmware.vmware_dvs_portgroup:
         hostname: "{{ vcenter_hostname }}"
-        username: "administrator@{{ domain }}"
+        username: "administrator@{{ lab_domain }}"
         password: "{{ ks_secrets.administrator }}"
         validate_certs: no
         switch_name: "{{ vsphere_dvswitch }}"
@@ -78,7 +78,7 @@
     - name: Create cluster
       community.vmware.vmware_cluster:
         hostname: "{{ vcenter_hostname }}"
-        username: "administrator@{{ domain }}"
+        username: "administrator@{{ lab_domain }}"
         password: "{{ ks_secrets.administrator }}"
         validate_certs: no
         datacenter_name: "{{ vsphere_datacenter }}"
@@ -93,7 +93,7 @@
     - name: Add ESXi hosts to cluster
       community.vmware.vmware_host:
         hostname: "{{ vcenter_hostname }}"
-        username: "administrator@{{ domain }}"
+        username: "administrator@{{ lab_domain }}"
         password: "{{ ks_secrets.administrator }}"
         validate_certs: no
         datacenter_name: "{{ vsphere_datacenter }}"
@@ -106,7 +106,7 @@
     - name: Enable vSAN on cluster
       community.vmware.vmware_cluster_vsan:
         hostname: "{{ vcenter_hostname }}"
-        username: "administrator@{{ domain }}"
+        username: "administrator@{{ lab_domain }}"
         password: "{{ ks_secrets.administrator }}"
         validate_certs: no
         datacenter_name: "{{ vsphere_datacenter }}"
@@ -124,7 +124,7 @@
     - name: Enable HA on cluster
       community.vmware.vmware_cluster_ha:
         hostname: "{{ vcenter_hostname }}"
-        username: "administrator@{{ domain }}"
+        username: "administrator@{{ lab_domain }}"
         password: "{{ ks_secrets.administrator }}"
         validate_certs: no
         datacenter_name: "{{ vsphere_datacenter }}"
@@ -138,7 +138,7 @@
     - name: Enable DRS on cluster
       community.vmware.vmware_cluster_drs:
         hostname: "{{ vcenter_hostname }}"
-        username: "administrator@{{ domain }}"
+        username: "administrator@{{ lab_domain }}"
         password: "{{ ks_secrets.administrator }}"
         validate_certs: no
         datacenter_name: "{{ vsphere_datacenter }}"
@@ -161,11 +161,11 @@
     - name: Does memes account exist in vCenter
       community.vmware.vcenter_domain_user_group_info:
         hostname: "{{ inventory_hostname }}"
-        username: "administrator@{{ domain }}"
+        username: "administrator@{{ lab_domain }}"
         password: "{{ ks_secrets.administrator }}"
         validate_certs: false
-        domain: "{{ domain }}"
-        search_string: "{{ domain }}\\memes"
+        domain: "{{ lab_domain }}"
+        search_string: "{{ lab_domain }}\\memes"
         exact_match: true
       register: gather_domain_user_info_result
       delegate_to: 127.0.0.1
@@ -177,7 +177,7 @@
         /usr/lib/vmware-vmafd/bin/dir-cli user create
         --account "memes"
         --user-password "{{ ks_secrets.memes }}"
-        --login "administrator@{{ domain }}"
+        --login "administrator@{{ lab_domain }}"
         --password "{{ ks_secrets.administrator }}"
         --first-name "Matthew"
         --last-name "Emes"
@@ -192,7 +192,7 @@
         /usr/lib/vmware-vmafd/bin/dir-cli group modify
         --name Administrators
         --add memes
-        --login "administrator@{{ domain }}"
+        --login "administrator@{{ lab_domain }}"
         --password "{{ ks_secrets.administrator }}"
       changed_when: true
       when:

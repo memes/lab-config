@@ -58,7 +58,7 @@ esxcli network ip route ipv4 add --netstack=defaultTcpIpStack --network=default 
 esxcli network ip route ipv6 add --netstack=defaultTcpIpStack --network=default --gateway=2001:470:49a5:1::1
 esxcli network ip dns server add --server=172.17.0.1 --netstack=defaultTcpIpStack
 esxcli network ip dns server add --server=2001:470:49a5:1::1 --netstack=defaultTcpIpStack
-esxcli network ip dns search add --domain={{ domain }} --netstack=defaultTcpIpStack
+esxcli network ip dns search add --domain={{ lab_domain }} --netstack=defaultTcpIpStack
 
 # Setup vMotion network stack and add vmk1 as vMotion port
 # esxcli network ip netstack add --netstack=vmotion --disabled=true
@@ -67,7 +67,7 @@ esxcli network ip dns search add --domain={{ domain }} --netstack=defaultTcpIpSt
 # esxcli network ip route ipv6 add --netstack=vmotion --network=default --gateway=2001:470:49a5:2::1
 # esxcli network ip dns server add --server=172.18.0.1 --netstack=vmotion
 # esxcli network ip dns server add --server=2001:470:49a5:2::1 --netstack=vmotion
-# esxcli network ip dns search add --domain={{ domain }} --netstack=vmotion
+# esxcli network ip dns search add --domain={{ lab_domain }} --netstack=vmotion
 # esxcli network ip interface add --interface-name=vmk1 --mtu=1500 --netstack=vmotion --portgroup-name=vmotion
 # esxcli network ip interface tag add --interface-name=vmk1 --tagname=VMotion
 # esxcli network ip interface ipv4 set --interface-name=vmk1 --type=dhcp
@@ -100,10 +100,10 @@ chkconfig ntpd on
 vim-cmd hostsvc/datastore/rename local "$(hostname -s)"
 
 # Install iDRAC VIB
-esxcli software vib install -v {{ shared_http_url }}/software/vib20/dcism/Dell_bootbank_dcism_3.6.0.ESXi6-2249.vib
+esxcli software vib install -v {{ lab_shared_http_url }}/software/vib20/dcism/Dell_bootbank_dcism_3.6.0.ESXi6-2249.vib
 
 # Perform post-onboard actions
-#wget -O /tmp/post-onboard-esxi.sh {{ shared_http_url }}/scripts/post-onboard-esxi.sh
+#wget -O /tmp/post-onboard-esxi.sh {{ lab_shared_http_url }}/scripts/post-onboard-esxi.sh
 #sh /tmp/post-onboard-esxi.sh
 
 # Create memes account as Admin

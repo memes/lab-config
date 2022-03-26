@@ -27,4 +27,4 @@ fileignoreconfig:
 - filename: ansible/templates/shared/esxi/esxi67.ks.j2
   checksum: c06affb65ca287d809cb0d7850a9a08719d6325f6916c2e4ad5ceb845f86a945
 - filename: ansible/templates/shared/tftp/pxelinux.cfg/lab_autoprovision.cfg.j2
-  checksum: 0f35709f32994afde365970178cdaaadad698da15356e3112a4cbbf7f53e5b40
+  checksum: 5ae9d118fb4dd6ddcab46c615cd40546f5583938a3ad6a9d525950d593610d3a

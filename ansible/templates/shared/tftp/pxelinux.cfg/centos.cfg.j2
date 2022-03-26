@@ -4,7 +4,7 @@
 label centos85
   menu label Install CentOS 8.^5
   kernel ::boot/centos8.5.2111-x86_64/vmlinuz
-  append initrd=::boot/centos8.5.2111-x86_64/initrd.img ip=dhcp inst.resolution=1024x768 nomodeset inst.repo={{ shared_http_url }}/software/centos8.5.2111-x86_64 inst.dd={{ shared_http_url }}/isos/dd-megaraid_sas-07.717.02.00-1.el8_5.elrepo.iso
+  append initrd=::boot/centos8.5.2111-x86_64/initrd.img ip=dhcp inst.resolution=1024x768 nomodeset inst.repo={{ default_shared_http_url }}/software/centos8.5.2111-x86_64 inst.dd={{ default_shared_http_url }}/isos/dd-megaraid_sas-07.717.02.00-1.el8_5.elrepo.iso
   text help
   Install CentOS 8.5 in VESA mode
   endtext
@@ -12,7 +12,7 @@ label centos85
 label centos85r
   menu label CentOS 8.5 - ^Rescue
   kernel ::boot/centos8.5.2111-x86_64/vmlinuz
-  append initrd=::boot/centos8.5.2111-x86_64/initrd.img ip=dhcp inst.rescue=true inst.resolution=1024x768 nomodeset inst.repo={{ shared_http_url }}/software/centos8.5.2111-x86_64 inst.dd={{ shared_http_url }}/isos/dd-megaraid_sas-07.717.02.00-1.el8_5.elrepo.iso
+  append initrd=::boot/centos8.5.2111-x86_64/initrd.img ip=dhcp inst.rescue=true inst.resolution=1024x768 nomodeset inst.repo={{ default_shared_http_url }}/software/centos8.5.2111-x86_64 inst.dd={{ default_shared_http_url }}/isos/dd-megaraid_sas-07.717.02.00-1.el8_5.elrepo.iso
   text help
   Launch CentOS 8.5 in Rescue mode
   endtext
@@ -20,7 +20,7 @@ label centos85r
 label centos83
   menu label Install CentOS 8.^3
   kernel ::boot/centos8.3.2011-x86_64/vmlinuz
-  append initrd=::boot/centos8.3.2011-x86_64/initrd.img ip=dhcp inst.resolution=1024x768 nomodeset inst.repo={{ shared_http_url }}/software/centos8.3.2011-x86_64 inst.dd={{ shared_http_url }}/isos/dd-megaraid_sas-07.714.04.00-1.el8_3.elrepo.iso
+  append initrd=::boot/centos8.3.2011-x86_64/initrd.img ip=dhcp inst.resolution=1024x768 nomodeset inst.repo={{ default_shared_http_url }}/software/centos8.3.2011-x86_64 inst.dd={{ default_shared_http_url }}/isos/dd-megaraid_sas-07.714.04.00-1.el8_3.elrepo.iso
   text help
   Install CentOS 8.3 in VESA mode
   endtext
@@ -28,7 +28,7 @@ label centos83
 label centos82
   menu label Install CentOS 8.^2
   kernel ::boot/centos8.2.2004-x86_64/vmlinuz
-  append initrd=::boot/centos8.2.2004-x86_64/initrd.img ip=dhcp inst.resolution=1024x768 nomodeset inst.repo={{ shared_http_url }}/software/centos8.2.2004-x86_64 inst.dd={{ shared_http_url }}/isos/dd-megaraid_sas-07.710.50.00-1.el8_2.elrepo.iso
+  append initrd=::boot/centos8.2.2004-x86_64/initrd.img ip=dhcp inst.resolution=1024x768 nomodeset inst.repo={{ default_shared_http_url }}/software/centos8.2.2004-x86_64 inst.dd={{ default_shared_http_url }}/isos/dd-megaraid_sas-07.710.50.00-1.el8_2.elrepo.iso
   text help
   Install CentOS 8.2 in VESA mode
   endtext

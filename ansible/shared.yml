@@ -305,8 +305,8 @@
         - http
     - name: Update HTTPS TLS cert
       ansible.builtin.copy:
-        src: "../certs/{{ shared_host }}.pem"
-        dest: "/etc/ssl/certs/{{ shared_host }}.pem"
+        src: "../certs/{{ lab_shared_host }}.pem"
+        dest: "/etc/ssl/certs/{{ lab_shared_host }}.pem"
         force: yes
         owner: root
         group: root
@@ -317,8 +317,8 @@
         - http
     - name: Update HTTPS TLS key
       ansible.builtin.copy:
-        src: "../certs/{{ shared_host }}.key"
-        dest: "/etc/ssl/private/{{ shared_host }}.key"
+        src: "../certs/{{ lab_shared_host }}.key"
+        dest: "/etc/ssl/private/{{ lab_shared_host }}.key"
         force: yes
         owner: root
         group: root

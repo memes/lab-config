@@ -37,7 +37,7 @@ sed -i -e 's/^DEFROUTE=yes/DEFROUTE=no/' \
 info "Installing AcceleratedGCP root CA certificate as trusted"
 mkdir -p /etc/pki/ca-trust/source/anchors
 curl -sLo /etc/pki/ca-trust/source/anchors/acceleratedgcp-root-ca.pem \
-    {{ shared_http_url }}/certs/acceleratedgcp-root-ca.pem || \
+    {{ lab_shared_http_url }}/certs/acceleratedgcp-root-ca.pem || \
     info "Failed to download Lab CA certificate; continuing"
 update-ca-trust extract || \
     info "Failed to update CA trust repository: update-ca-trust exit code: $?"
@@ -47,7 +47,7 @@ update-ca-trust extract || \
 info "Installing GPG keys from shared server"
 for k in 0x756ba70b1019ced6.asc 0x1285491434D8786F.asc 0xca77951d23b66a9d.asc \
     0x3CA66B4946770C59.asc RPM-GPG-KEY-elrepo.asc hashicorp.asc; do
-    curl -sLo /tmp/${k} {{ shared_http_url }}/keys/${k} || \
+    curl -sLo /tmp/${k} {{ lab_shared_http_url }}/keys/${k} || \
         error "Failed to download key ${k}: curl exit code: $?"
     rpm --import /tmp/${k} || \
         error "Failed to import key ${k}: rpm exit code: $?"

@@ -37,21 +37,21 @@ case "${mac}" in
         host=unknown
         ;;
 esac
-info "Setting hostname to ${host}.{{ domain }}"
-echo "${host}.{{ domain }}" > /etc/hostname || \
+info "Setting hostname to ${host}.{{ lab_domain }}"
+echo "${host}.{{ lab_domain }}" > /etc/hostname || \
     info "Failed to set hostname to ${host}: exit code: $?"
 
 # Install CA certificate
 info "Installing AcceleratedGCP root CA certificate as trusted"
 mkdir -p /usr/local/share/ca-certificates
 curl -sLo /usr/local/share/ca-certificates/acceleratedgcp-root-ca.crt \
-    {{ shared_http_url }}/certs/acceleratedgcp-root-ca.pem || \
+    {{ lab_shared_http_url }}/certs/acceleratedgcp-root-ca.pem || \
     info "Failed to download Lab CA certificate; continuing"
 update-ca-certificates || \
     info "Failed to update CA trust repository: update-ca-certificates exit code: $?"
 
 # Install pre-verified Hashicorp GPG key from shared server
-curl -fsSL {{ shared_http_url }}/keys/hashicorp.asc | apt-key add -
+curl -fsSL {{ lab_shared_http_url }}/keys/hashicorp.asc | apt-key add -
 
 # Install Vault from Hashicorp repo, but don't run as a service
 apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"

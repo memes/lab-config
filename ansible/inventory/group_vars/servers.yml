@@ -3,10 +3,10 @@
 ---
 ansible_ssh_extra_args: '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
 # ESXi/vSphere
-vcenter_ova_url: "{{ shared_https_url }}/software/vcsa6.7.0-16046470-x86_64/vcsa/VMware-vCenter-Server-Appliance-6.7.0.44000-16046470_OVF10.ova"
+vcenter_ova_url: "{{ lab_shared_https_url }}/software/vcsa6.7.0-16046470-x86_64/vcsa/VMware-vCenter-Server-Appliance-6.7.0.44000-16046470_OVF10.ova"
 vcenter_ova_path: /Volumes/shared/software/vcsa6.7.0-16046470-x86_64/vcsa/VMware-vCenter-Server-Appliance-6.7.0.44000-16046470_OVF10.ova
 vcenter_machine: vcenter
-vcenter_hostname: "{{ vcenter_machine }}.{{ domain }}"
+vcenter_hostname: "{{ vcenter_machine }}.{{ lab_domain }}"
 vcenter_url: "https://{{ vcenter_hostname }}/"
 vcenter_config_url: "https://{{ vcenter_hostname }}:5480/"
 vcenter_address: '172.17.1.1'
@@ -18,7 +18,7 @@ vsphere_dvswitch: dvSwitch0
 # Can't use cri-o 1.23 with k8s 1.23 due to https://github.com/cri-o/cri-o/issues/5527
 crio_version: '1.22'
 kubernetes_version: '1.23.3'
-kubernetes_api_server: 'control.{{ domain }}'
+kubernetes_api_server: 'control.{{ lab_domain }}'
 kubernetes_api_address: '172.17.1.2'
 calico_version: v3.21.4
 kubernetes_pod_cidr: 10.0.0.0/17

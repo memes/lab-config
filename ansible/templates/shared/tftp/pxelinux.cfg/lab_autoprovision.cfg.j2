@@ -19,7 +19,7 @@ menu title PXE autoprovision options
 label centos85
   menu label Autoprovision ^CentOS 8.5
   kernel ::boot/centos8.5.2111-x86_64/vmlinuz
-  append initrd=::boot/centos8.5.2111-x86_64/initrd.img vlan=eno1.10:eno1 ip=eno1.10:dhcp inst.text nomodeset inst.repo={{ shared_http_url }}/software/centos8.5.2111-x86_64 inst.dd={{ shared_http_url }}/isos/dd-megaraid_sas-07.717.02.00-1.el8_5.elrepo.iso inst.ks={{ shared_http_url }}/el8/centos8-minimal.ks
+  append initrd=::boot/centos8.5.2111-x86_64/initrd.img vlan=eno1.10:eno1 ip=eno1.10:dhcp inst.text nomodeset inst.repo={{ lab_shared_http_url }}/software/centos8.5.2111-x86_64 inst.dd={{ lab_shared_http_url }}/isos/dd-megaraid_sas-07.717.02.00-1.el8_5.elrepo.iso inst.ks={{ lab_shared_http_url }}/el8/centos8-minimal.ks
   text help
   Install CentOS 8.5 with minimal kickstart for Lab
   endtext
@@ -36,7 +36,7 @@ label esxi67
 label rhel85
   menu label Autoprovision ^RHEL 8.5
   kernel ::boot/rhel8.5-x86_64/vmlinuz
-  append initrd=::boot/rhel8.5-x86_64/initrd.img vlan=eno1.10:eno1 ip=eno1.10:dhcp inst.text nomodeset inst.repo={{ shared_http_url }}/software/rhel8.5-x86_64 inst.dd={{ shared_http_url }}/isos/dd-megaraid_sas-07.717.02.00-1.el8_5.elrepo.iso inst.ks={{ shared_http_url }}/el8/rhel8-minimal.ks
+  append initrd=::boot/rhel8.5-x86_64/initrd.img vlan=eno1.10:eno1 ip=eno1.10:dhcp inst.text nomodeset inst.repo={{ lab_shared_http_url }}/software/rhel8.5-x86_64 inst.dd={{ lab_shared_http_url }}/isos/dd-megaraid_sas-07.717.02.00-1.el8_5.elrepo.iso inst.ks={{ lab_shared_http_url }}/el8/rhel8-minimal.ks
   text help
   Install RHEL 8.5 with minimal kickstart for Lab
   endtext
@@ -44,7 +44,7 @@ label rhel85
 label ubuntu2004
   menu label Autoprovision ^Ubuntu Server 20.04 LTS
   kernel ::boot/ubuntu20.04-LTS-x86_64/vmlinuz
-  append initrd=::boot/ubuntu20.04-LTS-x86_64/initrd vga=788 root=/dev/ram0 ramdisk_size=1500000 ip=dhcp url={{ shared_http_url }}/isos/ubuntu-20.04.3-live-server-amd64.iso autoinstall ds=nocloud-net;s={{ shared_http_url }}/cloud-init/focal/
+  append initrd=::boot/ubuntu20.04-LTS-x86_64/initrd vga=788 root=/dev/ram0 ramdisk_size=1500000 ip=dhcp url={{ lab_shared_http_url }}/isos/ubuntu-20.04.4-live-server-amd64.iso autoinstall ds=nocloud-net;s={{ lab_shared_http_url }}/cloud-init/focal/
   text help
   Install Ubuntu Server 20.04 LTS with minimal cloud-init/autoprovision for lab
   endtext
@@ -52,7 +52,7 @@ label ubuntu2004
 label ubuntu1804
   menu label Autoprovision Ubuntu ^Server 18.04 LTS
   kernel ::boot/ubuntu18.04-LTS-netboot-x86_64/linux
-  append initrd=::boot/ubuntu18.04-LTS-netboot-x86_64/initrd.gz auto url={{ shared_host }} locale=en_US.UTF-8 console-setup/ask_detect=false console-setup/layoutcode=us keyboard-configuration/layoutcode=us netcfg/get_hostname=unknown netcfg/get_domain={{ domain }} interface=eno1 netcfg/dhcp_timeout=60 netcfg/use_vlan=true netcfg/vlan_id=10
+  append initrd=::boot/ubuntu18.04-LTS-netboot-x86_64/initrd.gz auto url={{ lab_shared_host }} locale=en_US.UTF-8 console-setup/ask_detect=false console-setup/layoutcode=us keyboard-configuration/layoutcode=us netcfg/get_hostname=unknown netcfg/get_domain={{ lab_domain }} interface=eno1 netcfg/dhcp_timeout=60 netcfg/use_vlan=true netcfg/vlan_id=10
   text help
   Install Ubuntu Server 18.04 LTS with minimal preseed for lab
   endtext

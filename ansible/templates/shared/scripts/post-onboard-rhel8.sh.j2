@@ -24,7 +24,7 @@ info "RHEL8 onboarding started"
 # fingerprints validated as identical to original keys.
 info "Installing RHEL GPG keys from shared server"
 for k in RPM-GPG-KEY-redhat-release.asc; do
-    curl -sLo /tmp/${k} {{ shared_http_url }}/keys/${k} || \
+    curl -sLo /tmp/${k} {{ lab_shared_http_url }}/keys/${k} || \
         error "Failed to download key ${k}: curl exit code: $?"
     rpm --import /tmp/${k} || \
         error "Failed to import key ${k}: rpm exit code: $?"

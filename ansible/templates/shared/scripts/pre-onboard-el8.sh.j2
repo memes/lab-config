@@ -22,6 +22,6 @@ case "${mac}" in
         ;;
 esac
 cat > /tmp/hostname.ks <<EOF
-network --hostname=${host}.{{ domain }}
+network --hostname=${host}.{{ lab_domain }}
 EOF
 exit 0

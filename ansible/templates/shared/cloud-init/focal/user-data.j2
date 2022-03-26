@@ -173,7 +173,7 @@ autoinstall:
     - dbus-user-session
 
   late-commands:
-    - curl -sLo /target/root/post-onboard-debian.sh {{ shared_http_url }}/scripts/post-onboard-debian.sh
+    - curl -sLo /target/root/post-onboard-debian.sh {{ lab_shared_http_url }}/scripts/post-onboard-debian.sh
     - curtin in-target --target=/target -- /bin/sh /root/post-onboard-debian.sh
     - mkdir -p /target/etc/default/grub.d
     - echo 'GRUB_CMDLINE_LINUX="systemd.unified_cgroup_hierarchy=1"' > /target/etc/default/grub.d/99-lab.cfg

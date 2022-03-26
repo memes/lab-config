@@ -4,7 +4,7 @@
 
 %pre --log=/root/pre-onboard.log
 #!/bin/sh
-curl -so /root/pre-onboard-el8.sh {{ shared_http_url }}/scripts/pre-onboard-el8.sh && \
+curl -so /root/pre-onboard-el8.sh {{ lab_shared_http_url }}/scripts/pre-onboard-el8.sh && \
     sh /root/pre-onboard-el8.sh
 %end
 
@@ -60,10 +60,10 @@ pwpolicy luks --minlen=6 --minquality=1 --notstrict --nochanges --notempty
 
 %post --log=/root/post-onboard.log
 #!/bin/sh
-curl -sLo /root/post-onboard-el8.sh {{ shared_http_url }}/scripts/post-onboard-el8.sh && \
+curl -sLo /root/post-onboard-el8.sh {{ lab_shared_http_url }}/scripts/post-onboard-el8.sh && \
     sh /root/post-onboard-el8.sh
-curl -sLo /root/post-onboard-rhel8.sh {{ shared_http_url }}/scripts/post-onboard-rhel8.sh && \
+curl -sLo /root/post-onboard-rhel8.sh {{ lab_shared_http_url }}/scripts/post-onboard-rhel8.sh && \
     sh /root/post-onboard-rhel8.sh
-curl -sLo /root/post-onboard-ssh-pubkey.sh {{ shared_http_url }}/scripts/post-onboard-ssh-pubkey.sh && \
+curl -sLo /root/post-onboard-ssh-pubkey.sh {{ lab_shared_http_url }}/scripts/post-onboard-ssh-pubkey.sh && \
     sh /root/post-onboard-ssh-pubkey.sh
 %end

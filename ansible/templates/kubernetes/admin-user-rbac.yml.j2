@@ -7,7 +7,7 @@ metadata:
   name: {{ item.item }}-cluster-admin
 subjects:
 - kind: User
-  name: {{ item.item }}@{{ domain }}
+  name: {{ item.item }}@{{ lab_domain }}
   apiGroup: rbac.authorization.k8s.io
 roleRef:
   kind: ClusterRole
