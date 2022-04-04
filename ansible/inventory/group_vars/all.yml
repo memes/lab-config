@@ -7,9 +7,7 @@ lab_shared_http_url: "http://{{ lab_shared_host }}"
 lab_shared_https_url: "https://{{ lab_shared_host }}"
 vault_host: "vault.{{ lab_domain }}"
 vault_url: "https://{{ vault_host }}:8200"
-vault_ipmi_secrets_path: /secret/lab/ipmi
 vault_kv2_ipmi_secrets_path: /secret/data/lab/ipmi
-vault_kickstart_secrets_path: /secret/lab/kickstart
 vault_kv2_kickstart_secrets_path: /secret/data/lab/kickstart
 default_domain: home.arpa
 default_shared_host: "shared.{{ default_domain }}"
