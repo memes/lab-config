@@ -9,13 +9,13 @@ repos:
         types: [file, yaml]
         entry: yamllint --strict
   - repo: https://github.com/antonbabenko/pre-commit-terraform
-    rev: v1.58.0
+    rev: v1.64.1
     hooks:
       - id: terraform_fmt
       - id: terraform_docs
         args: ['--args=--sort-by=required --hide=providers']
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.0.1
+    rev: v4.1.0
     hooks:
       - id: check-executables-have-shebangs
       - id: check-json
@@ -26,16 +26,7 @@ repos:
       - id: pretty-format-json
         args: [--autofix]
       - id: trailing-whitespace
-  # Talisman can't be built from source in current pre-commit; invoke a locally
-  # installed binary instead.
-  - repo: local
+  - repo: https://github.com/thoughtworks/talisman
+    rev: 'v1.26.0'
     hooks:
-      - id: local-talisman
-        name: talisman
-        entry: talisman --githook pre-commit
-        stages:
-          - commit
-        pass_filenames: false
-        types:
-          - text
-        language: system
+      - id: talisman-commit
