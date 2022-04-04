@@ -7,7 +7,7 @@ fileignoreconfig:
 - filename: vault/oidc.tf
   checksum: c7c0fb7ee7fe4c95e22accc8c3bb6f03c26d8fd3eebb741421a13e95b618ab1c
 - filename: vault/README.md
-  checksum: 0672df6d565d602139cfad19ab1839300c0ba7dd35488624a71a96351bb51bc0
+  checksum: 794f8ce890ef13c737e0ec628a7cf2fd3901e56387b7b46ea5809b8fa3e186e5
 - filename: ansible/templates/kubernetes/kubeadm.yml.j2
   checksum: f28ad7e9c475fdd23e7a69b4c6a9eee0f6a6739cd95e25e2b25db7a748b67285
 - filename: ansible/kubernetes.yml

@@ -14,9 +14,11 @@ not actual secrets or tokens.
 
 ## Unsealing - reminder!
 
+Do this for each key.
+
 ```shell
 base64 -d <<EOF | gpg -dq; echo
-UNSEAL KEY HERE
+UNSEAL KEY 1 HERE
 EOF
 vault operator unseal
 ```
@@ -32,7 +34,7 @@ vault login -method=oidc
 ### Root with one-time password
 
 ```shell
-./root-otp-login.sh UNSEAL_KEY
+./root-otp-login.sh UNSEAL_KEY1 UNSEAL_KEY2
 ```
 
 ## Bootstrapping
@@ -45,21 +47,26 @@ vault login -method=oidc
 
 1. Initialise Vault
 
-   1. Initialise with GPG using 1 key as threshold
+   1. Initialise with GPG using 2 keys as threshold
 
       ```shell
-      gpg --armor --export 757446333D3EC29A > emes.asc
+      gpg --export SUBKEY1 | base64 > subkey1.asc
+      gpg --export SUBKEY2 | base64 > subkey2.asc
       export VAULT_ADDR=http://vault.lab.acceleratedgcp.com:8200
-      vault operator init -tls-skip-verify -key-shares=1 -key-threshold=1 -pgp-keys=emes.asc
-      rm -f emes.asc
+      vault operator init -tls-skip-verify -key-shares=2 -key-threshold=2 -pgp-keys="subkey1.asc,subkey2.asc"
+      rm -f subkey1.asc subkey2.asc
       ```
 
    1. Unseal Vault
 
       ```shell
       base64 -d <<EOF | gpg -dq; echo
-      UNSEAL KEY HERE
+      FIRST UNSEAL KEY HERE
       EOF
+      base64 -d <<EOF | gpg -dq; echo
+      SECOND UNSEAL KEY HERE
+      EOF
+      vault operator unseal -tls-skip-verify
       vault operator unseal -tls-skip-verify
       ```
 
@@ -108,7 +115,7 @@ vault login -method=oidc
    1. Rotate the Vault certificate and restart service
 
       ```shell
-      ansible-playbook -i inventory vault.yml
+      ansible-playbook -Ki ansible/inventory ansible.vault.yml
       ```
 
    1. Launch a new shell or reset VAULT_ADDR environment to use TLS
@@ -139,14 +146,6 @@ No modules.
 | [vault_approle_auth_backend_role.ipmi-secrets](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/approle_auth_backend_role) | resource |
 | [vault_approle_auth_backend_role.kickstart-secrets](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/approle_auth_backend_role) | resource |
 | [vault_auth_backend.approle](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/auth_backend) | resource |
-| [vault_gcp_secret_backend.anthos_f5](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/gcp_secret_backend) | resource |
-| [vault_gcp_secret_roleset.anthos_f5_audit_logging](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/gcp_secret_roleset) | resource |
-| [vault_gcp_secret_roleset.anthos_f5_binary_authorisation](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/gcp_secret_roleset) | resource |
-| [vault_gcp_secret_roleset.anthos_f5_component_access](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/gcp_secret_roleset) | resource |
-| [vault_gcp_secret_roleset.anthos_f5_connect_agent](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/gcp_secret_roleset) | resource |
-| [vault_gcp_secret_roleset.anthos_f5_connect_register](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/gcp_secret_roleset) | resource |
-| [vault_gcp_secret_roleset.anthos_f5_logging_monitoring](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/gcp_secret_roleset) | resource |
-| [vault_gcp_secret_roleset.anthos_f5_usage_metering](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/gcp_secret_roleset) | resource |
 | [vault_identity_group.admins](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/identity_group) | resource |
 | [vault_identity_group_alias.admins_alias](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/identity_group_alias) | resource |
 | [vault_jwt_auth_backend.oidc](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/jwt_auth_backend) | resource |
@@ -163,7 +162,6 @@ No modules.
 | [vault_pki_secret_backend_role.server_2048](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/pki_secret_backend_role) | resource |
 | [vault_pki_secret_backend_root_sign_intermediate.intermediate](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/pki_secret_backend_root_sign_intermediate) | resource |
 | [vault_policy.admin](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/policy) | resource |
-| [vault_policy.anthos_f5_sa_keys](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/policy) | resource |
 | [vault_policy.ipmi-secrets](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/policy) | resource |
 | [vault_policy.kickstart-secrets](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/policy) | resource |
 | [vault_policy.kickstart-secrets-roleid](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/policy) | resource |
@@ -174,7 +172,6 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_f5_anthos_project_id"></a> [f5\_anthos\_project\_id](#input\_f5\_anthos\_project\_id) | The GCP project id for F5/Anthos integration lab. | `string` | n/a | yes |
 | <a name="input_gsuite_admin_group"></a> [gsuite\_admin\_group](#input\_gsuite\_admin\_group) | GSuite group that will be granted Vault admin role on authentication. | `string` | n/a | yes |
 | <a name="input_gsuite_admin_impersonate_account"></a> [gsuite\_admin\_impersonate\_account](#input\_gsuite\_admin\_impersonate\_account) | The GSuite administrative user account that will be impersonated for API calls. | `string` | n/a | yes |
 | <a name="input_gsuite_client_id"></a> [gsuite\_client\_id](#input\_gsuite\_client\_id) | The GSuite OIDC client id. | `string` | n/a | yes |
