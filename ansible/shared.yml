@@ -10,17 +10,16 @@
   tasks:
     - name: Install required packages
       ansible.builtin.package:
-        name: "{{ item }}"
+        name:
+          - samba
+          - nfs-kernel-server
+          - rpcbind
+          - tftpd-hpa
+          - pxelinux
+          - syslinux
+          - "debian-installer-{{ ansible_distribution_major_version }}-netboot-amd64"
+          - nginx
         state: present
-      loop:
-        - samba
-        - nfs-kernel-server
-        - rpcbind
-        - tftpd-hpa
-        - pxelinux
-        - syslinux
-        - "debian-installer-{{ ansible_distribution_major_version }}-netboot-amd64"
-        - nginx
       tags:
         - init
     - name: Manage shared file system configs
