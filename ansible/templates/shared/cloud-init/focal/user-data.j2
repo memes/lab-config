@@ -64,8 +64,12 @@ autoinstall:
         id: 100
         link: bond0
         dhcp4-overrides:
+          use-dns: false
+          use-ntp: false
           route-metric: 200
         dhcp6-overrides:
+          use-dns: false
+          use-ntp: false
           route-metric: 200
       bond0.200:
         dhcp4: yes
@@ -73,8 +77,12 @@ autoinstall:
         id: 200
         link: bond0
         dhcp4-overrides:
+          use-dns: false
+          use-ntp: false
           route-metric: 200
         dhcp6-overrides:
+          use-dns: false
+          use-ntp: false
           route-metric: 200
   storage:
     swap:
