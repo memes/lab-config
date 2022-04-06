@@ -1,0 +1,145 @@
+# Install CRI-O runtime
+# yamllint disable rule:truthy rule:line-length
+---
+- name: Install CRI-O container runtime
+  hosts: servers
+  become: yes
+  vars:
+    crio_maj_minor: "{{ crio_version.split('.')[:2] | join('.')}}"
+    crio_repo_version: "{{ crio_maj_minor }}{% if crio_maj_minor != crio_version %}:{% if ansible_os_family == 'Debian' %}/{% endif %}{{ crio_version }}{% endif %}"
+    required_modules:
+      - overlay
+      - br_netfilter
+  tasks:
+    - name: Configure persistent modules for CRI
+      ansible.builtin.template:
+        src: templates/kubernetes/k8s-cri.conf.j2
+        dest: "/etc/modules-load.d/k8s-cri.conf"
+        owner: root
+        group: root
+        mode: 0644
+      tags:
+        - base
+    - name: Add modules
+      community.general.modprobe:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ required_modules }}"
+      tags:
+        - base
+    - name: Add CRI-O apt keys (Debian)
+      ansible.builtin.apt_key:
+        url: "{{ item }}"
+        state: present
+      loop:
+        - "https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:{{ crio_repo_version }}/Debian_{{ ansible_distribution_version }}/Release.key"
+        - "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/Debian_{{ ansible_distribution_version }}/Release.key"
+      when: ansible_distribution == "Debian"
+      tags:
+        - base
+    - name: Add CRI-O apt repos (Debian)
+      ansible.builtin.apt_repository:
+        repo: "{{ item }}"
+        state: present
+      loop:
+        - "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/Debian_{{ ansible_distribution_version }}/ /"
+        - "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_repo_version }}/Debian_{{ ansible_distribution_version }}/ /"
+      when: ansible_distribution == "Debian"
+      tags:
+        - base
+    - name: Add CRI-O apt keys (Ubuntu)
+      ansible.builtin.apt_key:
+        url: "{{ item }}"
+        state: present
+      loop:
+        - "https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:{{ crio_repo_version }}/xUbuntu_{{ ansible_distribution_version }}/Release.key"
+        - "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ ansible_distribution_version }}/Release.key"
+      when: ansible_distribution == "Ubuntu"
+      tags:
+        - base
+    - name: Add CRI-O apt repos (Ubuntu)
+      ansible.builtin.apt_repository:
+        repo: "{{ item }}"
+        state: present
+      loop:
+        - "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ ansible_distribution_version }}/ /"
+        - "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_repo_version }}/xUbuntu_{{ ansible_distribution_version }}/ /"
+      when: ansible_distribution == "Ubuntu"
+      tags:
+        - base
+    - name: Add CRI-O repos for CentOS/RHEL
+      ansible.builtin.get_url:
+        url: "{{ item }}"
+        dest: /etc/yum.repos.d/
+        owner: root
+        group: root
+        mode: 0644
+      loop:
+        - "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/CentOS_{{ ansible_distribution_major_version }}/devel:kubic:libcontainers:stable.repo"
+        - "https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:{{ crio_repo_version }}/CentOS_{{ ansible_distribution_major_version }}/devel:kubic:libcontainers:stable:cri-o:{{ crio_repo_version }}.repo"
+      when: ansible_os_family == "RedHat"
+      tags:
+        - base
+    - name: Install CRI-O packages for CentOS
+      ansible.builtin.package:
+        name:
+          - cri-o
+          - cri-tools
+        state: present
+      when: ansible_os_family == "RedHat"
+      tags:
+        - init
+    - name: Install CRI-O packages for Debian/Ubuntu
+      ansible.builtin.package:
+        name:
+          - cri-o
+          - cri-tools
+          - cri-o-runc
+        state: present
+      when: ansible_os_family == "Debian"
+      tags:
+        - init
+    # Ubuntu 18.04 LTS overlay module doesn't support metacopy param
+    - name: Get overlay module params
+      ansible.builtin.shell: modinfo -p overlay | grep -q metacopy
+      ignore_errors: yes
+      register: overlay_metacopy
+      tags:
+        - init
+    - name: Rewrite overlay mountopt for /etc/containers/storage
+      ansible.builtin.lineinfile:
+        path: /etc/containers/storage.conf
+        regexp: '^mountopt'
+        line: mountopt = "nodev"
+      when: overlay_metacopy.rc == 1
+      tags:
+        - init
+    - name: Create CRI-O unit override directory
+      ansible.builtin.file:
+        path: /etc/systemd/system/crio.service.d/
+        state: directory
+        owner: root
+        group: root
+        mode: 0755
+      tags:
+        - init
+    - name: Configure shared mount for CRI-O
+      ansible.builtin.copy:
+        content: |
+          # Set shared flag to support mount propagation
+          [Service]
+          MountFlags=shared
+        dest: /etc/systemd/system/crio.service.d/override.conf
+        owner: root
+        group: root
+        mode: 0644
+      tags:
+        - init
+    - name: Enable CRI-O unit
+      ansible.builtin.systemd:
+        name: crio
+        enabled: yes
+        state: restarted
+        daemon_reload: yes
+      tags:
+        - init

@@ -1,0 +1,142 @@
+# Install Calico as CNI
+# yamllint disable rule:truthy rule:line-length
+---
+- name: Prepare all hosts for kubernetes
+  hosts: servers
+  become: yes
+  tasks:
+    - name: Check for NetworkManager conf.d
+      ansible.builtin.stat:
+        path: /etc/NetworkManager/conf.d
+      register: nm_conf_d
+      tags:
+        - base
+    - name: Add NetworkManager override for Calico
+      ansible.builtin.template:
+        src: templates/kubernetes/nm-calico.conf.j2
+        dest: /etc/NetworkManager/conf.d/calico.conf
+        owner: root
+        group: root
+        mode: 0644
+      when: nm_conf_d.stat.isdir is defined and nm_conf_d.stat.isdir
+      tags:
+        - base
+    - name: Reload NetworkManager configuration
+      ansible.builtin.command: nmcli connection reload
+      when: nm_conf_d.stat.isdir is defined and nm_conf_d.stat.isdir
+      tags:
+        - base
+    - name: Install calicoctl
+      ansible.builtin.shell: |
+        curl -sLo /usr/local/bin/calicoctl https://github.com/projectcalico/calico/releases/download/{{ calico_version }}/calicoctl-linux-amd64 && chmod 0755 /usr/local/bin/calicoctl
+      when: k8s_master | default(False)
+      tags:
+        - base
+    - name: Generate Calico configurations (first master)
+      ansible.builtin.template:
+        src: templates/kubernetes/{{ item }}.j2
+        dest: /var/tmp/{{ item }}
+        owner: root
+        group: root
+        mode: 0644
+      loop:
+        - calico-custom-resources.yml
+        - calico-bgp.yml
+        - calico-endpoints.yml
+      run_once: yes
+      when: k8s_master | default(False)
+      tags:
+        - init
+    - name: Install Calico from default manifests
+      ansible.builtin.command: kubectl apply --kubeconfig=/etc/kubernetes/admin.conf -f https://projectcalico.docs.tigera.io/manifests/calico.yaml
+      args:
+        creates: /var/log/calico/cni/cni.log
+      run_once: yes
+      when: k8s_master | default(False)
+      tags:
+        - init
+    - name: Update Calico Felix configuration
+      ansible.builtin.shell: |
+        KUBECONFIG=/etc/kubernetes/admin.conf /usr/local/bin/calicoctl patch felixconfiguration default --patch='{"spec": {"ipipEnabled": false, "vxlanEnabled": false}}'
+      run_once: yes
+      when: k8s_master | default(False)
+      tags:
+        - init
+    - name: Configure Calico BGP
+      ansible.builtin.shell: KUBECONFIG=/etc/kubernetes/admin.conf /usr/local/bin/calicoctl apply -f /var/tmp/calico-bgp.yml
+      run_once: yes
+      when: k8s_master | default(False)
+      tags:
+        - init
+    - name: Update Calico API endpoints ConfigMap (first master)
+      ansible.builtin.command: kubectl apply --kubeconfig=/etc/kubernetes/admin.conf -f /var/tmp/calico-endpoints.yml
+      run_once: yes
+      when: k8s_master | default(False)
+      tags:
+        - never
+    - name: Pause for 120 seconds
+      ansible.builtin.pause:
+        seconds: 120
+      tags:
+        - never
+    - name: Redeploy tigera-operator (first master)
+      ansible.builtin.command: kubectl --kubeconfig=/etc/kubernetes/admin.conf delete pod -n tigera-operator -l k8s-app=tigera-operator
+      run_once: yes
+      when: k8s_master | default(False)
+      tags:
+        - never
+    - name: Pause for 30 seconds
+      ansible.builtin.pause:
+        seconds: 30
+      tags:
+        - never
+    - name: Disable kube-proxy
+      ansible.builtin.shell: |
+        kubectl patch daemonset kube-proxy --kubeconfig=/etc/kubernetes/admin.conf -n kube-system --patch '{"spec":{"template":{"spec":{"nodeSelector":{"non-calico": "true"}}}}}'
+      run_once: yes
+      when: k8s_master | default(False)
+      tags:
+        - never
+    - name: Enable eBPF for Calico
+      ansible.builtin.shell: |
+        kubectl patch installation.operator.tigera.io default --kubeconfig=/etc/kubernetes/admin.conf --type merge --patch '{"spec":{"calicoNetwork":{"linuxDataplane":"BPF", "hostPorts":null}}}'
+      run_once: yes
+      when: k8s_master | default(False)
+      tags:
+        - never
+    - name: Generate CoreDNS configuration (first master)
+      ansible.builtin.template:
+        src: templates/kubernetes/coredns-corefile.yml.j2
+        dest: /var/tmp/coredns-corefile.yml
+        owner: root
+        group: root
+        mode: 0644
+      run_once: yes
+      when: k8s_master | default(False)
+      tags:
+        - never
+    - name: Apply CoreDNS configuration (first master)
+      ansible.builtin.command: "kubectl apply -f /var/tmp/coredns-corefile.yml --kubeconfig=/etc/kubernetes/admin.conf"
+      run_once: yes
+      when: k8s_master | default(False)
+      tags:
+        - never
+    - name: Redeploy CoreDNS (first master)
+      ansible.builtin.command: kubectl --kubeconfig=/etc/kubernetes/admin.conf delete pod -n kube-system -l k8s-app=kube-dns --force
+      run_once: yes
+      when: k8s_master | default(False)
+      tags:
+        - never
+    - name: Clean up tmp files
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /var/tmp/calico-custom-resources.yml
+        - /var/tmp/calico-bgp.yml
+        - /var/tmp/calico-endpoints.yml
+        - /var/tmp/coredns-corefile.yml
+      run_once: yes
+      when: (k8s_master | default(False))
+      tags:
+        - never

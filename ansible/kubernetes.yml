@@ -32,9 +32,6 @@
         value: 1
       - param: net.ipv4.ip_forward
         value: 1
-    cri_required_modules:
-      - overlay
-      - br_netfilter
   tasks:
     - name: Configure ufw for master IPv4
       community.general.ufw:
@@ -97,7 +94,7 @@
       loop: "{{ k8s_master_allow_fw }}"
       when: (k8s_master | default(False)) and (ansible_os_family == "RedHat")
       tags:
-        - base
+        - never
     - name: Configure firewalld for worker
       ansible.posix.firewalld:
         port: "{{ item['port'] | replace(':', '-') }}/{{ item['protocol'] }}"
@@ -107,28 +104,22 @@
       loop: "{{ k8s_worker_allow_fw }}"
       when: (k8s_worker | default(True)) and (ansible_os_family == "RedHat")
       tags:
-        - base
-    - name: Configure persistent modules for CRI
-      ansible.builtin.template:
-        src: templates/kubernetes/k8s-cri.conf.j2
-        dest: "/etc/modules-load.d/k8s-cri.conf"
-        owner: root
-        group: root
-        mode: 0644
+        - never
+    - name: Disable firewalld
+      ansible.builtin.systemd:
+        name: firewalld
+        enabled: no
+        masked: yes
+        state: stopped
+      ignore_errors: yes
+      when: (k8s_worker | default(True)) and (ansible_os_family == "RedHat")
       tags:
         - base
-    - name: Add modules
-      community.general.modprobe:
-        name: "{{ item }}"
-        state: present
-      loop: "{{ cri_required_modules }}"
-      tags:
-        - base
-    - name: Set persistent sysctl params for Kubernetes/CRI
+    - name: Set persistent sysctl params for Kubernetes
       ansible.posix.sysctl:
         name: "{{ item['param'] }}"
         value: "{{ item['value'] }}"
-        sysctl_file: /etc/sysctl.d/90-kubernetes-cri.conf
+        sysctl_file: /etc/sysctl.d/90-kubernetes.conf
         sysctl_set: yes
         reload: yes
         state: present
@@ -166,59 +157,6 @@
         - reboot
       tags:
         - base
-    - name: Add CRI-O apt keys (Debian)
-      ansible.builtin.apt_key:
-        url: "{{ item }}"
-        state: present
-      loop:
-        - "https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:{{ crio_version }}/Debian_{{ ansible_distribution_version }}/Release.key"
-        - "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/Debian_{{ ansible_distribution_version }}/Release.key"
-      when: ansible_distribution == "Debian"
-      tags:
-        - base
-    - name: Add CRI-O apt repos (Debian)
-      ansible.builtin.apt_repository:
-        repo: "{{ item }}"
-        state: present
-      loop:
-        - "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/Debian_{{ ansible_distribution_version }}/ /"
-        - "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/Debian_{{ ansible_distribution_version }}/ /"
-      when: ansible_distribution == "Debian"
-      tags:
-        - base
-    - name: Add CRI-O apt keys (Ubuntu)
-      ansible.builtin.apt_key:
-        url: "{{ item }}"
-        state: present
-      loop:
-        - "https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:{{ crio_version }}/xUbuntu_{{ ansible_distribution_version }}/Release.key"
-        - "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ ansible_distribution_version }}/Release.key"
-      when: ansible_distribution == "Ubuntu"
-      tags:
-        - base
-    - name: Add CRI-O apt repos (Ubuntu)
-      ansible.builtin.apt_repository:
-        repo: "{{ item }}"
-        state: present
-      loop:
-        - "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_{{ ansible_distribution_version }}/ /"
-        - "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ crio_version }}/xUbuntu_{{ ansible_distribution_version }}/ /"
-      when: ansible_distribution == "Ubuntu"
-      tags:
-        - base
-    - name: Add CRI-O repos for CentOS/RHEL
-      ansible.builtin.get_url:
-        url: "{{ item }}"
-        dest: /etc/yum.repos.d/
-        owner: root
-        group: root
-        mode: 0644
-      loop:
-        - "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/CentOS_{{ ansible_distribution_major_version }}/devel:kubic:libcontainers:stable.repo"
-        - "https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:{{ crio_version }}/CentOS_{{ ansible_distribution_major_version }}/devel:kubic:libcontainers:stable:cri-o:{{ crio_version}}.repo"
-      when: ansible_os_family == "RedHat"
-      tags:
-        - base
     - name: Add Kubernetes apt keys
       ansible.builtin.apt_key:
         url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
@@ -246,50 +184,13 @@
       when: ansible_os_family == "RedHat"
       tags:
         - base
-    - name: Install CRI-O
-      ansible.builtin.package:
-        name: cri-o
-        state: present
-      tags:
-        - base
-    - name: Install CRI-O-runc for Debian/Ubuntu
-      ansible.builtin.package:
-        name: cri-o-runc
-        state: present
-      when: ansible_os_family == "Debian"
-      tags:
-        - base
-    # Ubuntu 18.04 LTS overlay modules doesn't support metacopy param
-    - name: Get overlay module params
-      ansible.builtin.shell: modinfo -p overlay | grep -q metacopy
-      ignore_errors: yes
-      register: overlay_metacopy
-      tags:
-        - base
-    - name: Rewrite overlay mountopt for /etc/containers/storage
-      ansible.builtin.lineinfile:
-        path: /etc/containers/storage.conf
-        regexp: '^mountopt'
-        line: mountopt = "nodev"
-      when: overlay_metacopy.rc == 1
-      tags:
-        - base
-    - name: Enable CRI-O unit
-      ansible.builtin.systemd:
-        name: crio
-        enabled: yes
-        state: restarted
-        daemon_reload: yes
-      tags:
-        - base
     - name: Install kubectl, kubeadm, and kubelet for Debian/Ubuntu
       ansible.builtin.package:
-        name: "{{ item }}"
+        name:
+          - "kubectl={{ kubernetes_version }}-00"
+          - "kubelet={{ kubernetes_version }}-00"
+          - "kubeadm={{ kubernetes_version }}-00"
         state: present
-      loop:
-        - "kubectl={{ kubernetes_version }}-00"
-        - "kubelet={{ kubernetes_version }}-00"
-        - "kubeadm={{ kubernetes_version }}-00"
       when: ansible_os_family == "Debian"
       tags:
         - base
@@ -306,12 +207,11 @@
         - base
     - name: Install kubectl, kubeadm, and kubelet for CentOS/RHEL
       ansible.builtin.package:
-        name: "{{ item }}"
+        name:
+          - "kubectl-{{ kubernetes_version }}"
+          - "kubelet-{{ kubernetes_version }}"
+          - "kubeadm-{{ kubernetes_version }}"
         state: present
-      loop:
-        - "kubectl-{{ kubernetes_version }}"
-        - "kubelet-{{ kubernetes_version }}"
-        - "kubeadm-{{ kubernetes_version }}"
       when: ansible_os_family == "RedHat"
       tags:
         - base
@@ -353,29 +253,6 @@
       ansible.builtin.command: "kubeadm init --node-name={{ inventory_hostname }} --config=/var/tmp/kubeadm.yml --upload-certs"
       args:
         creates: /etc/kubernetes/admin.conf
-      run_once: yes
-      when: k8s_master | default(False)
-      tags:
-        - init
-    - name: Generate CoreDNS configuration (first master)
-      ansible.builtin.template:
-        src: templates/kubernetes/coredns-corefile.yml.j2
-        dest: /var/tmp/coredns-corefile.yml
-        owner: root
-        group: root
-        mode: 0644
-      run_once: yes
-      when: k8s_master | default(False)
-      tags:
-        - init
-    - name: Apply CoreDNS configuration (first master)
-      ansible.builtin.command: "kubectl apply -f /var/tmp/coredns-corefile.yml --kubeconfig=/etc/kubernetes/admin.conf"
-      run_once: yes
-      when: k8s_master | default(False)
-      tags:
-        - init
-    - name: Redeploy CoreDNS (first master)
-      ansible.builtin.command: kubectl --kubeconfig=/etc/kubernetes/admin.conf delete pod -n kube-system -l k8s-app=kube-dns
       run_once: yes
       when: k8s_master | default(False)
       tags:
@@ -447,130 +324,21 @@
       when: (k8s_master | default(False)) and (k8s_worker | default(True))
       tags:
         - taints
-    - name: Check for NetworkManager conf.d
-      ansible.builtin.stat:
-        path: /etc/NetworkManager/conf.d
-      register: nm_conf_d
-      tags:
-        - calico
-    - name: Add NetworkManager override for Calico
-      ansible.builtin.template:
-        src: templates/kubernetes/nm-calico.conf.j2
-        dest: /etc/NetworkManager/conf.d/calico.conf
-        owner: root
-        group: root
-        mode: 0644
-      when: nm_conf_d.stat.isdir is defined and nm_conf_d.stat.isdir
-      tags:
-        - calico
-    - name: Reload NetworkManager configuration
-      ansible.builtin.command: nmcli connection reload
-      when: nm_conf_d.stat.isdir is defined and nm_conf_d.stat.isdir
-      tags:
-        - calico
-    - name: Install calicoctl
-      ansible.builtin.shell: |
-        curl -sLo /usr/local/bin/calicoctl https://github.com/projectcalico/calicoctl/releases/download/{{ calico_version }}/calicoctl && chmod 0755 /usr/local/bin/calicoctl
-      when: k8s_master | default(False)
-      tags:
-        - calico
-    - name: Generate Calico configurations (first master)
-      ansible.builtin.template:
-        src: templates/kubernetes/{{ item }}.j2
-        dest: /var/tmp/{{ item }}
-        owner: root
-        group: root
-        mode: 0644
-      loop:
-        - calico-custom-resources.yml
-        - calico-bgp.yml
-        - calico-endpoints.yml
-      run_once: yes
-      when: k8s_master | default(False)
-      tags:
-        - calico
-    - name: Install Calico Operator (first master)
-      ansible.builtin.command: kubectl apply --kubeconfig=/etc/kubernetes/admin.conf -f https://docs.projectcalico.org/manifests/tigera-operator.yaml
-      args:
-        creates: /var/log/calico/cni/cni.log
-      run_once: yes
-      when: k8s_master | default(False)
-      tags:
-        - calico
-    - name: Pause for 30 seconds
-      ansible.builtin.pause:
-        seconds: 30
-      tags:
-        - calico
-    - name: Apply Calico Operator configuration (first master)
-      ansible.builtin.command: kubectl apply --kubeconfig=/etc/kubernetes/admin.conf -f /var/tmp/calico-custom-resources.yml
-      run_once: yes
-      when: k8s_master | default(False)
-      tags:
-        - calico
-    - name: Pause for 600 seconds
-      ansible.builtin.pause:
-        seconds: 600
-      tags:
-        - calico
-    - name: Update Calico Felix configuration
-      ansible.builtin.shell: |
-        KUBECONFIG=/etc/kubernetes/admin.conf /usr/local/bin/calicoctl patch felixconfiguration default --patch='{"spec": {"ipipEnabled": false, "vxlanEnabled": false}}'
-      run_once: yes
-      when: k8s_master | default(False)
-      tags:
-        - calico
-    - name: Configure Calico BGP
-      ansible.builtin.shell: KUBECONFIG=/etc/kubernetes/admin.conf /usr/local/bin/calicoctl apply -f /var/tmp/calico-bgp.yml
-      run_once: yes
-      when: k8s_master | default(False)
-      tags:
-        - calico
-    - name: Update Calico API endpoints ConfigMap (first master)
-      ansible.builtin.command: kubectl apply --kubeconfig=/etc/kubernetes/admin.conf -f /var/tmp/calico-endpoints.yml
-      run_once: yes
-      when: k8s_master | default(False)
-      tags:
-        - never
-    - name: Pause for 120 seconds
-      ansible.builtin.pause:
-        seconds: 120
-      tags:
-        - never
-    - name: Redeploy tigera-operator (first master)
-      ansible.builtin.command: kubectl --kubeconfig=/etc/kubernetes/admin.conf delete pod -n tigera-operator -l k8s-app=tigera-operator
-      run_once: yes
-      when: k8s_master | default(False)
-      tags:
-        - never
-    - name: Pause for 30 seconds
-      ansible.builtin.pause:
-        seconds: 30
-      tags:
-        - never
-    - name: Disable kube-proxy
-      ansible.builtin.shell: |
-        kubectl patch daemonset kube-proxy --kubeconfig=/etc/kubernetes/admin.conf -n kube-system --patch '{"spec":{"template":{"spec":{"nodeSelector":{"non-calico": "true"}}}}}'
-      run_once: yes
-      when: k8s_master | default(False)
-      tags:
-        - never
-    - name: Enable eBPF for Calico
-      ansible.builtin.shell: |
-        kubectl patch installation.operator.tigera.io default --kubeconfig=/etc/kubernetes/admin.conf --type merge --patch '{"spec":{"calicoNetwork":{"linuxDataplane":"BPF", "hostPorts":null}}}'
-      run_once: yes
-      when: k8s_master | default(False)
-      tags:
-        - never
-    - name: Clean up tmp files
+    - name: Clean up kubeadm template
       ansible.builtin.file:
-        path: "{{ item }}"
+        path: /var/tmp/kubeadm.yml
         state: absent
       loop:
         - /var/tmp/kubeadm.yml
-        - /var/tmp/calico-custom-resources.yml
-        - /var/tmp/calico-bgp.yml
-        - /var/tmp/calico-endpoints.yml
+      run_once: yes
+      when: (k8s_master | default(False))
+      tags:
+        - never
+    - name: Clean up user rbac templates
+      ansible.builtin.file:
+        path: /var/tmp/{{ item }}-admin-rbac.yml
+        state: absent
+      loop: "{{ k8s_admins | default(['memes']) }}"
       run_once: yes
       when: (k8s_master | default(False))
       tags:
