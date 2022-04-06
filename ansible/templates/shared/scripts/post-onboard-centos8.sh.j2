@@ -32,5 +32,12 @@ for k in RPM-GPG-KEY-CentOS-Official.asc; do
     rm -f /tmp/${k}
 done
 
+# Centos 8.x is EOL, so update all repos to use a baseurl of vault.centos.org
+info "Updating CentOS repos to use vault.centos.org"
+sed -i -e 's/^mirrorlist/#mirrorlist/g' \
+    -e 's/^#baseurl=/baseurl=/g' \
+    -e 's/^baseurl=http:\/\/mirror.centos.org/baseurl=http:\/\/vault.centos.org/g' \
+    /etc/yum.repos.d/CentOS-*
+
 info "CentOS8 onboarding complete"
 exit 0
