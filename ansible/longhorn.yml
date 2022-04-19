@@ -37,3 +37,10 @@
       when: k8s_master | default(False)
       tags:
         - init
+    - name: Use longhorn as default storage class
+      ansible.builtin.command: |
+        kubectl --kubeconfig=/etc/kubernetes/admin.conf patch storageclass longhorn -p '{"metadata": {"annotations": {"storageclass.kubernetes.io/is-default-class":"true"}}}'
+      run_once: yes
+      when: k8s_master | default(False)
+      tags:
+        - init
