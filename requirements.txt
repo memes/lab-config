@@ -4,7 +4,7 @@
 # and add to PYTHONPATH via .envrc.
 pre-commit==2.18.1
 ansible==5.7.1
-pyghmi==1.5.39
+pyghmi==1.5.40
 hvac==0.11.2
 pyvmomi==7.0.3
 passlib==1.7.4
