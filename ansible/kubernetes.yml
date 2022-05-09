@@ -320,6 +320,11 @@
       tags:
         - join
     - name: Remove scheduling taints
+      ansible.builtin.command: kubectl taint nodes {{ inventory_hostname }} node-role.kubernetes.io/control-plane- --kubeconfig=/etc/kubernetes/admin.conf
+      when: (k8s_master | default(False)) and (k8s_worker | default(True))
+      tags:
+        - taints
+    - name: Remove legacy scheduling taints
       ansible.builtin.command: kubectl taint nodes {{ inventory_hostname }} node-role.kubernetes.io/master- --kubeconfig=/etc/kubernetes/admin.conf
       when: (k8s_master | default(False)) and (k8s_worker | default(True))
       tags:
