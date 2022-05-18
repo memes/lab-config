@@ -257,6 +257,37 @@
       when: k8s_master | default(False)
       tags:
         - init
+    - name: Get base kubeadm join command
+      # ansible.builtin.shell: openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'
+      ansible.builtin.command: kubeadm token create --print-join-command
+      register: kubeadm_join_command
+      when: k8s_master | default(False)
+      run_once: yes
+      tags:
+        - join
+    - name: Get kubeadm cert hash
+      ansible.builtin.shell: kubeadm init phase upload-certs --upload-certs 2>/dev/null | tail -n1
+      register: kubeadm_cert_hash
+      when: k8s_master | default(False)
+      run_once: yes
+      tags:
+        - join
+    - name: Join other kubeadm servers
+      ansible.builtin.command: "{{ kubeadm_join_command.stdout }} {{ (k8s_master | default(False)) | ternary('--control-plane --apiserver-advertise-address ' + ansible_host + ' --certificate-key ' + kubeadm_cert_hash.stdout, '', '') }} --node-name={{ inventory_hostname }}"
+      args:
+        creates: /etc/kubernetes/kubelet.conf
+      tags:
+        - join
+    - name: Remove scheduling taints
+      ansible.builtin.command: kubectl taint nodes {{ inventory_hostname }} node-role.kubernetes.io/control-plane- --kubeconfig=/etc/kubernetes/admin.conf
+      when: (k8s_master | default(False)) and (k8s_worker | default(True))
+      tags:
+        - taints
+    - name: Remove legacy scheduling taints
+      ansible.builtin.command: kubectl taint nodes {{ inventory_hostname }} node-role.kubernetes.io/master- --kubeconfig=/etc/kubernetes/admin.conf
+      when: (k8s_master | default(False)) and (k8s_worker | default(True))
+      tags:
+        - taints
     - name: Create admin user account(s)
       ansible.builtin.command: "kubeadm kubeconfig user --config=/var/tmp/kubeadm.yml --client-name {{ item }}@{{ lab_domain }}"
       register: kubeconfig
@@ -298,37 +329,6 @@
         label: "{{ item.item }}"
       tags:
         - users
-    - name: Get base kubeadm join command
-      # ansible.builtin.shell: openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'
-      ansible.builtin.command: kubeadm token create --print-join-command
-      register: kubeadm_join_command
-      when: k8s_master | default(False)
-      run_once: yes
-      tags:
-        - join
-    - name: Get kubeadm cert hash
-      ansible.builtin.shell: kubeadm init phase upload-certs --upload-certs 2>/dev/null | tail -n1
-      register: kubeadm_cert_hash
-      when: k8s_master | default(False)
-      run_once: yes
-      tags:
-        - join
-    - name: Join other kubeadm servers
-      ansible.builtin.command: "{{ kubeadm_join_command.stdout }} {{ (k8s_master | default(False)) | ternary('--control-plane --apiserver-advertise-address ' + ansible_host + ' --certificate-key ' + kubeadm_cert_hash.stdout, '', '') }} --node-name={{ inventory_hostname }}"
-      args:
-        creates: /etc/kubernetes/kubelet.conf
-      tags:
-        - join
-    - name: Remove scheduling taints
-      ansible.builtin.command: kubectl taint nodes {{ inventory_hostname }} node-role.kubernetes.io/control-plane- --kubeconfig=/etc/kubernetes/admin.conf
-      when: (k8s_master | default(False)) and (k8s_worker | default(True))
-      tags:
-        - taints
-    - name: Remove legacy scheduling taints
-      ansible.builtin.command: kubectl taint nodes {{ inventory_hostname }} node-role.kubernetes.io/master- --kubeconfig=/etc/kubernetes/admin.conf
-      when: (k8s_master | default(False)) and (k8s_worker | default(True))
-      tags:
-        - taints
     - name: Clean up kubeadm template
       ansible.builtin.file:
         path: /var/tmp/kubeadm.yml
