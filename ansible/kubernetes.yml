@@ -5,26 +5,6 @@
   hosts: servers
   become: yes
   vars:
-    k8s_master_allow_fw:
-      - port: 22
-        protocol: tcp
-      - port: 179
-        protocol: tcp
-      - port: 2379:2380
-        protocol: tcp
-      - port: 6443
-        protocol: tcp
-      - port: 10250:10252
-        protocol: tcp
-    k8s_worker_allow_fw:
-      - port: 22
-        protocol: tcp
-      - port: 179
-        protocol: tcp
-      - port: 10250
-        protocol: tcp
-      - port: 30000:32767
-        protocol: tcp
     k8s_sysctl:
       - param: net.bridge.bridge-nf-call-iptables
         value: 1
@@ -33,78 +13,13 @@
       - param: net.ipv4.ip_forward
         value: 1
   tasks:
-    - name: Configure ufw for master IPv4
+    - name: Disable ufw
       community.general.ufw:
-        port: "{{ item['port'] }}"
-        proto: "{{ item['protocol'] }}"
-        rule: allow
-        direction: in
-        insert: 1
-        insert_relative_to: last-ipv4
-        state: enabled
-      loop: "{{ k8s_master_allow_fw}}"
-      when: (k8s_master | default(False)) and (ansible_distribution == "Ubuntu")
+        state: disabled
+      ignore_errors: yes
+      when: ansible_distribution == "Ubuntu"
       tags:
         - base
-    - name: Configure ufw for master IPv6
-      community.general.ufw:
-        port: "{{ item['port'] }}"
-        proto: "{{ item['protocol'] }}"
-        rule: allow
-        direction: in
-        insert: 1
-        insert_relative_to: last-ipv6
-        state: enabled
-      loop: "{{ k8s_master_allow_fw}}"
-      when: (k8s_master | default(False)) and (ansible_distribution == "Ubuntu")
-      tags:
-        - base
-    - name: Configure ufw for worker IPv4
-      community.general.ufw:
-        port: "{{ item['port'] }}"
-        proto: "{{ item['protocol'] }}"
-        rule: allow
-        direction: in
-        insert: 1
-        insert_relative_to: last-ipv4
-        state: enabled
-      loop: "{{ k8s_worker_allow_fw }}"
-      when: (k8s_worker | default(True)) and (ansible_distribution == "Ubuntu")
-      tags:
-        - base
-    - name: Configure ufw for worker IPv6
-      community.general.ufw:
-        port: "{{ item['port'] }}"
-        proto: "{{ item['protocol'] }}"
-        rule: allow
-        direction: in
-        insert: 1
-        insert_relative_to: last-ipv6
-        state: enabled
-      loop: "{{ k8s_worker_allow_fw }}"
-      when: (k8s_worker | default(True)) and (ansible_distribution == "Ubuntu")
-      tags:
-        - base
-    - name: Configure firewalld for master
-      ansible.posix.firewalld:
-        port: "{{ item['port'] | replace(':', '-') }}/{{ item['protocol'] }}"
-        permanent: yes
-        immediate: yes
-        state: enabled
-      loop: "{{ k8s_master_allow_fw }}"
-      when: (k8s_master | default(False)) and (ansible_os_family == "RedHat")
-      tags:
-        - never
-    - name: Configure firewalld for worker
-      ansible.posix.firewalld:
-        port: "{{ item['port'] | replace(':', '-') }}/{{ item['protocol'] }}"
-        permanent: yes
-        immediate: yes
-        state: enabled
-      loop: "{{ k8s_worker_allow_fw }}"
-      when: (k8s_worker | default(True)) and (ansible_os_family == "RedHat")
-      tags:
-        - never
     - name: Disable firewalld
       ansible.builtin.systemd:
         name: firewalld
@@ -112,7 +27,7 @@
         masked: yes
         state: stopped
       ignore_errors: yes
-      when: (k8s_worker | default(True)) and (ansible_os_family == "RedHat")
+      when: ansible_os_family == "RedHat"
       tags:
         - base
     - name: Set persistent sysctl params for Kubernetes
@@ -250,7 +165,7 @@
       tags:
         - init
     - name: Execute kubeadm (first master)
-      ansible.builtin.command: "kubeadm init --node-name={{ inventory_hostname }} --config=/var/tmp/kubeadm.yml --upload-certs"
+      ansible.builtin.command: "kubeadm init {% if kubeadm_skip_phases | default([]) | length > 0 %}--skip-phases={{ kubeadm_skip_phases | join(',') }}{% endif %} --node-name={{ inventory_hostname }} --config=/var/tmp/kubeadm.yml --upload-certs"
       args:
         creates: /etc/kubernetes/admin.conf
       run_once: yes
@@ -258,7 +173,6 @@
       tags:
         - init
     - name: Get base kubeadm join command
-      # ansible.builtin.shell: openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'
       ansible.builtin.command: kubeadm token create --print-join-command
       register: kubeadm_join_command
       when: k8s_master | default(False)
