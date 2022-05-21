@@ -210,16 +210,6 @@
       when: k8s_master | default(False)
       tags:
         - users
-    - name: Write user kubeconfig(s) locally
-      local_action: ansible.builtin.template force=yes src=templates/kubernetes/kubeconfig.user.j2 dest=../kubeconfig.{{ item.item }}
-      run_once: yes
-      become: no
-      when: item.rc == 0
-      loop: "{{ kubeconfig.results }}"
-      loop_control:
-        label: "{{ item.item }}"
-      tags:
-        - users
     - name: Write admin accounts YAML
       ansible.builtin.template:
         src: templates/kubernetes/admin-user-rbac.yml.j2
@@ -238,6 +228,16 @@
       ansible.builtin.command: "kubectl apply -f /var/tmp/{{ item.item }}-admin-rbac.yml --kubeconfig=/etc/kubernetes/admin.conf"
       run_once: yes
       when: k8s_master | default(False) and item.rc == 0
+      loop: "{{ kubeconfig.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+      tags:
+        - users
+    - name: Write user kubeconfig(s) locally
+      local_action: ansible.builtin.template force=yes src=templates/kubernetes/kubeconfig.user.j2 dest=../kubeconfig.{{ item.item }}
+      run_once: yes
+      become: no
+      when: item.rc == 0
       loop: "{{ kubeconfig.results }}"
       loop_control:
         label: "{{ item.item }}"

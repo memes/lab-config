@@ -31,10 +31,11 @@
         daemon_reload: yes
       tags:
         - base
-    - name: Deploy longhorn (first master)
-      ansible.builtin.command: kubectl --kubeconfig=/etc/kubernetes/admin.conf apply -f https://raw.githubusercontent.com/longhorn/longhorn/{{ longhorn_version }}/deploy/longhorn.yaml
+    - name: Deploy longhorn
+      ansible.builtin.command: kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/{{ longhorn_version }}/deploy/longhorn.yaml
       run_once: yes
-      when: k8s_master | default(False)
+      become: no
+      delegate_to: 127.0.0.1
       tags:
         - init
     - name: Use longhorn as default storage class

@@ -5,6 +5,30 @@
   hosts: servers
   become: no
   tasks:
+    - name: Create BGP ConfigMap
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: bgp-config
+            namespace: kube-system
+          data:
+            config.yaml: |
+              peers:
+                - peer-address: 172.17.0.1
+                  peer-asn: 64512
+                  my-asn: 64513
+              address-pools:
+                - name: default
+                  protocol: bgp
+                  addresses:
+                    - {{ kubernetes_lb_cidr | default('10.3.0.0/24') }}
+      run_once: yes
+      delegate_to: 127.0.0.1
+      tags:
+        - init
     - name: Add Cilium helm repo
       kubernetes.core.helm_repository:
         name: cilium
@@ -20,6 +44,10 @@
         chart_version: "{{ cilium_version }}"
         release_namespace: kube-system
         values:
+          bgp:
+            enabled: true
+            announce:
+              loadbalancerIP: true
           kubeProxyReplacement: strict
           k8sServiceHost: "{{ kubernetes_api_address }}"
           k8sServicePort: "6443"
