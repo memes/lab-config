@@ -28,115 +28,166 @@
         - base
     - name: Install calicoctl
       ansible.builtin.shell: |
-        curl -sLo /usr/local/bin/calicoctl https://github.com/projectcalico/calico/releases/download/{{ calico_version }}/calicoctl-linux-amd64 && chmod 0755 /usr/local/bin/calicoctl
+        curl -sLo /run/calicoctl https://github.com/projectcalico/calico/releases/download/{{ calico_version }}/calicoctl-linux-amd64 && chmod 0755 /run/calicoctl && mv /run/calicoctl /usr/local/bin/calicoctl
+      args:
+        creates: /usr/local/bin/calicoctl
       when: k8s_master | default(False)
       tags:
         - base
-    - name: Generate Calico configurations (first master)
-      ansible.builtin.template:
-        src: templates/kubernetes/{{ item }}.j2
-        dest: /var/tmp/{{ item }}
-        owner: root
-        group: root
-        mode: 0644
-      loop:
-        - calico-custom-resources.yml
-        - calico-bgp.yml
-        - calico-endpoints.yml
+    - name: Create tigera-operator namespace
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: tigera-operator
       run_once: yes
-      when: k8s_master | default(False)
+      become: no
+      delegate_to: 127.0.0.1
       tags:
         - init
-    - name: Install Calico from default manifests
-      ansible.builtin.command: kubectl apply --kubeconfig=/etc/kubernetes/admin.conf -f https://projectcalico.docs.tigera.io/manifests/calico.yaml
-      args:
-        creates: /var/log/calico/cni/cni.log
+    - name: Configure Calico to replace kube-proxy
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: kubernetes-services-endpoint
+            namespace: tigera-operator
+          data:
+            KUBERNETES_SERVICE_HOST: "{{ kubernetes_api_address }}"
+            KUBERNETES_SERVICE_PORT: "6443"
       run_once: yes
-      when: k8s_master | default(False)
+      become: no
+      delegate_to: 127.0.0.1
       tags:
         - init
-    - name: Update Calico Felix configuration
-      ansible.builtin.shell: |
-        KUBECONFIG=/etc/kubernetes/admin.conf /usr/local/bin/calicoctl patch felixconfiguration default --patch='{"spec": {"ipipEnabled": false, "vxlanEnabled": false}}'
+    - name: Install Tigera operator
+      ansible.builtin.command: kubectl apply -f https://projectcalico.docs.tigera.io/manifests/tigera-operator.yaml
       run_once: yes
-      when: k8s_master | default(False)
+      become: no
+      delegate_to: 127.0.0.1
       tags:
         - init
-    - name: Configure Calico BGP
-      ansible.builtin.shell: KUBECONFIG=/etc/kubernetes/admin.conf /usr/local/bin/calicoctl apply -f /var/tmp/calico-bgp.yml
+    - name: Wait for Tigera operator to be ready
+      kubernetes.core.k8s_info:
+        kind: Deployment
+        namespace: tigera-operator
+        name: tigera-operator
       run_once: yes
-      when: k8s_master | default(False)
+      become: no
+      delegate_to: 127.0.0.1
+      register: operator_ready
+      until: operator_ready.resources | json_query('[*].status.conditions[?reason==`MinimumReplicasAvailable`][].status') | select('match','True') | list | length >= 1
+      delay: 10
+      retries: 6
       tags:
         - init
-    - name: Update Calico API endpoints ConfigMap (first master)
-      ansible.builtin.command: kubectl apply --kubeconfig=/etc/kubernetes/admin.conf -f /var/tmp/calico-endpoints.yml
+    - name: Customise Calico installation
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: operator.tigera.io/v1
+          kind: Installation
+          metadata:
+            name: default
+          spec:
+            calicoNetwork:
+              linuxDataplane: BPF
+              bgp: Enabled
+              ipPools:
+                - cidr: "{{ kubernetes_pod_cidr | default('10.0.0.0/17') }}"
+                  encapsulation: None
+                  natOutgoing: Enabled
+                  nodeSelector: all()
+                  blockSize: 24
+              nodeAddressAutodetectionV4:
+                cidrs:
+                  - 172.17.0.0/16
       run_once: yes
-      when: k8s_master | default(False)
+      become: no
+      delegate_to: 127.0.0.1
       tags:
-        - never
-    - name: Pause for 120 seconds
-      ansible.builtin.pause:
-        seconds: 120
-      tags:
-        - never
-    - name: Redeploy tigera-operator (first master)
-      ansible.builtin.command: kubectl --kubeconfig=/etc/kubernetes/admin.conf delete pod -n tigera-operator -l k8s-app=tigera-operator
+        - config
+    - name: Enable Calico API server
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: operator.tigera.io/v1
+          kind: APIServer
+          metadata:
+            name: default
+          spec: {}
       run_once: yes
-      when: k8s_master | default(False)
+      become: no
+      delegate_to: 127.0.0.1
       tags:
-        - never
-    - name: Pause for 30 seconds
-      ansible.builtin.pause:
-        seconds: 30
-      tags:
-        - never
-    - name: Disable kube-proxy
-      ansible.builtin.shell: |
-        kubectl patch daemonset kube-proxy --kubeconfig=/etc/kubernetes/admin.conf -n kube-system --patch '{"spec":{"template":{"spec":{"nodeSelector":{"non-calico": "true"}}}}}'
+        - config
+    - name: Wait for Calico to be ready
+      kubernetes.core.k8s_info:
+        kind: TigeraStatus
+        name: calico
       run_once: yes
-      when: k8s_master | default(False)
+      become: no
+      delegate_to: 127.0.0.1
+      register: calico_ready
+      until: calico_ready.resources | json_query('[*].status.conditions[?type==`Available`][].status') | select('match','True') | list | length >= 1
+      delay: 10
+      retries: 12
       tags:
-        - never
-    - name: Enable eBPF for Calico
-      ansible.builtin.shell: |
-        kubectl patch installation.operator.tigera.io default --kubeconfig=/etc/kubernetes/admin.conf --type merge --patch '{"spec":{"calicoNetwork":{"linuxDataplane":"BPF", "hostPorts":null}}}'
+        - config
+    - name: Ensure Calico API server is ready
+      kubernetes.core.k8s_info:
+        kind: TigeraStatus
+        name: apiserver
       run_once: yes
-      when: k8s_master | default(False)
+      become: no
+      delegate_to: 127.0.0.1
+      register: calico_ready
+      until: calico_ready.resources | json_query('[*].status.conditions[?type==`Available`][].status') | select('match','True') | list | length >= 1
+      delay: 5
+      retries: 5
       tags:
-        - never
-    - name: Generate CoreDNS configuration (first master)
-      ansible.builtin.template:
-        src: templates/kubernetes/coredns-corefile.yml.j2
-        dest: /var/tmp/coredns-corefile.yml
-        owner: root
-        group: root
-        mode: 0644
+        - config
+    - name: Set Calico BGPPeer to upstream router
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: projectcalico.org/v3
+          kind: BGPPeer
+          metadata:
+            name: router-ipv4-peer
+          spec:
+            peerIP: 172.17.0.1
+            asNumber: 64512
       run_once: yes
-      when: k8s_master | default(False)
+      become: no
+      delegate_to: 127.0.0.1
       tags:
-        - never
-    - name: Apply CoreDNS configuration (first master)
-      ansible.builtin.command: "kubectl apply -f /var/tmp/coredns-corefile.yml --kubeconfig=/etc/kubernetes/admin.conf"
+        - bgp
+    - name: Update Calico BGPConfiguration
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: projectcalico.org/v3
+          kind: BGPConfiguration
+          metadata:
+            name: default
+          spec:
+            logSeverityScreen: Info
+            nodeToNodeMeshEnabled: false
+            asNumber: 64513
+            listenPort: 179
+            serviceClusterIPs:
+              - cidr: "{{ kubernetes_service_cidr | default('10.1.0.0/22') }}"
+            serviceExternalIPs:
+              - cidr: "{{ kubernetes_external_cidr | default('10.2.0.0/24') }}"
+            serviceLoadBalancerIPs:
+              - cidr: "{{ kubernetes_lb_cidr | default('10.3.0.0/24') }}"
       run_once: yes
-      when: k8s_master | default(False)
+      become: no
+      delegate_to: 127.0.0.1
       tags:
-        - never
-    - name: Redeploy CoreDNS (first master)
-      ansible.builtin.command: kubectl --kubeconfig=/etc/kubernetes/admin.conf delete pod -n kube-system -l k8s-app=kube-dns --force
-      run_once: yes
-      when: k8s_master | default(False)
-      tags:
-        - never
-    - name: Clean up tmp files
-      ansible.builtin.file:
-        path: "{{ item }}"
-        state: absent
-      loop:
-        - /var/tmp/calico-custom-resources.yml
-        - /var/tmp/calico-bgp.yml
-        - /var/tmp/calico-endpoints.yml
-        - /var/tmp/coredns-corefile.yml
-      run_once: yes
-      when: (k8s_master | default(False))
-      tags:
-        - never
+        - bgp
