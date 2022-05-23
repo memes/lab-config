@@ -12,6 +12,8 @@
         value: 1
       - param: net.ipv4.ip_forward
         value: 1
+      - param: vm.nr_hugepages
+        value: 2048
   tasks:
     - name: Disable ufw
       community.general.ufw:

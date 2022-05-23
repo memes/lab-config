@@ -15,4 +15,4 @@
         user: "{{ ipmi_secrets.user }}"
         password: "{{ ipmi_secrets.password }}"
         state: boot
-      delegate_to: 127.0.0.1
+      delegate_to: localhost

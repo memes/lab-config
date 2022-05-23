@@ -1,10 +1,13 @@
 # Variables that are common to all groups and hosts
 ---
+# Lab domain settings
 root_ca: ./ca/acceleratedgcp-root-ca.pem
 lab_domain: lab.acceleratedgcp.com
 lab_shared_host: "shared.{{ lab_domain }}"
 lab_shared_http_url: "http://{{ lab_shared_host }}"
 lab_shared_https_url: "https://{{ lab_shared_host }}"
+
+# Hashicorp Vault settings
 vault_host: "vault.{{ lab_domain }}"
 vault_url: "https://{{ vault_host }}:8200"
 vault_kv2_ipmi_secrets_path: /secret/data/lab/ipmi
@@ -13,3 +16,18 @@ default_domain: home.arpa
 default_shared_host: "shared.{{ default_domain }}"
 default_shared_http_url: "http://{{ default_shared_host }}"
 default_shared_https_url: "https://{{ default_shared_host }}"
+
+# Kubernetes, CRI, CNI, & CSI settings
+crio_version: '1.24'
+kubernetes_version: '1.24.0'
+kubernetes_api_server: 'control.{{ lab_domain }}'
+kubernetes_api_address: '172.17.1.2'
+calico_version: v3.23.1
+kubernetes_pod_cidr: 10.0.0.0/17
+kubernetes_service_cidr: 10.1.0.0/22
+kubernetes_external_cidr: 10.2.0.0/24
+kubernetes_lb_cidr: 10.3.0.0/24
+longhorn_version: v1.2.4
+cilium_version: 1.11.5
+kubeadm_skip_phases:
+  - addon/kube-proxy

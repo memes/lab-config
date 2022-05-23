@@ -34,6 +34,11 @@
       when: k8s_master | default(False)
       tags:
         - base
+- name: Install Calico
+  hosts: localhost
+  become: no
+  gather_facts: no
+  tasks:
     - name: Create tigera-operator namespace
       kubernetes.core.k8s:
         state: present
@@ -42,9 +47,6 @@
           kind: Namespace
           metadata:
             name: tigera-operator
-      run_once: yes
-      become: no
-      delegate_to: 127.0.0.1
       tags:
         - init
     - name: Configure Calico to replace kube-proxy
@@ -59,16 +61,10 @@
           data:
             KUBERNETES_SERVICE_HOST: "{{ kubernetes_api_address }}"
             KUBERNETES_SERVICE_PORT: "6443"
-      run_once: yes
-      become: no
-      delegate_to: 127.0.0.1
       tags:
         - init
     - name: Install Tigera operator
       ansible.builtin.command: kubectl apply -f https://projectcalico.docs.tigera.io/manifests/tigera-operator.yaml
-      run_once: yes
-      become: no
-      delegate_to: 127.0.0.1
       tags:
         - init
     - name: Wait for Tigera operator to be ready
@@ -76,9 +72,6 @@
         kind: Deployment
         namespace: tigera-operator
         name: tigera-operator
-      run_once: yes
-      become: no
-      delegate_to: 127.0.0.1
       register: operator_ready
       until: operator_ready.resources | json_query('[*].status.conditions[?reason==`MinimumReplicasAvailable`][].status') | select('match','True') | list | length >= 1
       delay: 10
@@ -106,9 +99,6 @@
               nodeAddressAutodetectionV4:
                 cidrs:
                   - 172.17.0.0/16
-      run_once: yes
-      become: no
-      delegate_to: 127.0.0.1
       tags:
         - config
     - name: Enable Calico API server
@@ -120,18 +110,12 @@
           metadata:
             name: default
           spec: {}
-      run_once: yes
-      become: no
-      delegate_to: 127.0.0.1
       tags:
         - config
     - name: Wait for Calico to be ready
       kubernetes.core.k8s_info:
         kind: TigeraStatus
         name: calico
-      run_once: yes
-      become: no
-      delegate_to: 127.0.0.1
       register: calico_ready
       until: calico_ready.resources | json_query('[*].status.conditions[?type==`Available`][].status') | select('match','True') | list | length >= 1
       delay: 10
@@ -142,9 +126,6 @@
       kubernetes.core.k8s_info:
         kind: TigeraStatus
         name: apiserver
-      run_once: yes
-      become: no
-      delegate_to: 127.0.0.1
       register: calico_ready
       until: calico_ready.resources | json_query('[*].status.conditions[?type==`Available`][].status') | select('match','True') | list | length >= 1
       delay: 5
@@ -162,9 +143,6 @@
           spec:
             peerIP: 172.17.0.1
             asNumber: 64512
-      run_once: yes
-      become: no
-      delegate_to: 127.0.0.1
       tags:
         - bgp
     - name: Update Calico BGPConfiguration
@@ -186,8 +164,5 @@
               - cidr: "{{ kubernetes_external_cidr | default('10.2.0.0/24') }}"
             serviceLoadBalancerIPs:
               - cidr: "{{ kubernetes_lb_cidr | default('10.3.0.0/24') }}"
-      run_once: yes
-      become: no
-      delegate_to: 127.0.0.1
       tags:
         - bgp

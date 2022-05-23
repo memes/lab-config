@@ -31,11 +31,13 @@
         daemon_reload: yes
       tags:
         - base
+- name: Install longhorn
+  hosts: localhost
+  become: no
+  gather_facts: no
+  tasks:
     - name: Deploy longhorn
       ansible.builtin.command: kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/{{ longhorn_version }}/deploy/longhorn.yaml
-      run_once: yes
-      become: no
-      delegate_to: 127.0.0.1
       tags:
         - init
     - name: Use longhorn as default storage class
@@ -47,8 +49,5 @@
           metadata:
             annotations:
               storageclass.kubernetes.io/is-default-class: 'true'
-      run_once: yes
-      become: no
-      delegate_to: 127.0.0.1
       tags:
         - init

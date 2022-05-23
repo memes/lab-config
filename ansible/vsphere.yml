@@ -15,7 +15,7 @@
         username: root
         password: "{{ ks_secrets.root }}"
         validate_certs: no
-      delegate_to: 127.0.0.1
+      delegate_to: localhost
     - name: Verify vCenter is active
       community.vmware.vmware_about_info:
         hostname: "{{ vcenter_hostname }}"
@@ -23,7 +23,7 @@
         password: "{{ ks_secrets.administrator }}"
         validate_certs: no
       run_once: yes
-      delegate_to: 127.0.0.1
+      delegate_to: localhost
     - name: Create datacenter
       community.vmware.vmware_datacenter:
         hostname: "{{ vcenter_hostname }}"
@@ -33,7 +33,7 @@
         datacenter_name: "{{ vsphere_datacenter }}"
         state: present
       run_once: yes
-      delegate_to: 127.0.0.1
+      delegate_to: localhost
     - name: Create dSwitch
       community.vmware.vmware_dvswitch:
         hostname: "{{ vcenter_hostname }}"
@@ -53,7 +53,7 @@
           teaming_failover_interval: 1
         state: present
       run_once: yes
-      delegate_to: 127.0.0.1
+      delegate_to: localhost
     - name: Create portgroup on distributed switch
       community.vmware.vmware_dvs_portgroup:
         hostname: "{{ vcenter_hostname }}"
@@ -74,7 +74,7 @@
         - id: 200
           name: vext
       run_once: yes
-      delegate_to: 127.0.0.1
+      delegate_to: localhost
     - name: Create cluster
       community.vmware.vmware_cluster:
         hostname: "{{ vcenter_hostname }}"
@@ -89,7 +89,7 @@
         ignore_ha: yes
         ignore_vsan: yes
       run_once: yes
-      delegate_to: 127.0.0.1
+      delegate_to: localhost
     - name: Add ESXi hosts to cluster
       community.vmware.vmware_host:
         hostname: "{{ vcenter_hostname }}"
@@ -102,7 +102,7 @@
         esxi_username: root
         esxi_password: "{{ ks_secrets.root }}"
         state: present
-      delegate_to: 127.0.0.1
+      delegate_to: localhost
     - name: Enable vSAN on cluster
       community.vmware.vmware_cluster_vsan:
         hostname: "{{ vcenter_hostname }}"
@@ -114,7 +114,7 @@
         enable_vsan: yes
         vsan_auto_claim_storage: yes
       run_once: yes
-      delegate_to: 127.0.0.1
+      delegate_to: localhost
       tags:
         # TODO: @memes
         # Disabling vSAN as not all hosts have SSD and can't be bothered to
@@ -131,7 +131,7 @@
         cluster_name: "{{ vsphere_cluster }}"
         enable_ha: yes
       run_once: yes
-      delegate_to: 127.0.0.1
+      delegate_to: localhost
       # tags:
       #   # TODO: @memes
       #   - never
@@ -146,7 +146,7 @@
         enable_drs: yes
         drs_default_vm_behavior: partiallyAutomated
       run_once: yes
-      delegate_to: 127.0.0.1
+      delegate_to: localhost
       # tags:
       #   # TODO: @memes
       #   - never
@@ -168,7 +168,7 @@
         search_string: "{{ lab_domain }}\\memes"
         exact_match: true
       register: gather_domain_user_info_result
-      delegate_to: 127.0.0.1
+      delegate_to: localhost
       tags:
         # TODO: @memes
         - never

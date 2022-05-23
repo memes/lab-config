@@ -32,11 +32,11 @@
         password: "{{ ipmi_secrets.password }}"
         bootdev: network
         persistent: no
-      delegate_to: 127.0.0.1
+      delegate_to: localhost
     - name: cycle power through IPMI
       community.general.ipmi_power:
         name: "{{ ipmi_host }}"
         user: "{{ ipmi_secrets.user }}"
         password: "{{ ipmi_secrets.password }}"
         state: boot
-      delegate_to: 127.0.0.1
+      delegate_to: localhost

@@ -2,8 +2,9 @@
 # yamllint disable rule:truthy rule:line-length
 ---
 - name: Install Cilium
-  hosts: servers
+  hosts: localhost
   become: no
+  gather_facts: no
   tasks:
     - name: Create BGP ConfigMap
       kubernetes.core.k8s:
@@ -25,16 +26,12 @@
                   protocol: bgp
                   addresses:
                     - {{ kubernetes_lb_cidr | default('10.3.0.0/24') }}
-      run_once: yes
-      delegate_to: 127.0.0.1
       tags:
         - init
     - name: Add Cilium helm repo
       kubernetes.core.helm_repository:
         name: cilium
         repo_url: https://helm.cilium.io/
-      run_once: yes
-      delegate_to: 127.0.0.1
       tags:
         - init
     - name: Install Cilium from chart
@@ -51,8 +48,6 @@
           kubeProxyReplacement: strict
           k8sServiceHost: "{{ kubernetes_api_address }}"
           k8sServicePort: "6443"
-      run_once: yes
-      delegate_to: 127.0.0.1
       tags:
         - init
     - name: Wait for Cilium to be ready
@@ -64,7 +59,5 @@
       until: cilium_ready.resources | json_query('[0].status | numberReady == desiredNumberScheduled')
       delay: 10
       retries: 6
-      run_once: yes
-      delegate_to: 127.0.0.1
       tags:
         - init

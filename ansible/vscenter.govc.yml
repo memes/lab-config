@@ -21,18 +21,18 @@
         {{ lookup('template', 'templates/vsphere/vcsa.json.j2', convert_data=False) | string }}
         EOF
       run_once: yes
-      delegate_to: 127.0.0.1
+      delegate_to: localhost
     - name: Change vCenter VM type
       ansible.builtin.command: govc vm.change -k=true -u=https://{{ inventory_hostname }} -vm vcenter -g vmwarePhoton64Guest
       environment:
         GOVC_USERNAME: root
         GOVC_PASSWORD: "{{ ks_secrets.root }}"
       run_once: yes
-      delegate_to: 127.0.0.1
+      delegate_to: localhost
     - name: Run vCenter VM
       ansible.builtin.command: govc vm.power -k=true -u=https://{{ inventory_hostname }} -on vcenter
       environment:
         GOVC_USERNAME: root
         GOVC_PASSWORD: "{{ ks_secrets.root }}"
       run_once: yes
-      delegate_to: 127.0.0.1
+      delegate_to: localhost

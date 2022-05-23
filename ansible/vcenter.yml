@@ -18,7 +18,7 @@
         username: root
         password: "{{ ks_secrets.root }}"
         validate_certs: no
-      delegate_to: 127.0.0.1
+      delegate_to: localhost
     - name: Import vCenter OVA to ESXi
       community.vmware.vmware_deploy_ovf:
         hostname: "{{ inventory_hostname }}"
@@ -58,7 +58,7 @@
         wait_for_ip_address: no
         power_on: no
       run_once: yes
-      delegate_to: 127.0.0.1
+      delegate_to: localhost
     # TODO: @memes - is the pause really necessary? Seems to help...
     - name: Pause for 10 seconds
       ansible.builtin.pause:
@@ -74,7 +74,7 @@
         guest_id: vmwarePhoton64Guest
         state: present
       run_once: yes
-      delegate_to: 127.0.0.1
+      delegate_to: localhost
     # TODO: @memes - is the pause really necessary? Seems to help...
     - name: Pause for 10 seconds
       ansible.builtin.pause:
@@ -94,7 +94,7 @@
     #       stop_action: powerOff
     #       wait_for_heartbeat: systemDefault
     #   run_once: yes
-    #   delegate_to: 127.0.0.1
+    #   delegate_to: localhost
     # - name: Pause for 10 seconds
     #   ansible.builtin.pause:
     #     seconds: 10
@@ -108,9 +108,9 @@
         datastore: "{{ real_hostname.split('.') |  first }}"
         state: powered-on
       run_once: yes
-      delegate_to: 127.0.0.1
+      delegate_to: localhost
     - name: Link to finish installation
       ansible.builtin.debug:
         msg: "Complete/trigger vCenter installation at {{ vcenter_config_url }}"
       run_once: yes
-      delegate_to: 127.0.0.1
+      delegate_to: localhost

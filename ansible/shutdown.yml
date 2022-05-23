@@ -16,7 +16,7 @@
         password: "{{ ipmi_secrets.password }}"
         state: shutdown
         timeout: 60
-      delegate_to: 127.0.0.1
+      delegate_to: localhost
       ignore_errors: yes
     - name: Power off through IPMI
       community.general.ipmi_power:
@@ -24,4 +24,4 @@
         user: "{{ ipmi_secrets.user }}"
         password: "{{ ipmi_secrets.password }}"
         state: 'off'
-      delegate_to: 127.0.0.1
+      delegate_to: localhost
