@@ -3,7 +3,7 @@
 # Also need vsan-sdk-python for VMWare playbooks; download and unpack somewhere
 # and add to PYTHONPATH via .envrc.
 pre-commit==2.19.0
-ansible==5.7.1
+ansible==5.8.0
 pyghmi==1.5.42
 hvac==0.11.2
 jmespath==1.0.0
