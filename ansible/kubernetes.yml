@@ -236,9 +236,13 @@
       tags:
         - users
     - name: Write user kubeconfig(s) locally
-      local_action: ansible.builtin.template force=yes src=templates/kubernetes/kubeconfig.user.j2 dest=../kubeconfig.{{ item.item }}
+      ansible.builtin.template:
+        src: templates/kubernetes/kubeconfig.user.j2
+        dest: ../kubeconfig.{{ item.item }}
+        force: yes
       run_once: yes
       become: no
+      delegate_to: localhost
       when: item.rc == 0
       loop: "{{ kubeconfig.results }}"
       loop_control:
