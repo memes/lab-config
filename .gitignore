@@ -13,6 +13,8 @@ terraform.config
 
 # Ignore all json files; these *may* be a credential
 *.json
+# Except in .vscode
+!.vscode/*.json
 
 # Ignore root CA files
 ca/*
