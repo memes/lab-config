@@ -4,7 +4,7 @@
 # and add to PYTHONPATH via .envrc.
 pre-commit==2.19.0
 ansible==5.8.0
-ansible-lint==6.2.2
+ansible-lint==6.3.0
 pyghmi==1.5.44
 hvac==0.11.2
 jmespath==1.0.0
