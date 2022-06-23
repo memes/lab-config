@@ -240,6 +240,7 @@
         src: templates/kubernetes/kubeconfig.user.j2
         dest: ../kubeconfig.{{ item.item }}
         force: yes
+        mode: 0600
       run_once: yes
       become: no
       delegate_to: localhost
