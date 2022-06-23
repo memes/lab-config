@@ -7,7 +7,7 @@ ansible==5.8.0
 ansible-lint==6.3.0
 pyghmi==1.5.44
 hvac==0.11.2
-jmespath==1.0.0
+jmespath==1.0.1
 kubernetes==23.6.0
 pyvmomi==7.0.3
 passlib==1.7.4
