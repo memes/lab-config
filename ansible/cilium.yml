@@ -39,6 +39,9 @@
         name: cilium
         chart_ref: cilium/cilium
         chart_version: "{{ cilium_version }}"
+        update_repo_cache: yes
+        force: yes
+        wait: yes
         release_namespace: kube-system
         values:
           bgp:
