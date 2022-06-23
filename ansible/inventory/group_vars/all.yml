@@ -10,8 +10,8 @@ lab_shared_https_url: "https://{{ lab_shared_host }}"
 # Hashicorp Vault settings
 vault_host: "vault.{{ lab_domain }}"
 vault_url: "https://{{ vault_host }}:8200"
-vault_kv2_ipmi_secrets_path: /secret/data/lab/ipmi
-vault_kv2_kickstart_secrets_path: /secret/data/lab/kickstart
+vault_ipmi_secrets_path: lab/ipmi
+vault_kickstart_secrets_path: lab/kickstart
 default_domain: home.arpa
 default_shared_host: "shared.{{ default_domain }}"
 default_shared_http_url: "http://{{ default_shared_host }}"

@@ -8,22 +8,28 @@
   hosts: servers
   gather_facts: no
   become: no
-  vars:
-    ks_vault_options: "secret={{ vault_kv2_kickstart_secrets_path }} url={{ vault_url }} ca_cert={{ root_ca }}"
-    ks_secrets: "{{ lookup('community.hashi_vault.hashi_vault', ks_vault_options) }}"
   tasks:
+    - name: Get kickstart secrets from Vault
+      community.hashi_vault.vault_kv2_get:
+        url: "{{ vault_url }}"
+        ca_cert: "{{ root_ca | realpath }}"
+        path: "{{ vault_kickstart_secrets_path }}"
+        auth_method: token
+        token_validate: no
+      register: ks_secrets
+      delegate_to: localhost
     - name: Verify ESXi is active
       community.vmware.vmware_about_info:
         hostname: "{{ inventory_hostname }}"
         username: root
-        password: "{{ ks_secrets.root }}"
+        password: "{{ ks_secrets.secret.root }}"
         validate_certs: no
       delegate_to: localhost
     - name: Import vCenter OVA to ESXi
       community.vmware.vmware_deploy_ovf:
         hostname: "{{ inventory_hostname }}"
         username: root
-        password: "{{ ks_secrets.root }}"
+        password: "{{ ks_secrets.secret.root }}"
         validate_certs: no
         ovf: "{{ vcenter_ova_path }}"
         name: "{{ vcenter_machine }}"
@@ -41,14 +47,14 @@
           guestinfo.cis.appliance.net.prefix: '16'
           guestinfo.cis.appliance.net.gateway: '172.17.0.1'
           guestinfo.cis.appliance.net.dns.servers: '172.17.0.1'
-          guestinfo.cis.appliance.root.passwd: "{{ ks_secrets.root }}"
+          guestinfo.cis.appliance.root.passwd: "{{ ks_secrets.secret.root }}"
           guestinfo.cis.appliance.root.shell: /bin/bash
           guestinfo.cis.appliance.ssh.enabled: 'True'
           guestinfo.cis.appliance.ntp.servers: '172.17.0.1'
           guestinfo.cis.deployment.autoconfig: 'True'
           guestinfo.cis.deployment.node.type: embedded
           guestinfo.cis.vmdir.username: "administrator@{{ lab_domain }}"
-          guestinfo.cis.vmdir.password: "{{ ks_secrets.administrator }}"
+          guestinfo.cis.vmdir.password: "{{ ks_secrets.secret.administrator }}"
           guestinfo.cis.vmdir.site-name: lab
           guestinfo.cis.vmdir.domain-name: "{{ lab_domain }}"
           guestinfo.cis.ceip_enabled: 'False'
@@ -67,7 +73,7 @@
       community.vmware.vmware_guest:
         hostname: "{{ inventory_hostname }}"
         username: root
-        password: "{{ ks_secrets.root }}"
+        password: "{{ ks_secrets.secret.root }}"
         validate_certs: no
         name: "{{ vcenter_machine }}"
         datastore: "{{ real_hostname.split('.') |  first }}"
@@ -102,7 +108,7 @@
       community.vmware.vmware_guest:
         hostname: "{{ inventory_hostname }}"
         username: root
-        password: "{{ ks_secrets.root }}"
+        password: "{{ ks_secrets.secret.root }}"
         validate_certs: no
         name: "{{ vcenter_machine }}"
         datastore: "{{ real_hostname.split('.') |  first }}"

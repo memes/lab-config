@@ -5,22 +5,28 @@
   hosts: servers
   gather_facts: no
   become: no
-  vars:
-    ks_vault_options: "secret={{ vault_kv2_kickstart_secrets_path }} url={{ vault_url }} ca_cert={{ root_ca }}"
-    ks_secrets: "{{ lookup('community.hashi_vault.hashi_vault', ks_vault_options) }}"
   tasks:
+    - name: Get kickstart secrets from Vault
+      community.hashi_vault.vault_kv2_get:
+        url: "{{ vault_url }}"
+        ca_cert: "{{ root_ca | realpath }}"
+        path: "{{ vault_kickstart_secrets_path }}"
+        auth_method: token
+        token_validate: no
+      register: ks_secrets
+      delegate_to: localhost
     - name: Verify ESXi is active
       community.vmware.vmware_about_info:
         hostname: "{{ inventory_hostname }}"
         username: root
-        password: "{{ ks_secrets.root }}"
+        password: "{{ ks_secrets.secret.root }}"
         validate_certs: no
       delegate_to: localhost
     - name: Verify vCenter is active
       community.vmware.vmware_about_info:
         hostname: "{{ vcenter_hostname }}"
         username: "administrator@{{ lab_domain }}"
-        password: "{{ ks_secrets.administrator }}"
+        password: "{{ ks_secrets.secret.administrator }}"
         validate_certs: no
       run_once: yes
       delegate_to: localhost
@@ -28,7 +34,7 @@
       community.vmware.vmware_datacenter:
         hostname: "{{ vcenter_hostname }}"
         username: "administrator@{{ lab_domain }}"
-        password: "{{ ks_secrets.administrator }}"
+        password: "{{ ks_secrets.secret.administrator }}"
         validate_certs: no
         datacenter_name: "{{ vsphere_datacenter }}"
         state: present
@@ -38,7 +44,7 @@
       community.vmware.vmware_dvswitch:
         hostname: "{{ vcenter_hostname }}"
         username: "administrator@{{ lab_domain }}"
-        password: "{{ ks_secrets.administrator }}"
+        password: "{{ ks_secrets.secret.administrator }}"
         validate_certs: no
         datacenter_name: "{{ vsphere_datacenter }}"
         switch: "{{ vsphere_dvswitch }}"
@@ -58,7 +64,7 @@
       community.vmware.vmware_dvs_portgroup:
         hostname: "{{ vcenter_hostname }}"
         username: "administrator@{{ lab_domain }}"
-        password: "{{ ks_secrets.administrator }}"
+        password: "{{ ks_secrets.secret.administrator }}"
         validate_certs: no
         switch_name: "{{ vsphere_dvswitch }}"
         portgroup_name: "{{ item.name }}"
@@ -79,7 +85,7 @@
       community.vmware.vmware_cluster:
         hostname: "{{ vcenter_hostname }}"
         username: "administrator@{{ lab_domain }}"
-        password: "{{ ks_secrets.administrator }}"
+        password: "{{ ks_secrets.secret.administrator }}"
         validate_certs: no
         datacenter_name: "{{ vsphere_datacenter }}"
         cluster_name: "{{ vsphere_cluster }}"
@@ -94,20 +100,20 @@
       community.vmware.vmware_host:
         hostname: "{{ vcenter_hostname }}"
         username: "administrator@{{ lab_domain }}"
-        password: "{{ ks_secrets.administrator }}"
+        password: "{{ ks_secrets.secret.administrator }}"
         validate_certs: no
         datacenter_name: "{{ vsphere_datacenter }}"
         cluster_name: "{{ vsphere_cluster }}"
         esxi_hostname: "{{ inventory_hostname }}"
         esxi_username: root
-        esxi_password: "{{ ks_secrets.root }}"
+        esxi_password: "{{ ks_secrets.secret.root }}"
         state: present
       delegate_to: localhost
     - name: Enable vSAN on cluster
       community.vmware.vmware_cluster_vsan:
         hostname: "{{ vcenter_hostname }}"
         username: "administrator@{{ lab_domain }}"
-        password: "{{ ks_secrets.administrator }}"
+        password: "{{ ks_secrets.secret.administrator }}"
         validate_certs: no
         datacenter_name: "{{ vsphere_datacenter }}"
         cluster_name: "{{ vsphere_cluster }}"
@@ -125,7 +131,7 @@
       community.vmware.vmware_cluster_ha:
         hostname: "{{ vcenter_hostname }}"
         username: "administrator@{{ lab_domain }}"
-        password: "{{ ks_secrets.administrator }}"
+        password: "{{ ks_secrets.secret.administrator }}"
         validate_certs: no
         datacenter_name: "{{ vsphere_datacenter }}"
         cluster_name: "{{ vsphere_cluster }}"
@@ -139,7 +145,7 @@
       community.vmware.vmware_cluster_drs:
         hostname: "{{ vcenter_hostname }}"
         username: "administrator@{{ lab_domain }}"
-        password: "{{ ks_secrets.administrator }}"
+        password: "{{ ks_secrets.secret.administrator }}"
         validate_certs: no
         datacenter_name: "{{ vsphere_datacenter }}"
         cluster_name: "{{ vsphere_cluster }}"
@@ -154,15 +160,21 @@
   hosts: vcenter.lab.acceleratedgcp.com
   gather_facts: no
   become: no
-  vars:
-    ks_vault_options: "secret={{ vault_kv2_kickstart_secrets_path }} url={{ vault_url }} ca_cert={{ root_ca }}"
-    ks_secrets: "{{ lookup('community.hashi_vault.hashi_vault', ks_vault_options) }}"
   tasks:
+    - name: Get kickstart secrets from Vault
+      community.hashi_vault.vault_kv2_get:
+        url: "{{ vault_url }}"
+        ca_cert: "{{ root_ca | realpath }}"
+        path: "{{ vault_kickstart_secrets_path }}"
+        auth_method: token
+        token_validate: no
+      register: ks_secrets
+      delegate_to: localhost
     - name: Does memes account exist in vCenter
       community.vmware.vcenter_domain_user_group_info:
         hostname: "{{ inventory_hostname }}"
         username: "administrator@{{ lab_domain }}"
-        password: "{{ ks_secrets.administrator }}"
+        password: "{{ ks_secrets.secret.administrator }}"
         validate_certs: false
         domain: "{{ lab_domain }}"
         search_string: "{{ lab_domain }}\\memes"
@@ -176,9 +188,9 @@
       command: >-
         /usr/lib/vmware-vmafd/bin/dir-cli user create
         --account "memes"
-        --user-password "{{ ks_secrets.memes }}"
+        --user-password "{{ ks_secrets.secret.memes }}"
         --login "administrator@{{ lab_domain }}"
-        --password "{{ ks_secrets.administrator }}"
+        --password "{{ ks_secrets.secret.administrator }}"
         --first-name "Matthew"
         --last-name "Emes"
       changed_when: true
@@ -193,7 +205,7 @@
         --name Administrators
         --add memes
         --login "administrator@{{ lab_domain }}"
-        --password "{{ ks_secrets.administrator }}"
+        --password "{{ ks_secrets.secret.administrator }}"
       changed_when: true
       when:
         - gather_domain_user_info_result.domain_user_groups | length == 0

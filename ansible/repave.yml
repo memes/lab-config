@@ -21,22 +21,28 @@
   hosts: servers
   become: no
   gather_facts: no
-  vars:
-    ipmi_vault_options: "secret={{ vault_kv2_ipmi_secrets_path }} url={{ vault_url }} ca_cert={{ root_ca }}"
-    ipmi_secrets: "{{ lookup('community.hashi_vault.hashi_vault', ipmi_vault_options) }}"
   tasks:
+    - name: Get IPMI secrets from Vault
+      community.hashi_vault.vault_kv2_get:
+        url: "{{ vault_url }}"
+        ca_cert: "{{ root_ca | realpath }}"
+        path: "{{ vault_ipmi_secrets_path }}"
+        auth_method: token
+        token_validate: no
+      register: ipmi_secrets
+      delegate_to: localhost
     - name: set next boot to PXE through IPMI
       community.general.ipmi_boot:
         name: "{{ ipmi_host }}"
-        user: "{{ ipmi_secrets.user }}"
-        password: "{{ ipmi_secrets.password }}"
+        user: "{{ ipmi_secrets.secret.user }}"
+        password: "{{ ipmi_secrets.secret.password }}"
         bootdev: network
         persistent: no
       delegate_to: localhost
     - name: cycle power through IPMI
       community.general.ipmi_power:
         name: "{{ ipmi_host }}"
-        user: "{{ ipmi_secrets.user }}"
-        password: "{{ ipmi_secrets.password }}"
+        user: "{{ ipmi_secrets.secret.user }}"
+        password: "{{ ipmi_secrets.secret.password }}"
         state: boot
       delegate_to: localhost

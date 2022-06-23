@@ -9,15 +9,21 @@
   hosts: servers
   gather_facts: no
   become: no
-  vars:
-    ks_vault_options: "secret={{ vault_kv2_kickstart_secrets_path }} url={{ vault_url }} ca_cert={{ root_ca }}"
-    ks_secrets: "{{ lookup('community.hashi_vault.hashi_vault', ks_vault_options) }}"
   tasks:
+    - name: Get kickstart secrets from Vault
+      community.hashi_vault.vault_kv2_get:
+        url: "{{ vault_url }}"
+        ca_cert: "{{ root_ca | realpath }}"
+        path: "{{ vault_kickstart_secrets_path }}"
+        auth_method: token
+        token_validate: no
+      register: ks_secrets
+      delegate_to: localhost
     - name: Import vCenter OVA
       vars:
-        vcenter_root_password: "{{ ks_secrets.root }}"
+        vcenter_root_password: "{{ ks_secrets.secret.root }}"
       ansible.builtin.shell: |
-        GOVC_USERNAME=root GOVC_PASSWORD='{{ ks_secrets.root }}' govc import.ova -k=true -u=https://{{ inventory_hostname }} -options=- {{ vcenter_ova_url }} <<EOF
+        GOVC_USERNAME=root GOVC_PASSWORD='{{ ks_secrets.secret.root }}' govc import.ova -k=true -u=https://{{ inventory_hostname }} -options=- {{ vcenter_ova_url }} <<EOF
         {{ lookup('template', 'templates/vsphere/vcsa.json.j2', convert_data=False) | string }}
         EOF
       run_once: yes
@@ -26,13 +32,13 @@
       ansible.builtin.command: govc vm.change -k=true -u=https://{{ inventory_hostname }} -vm vcenter -g vmwarePhoton64Guest
       environment:
         GOVC_USERNAME: root
-        GOVC_PASSWORD: "{{ ks_secrets.root }}"
+        GOVC_PASSWORD: "{{ ks_secrets.secret.root }}"
       run_once: yes
       delegate_to: localhost
     - name: Run vCenter VM
       ansible.builtin.command: govc vm.power -k=true -u=https://{{ inventory_hostname }} -on vcenter
       environment:
         GOVC_USERNAME: root
-        GOVC_PASSWORD: "{{ ks_secrets.root }}"
+        GOVC_PASSWORD: "{{ ks_secrets.secret.root }}"
       run_once: yes
       delegate_to: localhost

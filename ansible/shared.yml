@@ -4,9 +4,6 @@
 - name: Update shared services and files
   hosts: shared
   become: yes
-  vars:
-    ks_vault_options: "secret={{ vault_kv2_kickstart_secrets_path }} url={{ vault_url }} ca_cert={{ root_ca }}"
-    ks_secrets: "{{ lookup('community.hashi_vault.hashi_vault', ks_vault_options) }}"
   tasks:
     - name: Install required packages
       ansible.builtin.package:
@@ -407,14 +404,27 @@
       tags:
         - http
         - pxe
+    - name: Get kickstart secret from Vault
+      community.hashi_vault.vault_kv2_get:
+        url: "{{ vault_url }}"
+        ca_cert: "{{ root_ca | realpath }}"
+        path: "{{ vault_kickstart_secrets_path }}"
+        auth_method: token
+        token_validate: no
+      register: ks_secrets
+      delegate_to: localhost
+      become: no
+      tags:
+        - http
+        - pxe
     - name: Update templated lab files
       vars:
-        administrator_password: "{{ ks_secrets.administrator }}"
-        memes_password: "{{ ks_secrets.memes }}"
-        rhn_password: "{{ ks_secrets.rhn_password }}"
-        rhn_user: "{{ ks_secrets.rhn_user }}"
-        ssh_pubkey: "{{ ks_secrets.ssh_pubkey }}"
-        root_password: "{{ ks_secrets.root }}"
+        administrator_password: "{{ ks_secrets.secret.administrator }}"
+        memes_password: "{{ ks_secrets.secret.memes }}"
+        rhn_password: "{{ ks_secrets.secret.rhn_password }}"
+        rhn_user: "{{ ks_secrets.secret.rhn_user }}"
+        ssh_pubkey: "{{ ks_secrets.secret.ssh_pubkey }}"
+        root_password: "{{ ks_secrets.secret.root }}"
       ansible.builtin.template:
         src: "templates/shared/{{ item }}.j2"
         dest: "/srv/shared/{{ item }}"

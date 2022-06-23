@@ -28,3 +28,19 @@ fileignoreconfig:
   checksum: c06affb65ca287d809cb0d7850a9a08719d6325f6916c2e4ad5ceb845f86a945
 - filename: ansible/templates/shared/tftp/pxelinux.cfg/lab_autoprovision.cfg.j2
   checksum: 5ae9d118fb4dd6ddcab46c615cd40546f5583938a3ad6a9d525950d593610d3a
+- filename: ansible/boot.yml
+  checksum: 9f6b70be10da79581f562902792b2a024d8303ff40c19ab8b30e46b60633a37f
+- filename: ansible/shutdown.yml
+  checksum: 9ac06c215cecde6233d6231331f8882626ed46bc382b13031cdf0c8c5d87d73f
+- filename: ansible/vscenter.govc.yml
+  checksum: 4b120685f32e54f901317f8528de9ef3a2772b7dfac4c90f265748f5454edf9a
+- filename: ansible/vcenter.yml
+  checksum: d49e7fb961ff94b6ec6092b43079d8e01e9d7a5635e3b52e08977755095277b6
+- filename: ansible/inventory/group_vars/all.yml
+  checksum: a09580bab62712456faf146b150362996a2e613007b8d43c378466c911eb4b3f
+- filename: ansible/shared.yml
+  checksum: 5f4a50a5048fb74b620642ea6b164ad2e7a6664819a4f1d42965ae1d45d0191d
+- filename: ansible/repave.yml
+  checksum: 903576ff854ba6d63cbcc5d1e00d7bed050b0d40932d14c4b03ba187c68b6cf4
+- filename: ansible/vsphere.yml
+  checksum: dbe34b111457bbf1cc0e9d4779d3277dc72631c6f00e63da6377bde66157a109
