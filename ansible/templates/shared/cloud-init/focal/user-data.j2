@@ -50,7 +50,9 @@ autoinstall:
           - eno3
           - eno4
         parameters:
-          mode: 'balance-tlb'
+          mode: '802.3ad'
+          lacp-rate: fast
+          mii-monitor-interval: 100
           transmit-hash-policy: 'layer2+3'
     vlans:
       eno1.10:
