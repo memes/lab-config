@@ -49,8 +49,8 @@ network:
         transmit-hash-policy: 'layer2+3'
   vlans:
     bond0.100:
-      dhcp4: yes
-      dhcp6: yes
+      dhcp4: no
+      dhcp6: no
       id: 100
       link: bond0
       dhcp4-overrides:
@@ -62,8 +62,8 @@ network:
         use-ntp: false
         route-metric: 200
     bond0.200:
-      dhcp4: yes
-      dhcp6: yes
+      dhcp4: no
+      dhcp6: no
       id: 200
       link: bond0
       dhcp4-overrides:
