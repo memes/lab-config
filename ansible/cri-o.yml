@@ -9,12 +9,13 @@
     crio_repo_version: "{{ crio_maj_minor }}{% if crio_maj_minor != crio_version %}:{% if ansible_os_family == 'Debian' %}/{% endif %}{{ crio_version }}{% endif %}"
     required_modules:
       - overlay
-      - br_netfilter
   tasks:
-    - name: Configure persistent modules for CRI
+    - name: Configure persistent modules for CRI-O
+      vars:
+        pb_name: cri-o
       ansible.builtin.template:
-        src: templates/kubernetes/k8s-cri.conf.j2
-        dest: "/etc/modules-load.d/k8s-cri.conf"
+        src: templates/servers/modules-load.conf.j2
+        dest: "/etc/modules-load.d/cri-o.conf"
         owner: root
         group: root
         mode: 0644

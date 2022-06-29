@@ -5,6 +5,8 @@
   hosts: servers
   become: yes
   vars:
+    required_modules:
+      - br_netfilter
     k8s_sysctl:
       - param: net.bridge.bridge-nf-call-iptables
         value: 1
@@ -15,13 +17,31 @@
       - param: vm.nr_hugepages
         value: 2048
   tasks:
+    - name: Configure persistent modules for Kubernetes
+      vars:
+        pb_name: kubernetes
+      ansible.builtin.template:
+        src: templates/servers/modules-load.conf.j2
+        dest: "/etc/modules-load.d/kubernetes.conf"
+        owner: root
+        group: root
+        mode: 0644
+      tags:
+        - prep
+    - name: Add modules
+      community.general.modprobe:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ required_modules }}"
+      tags:
+        - prep
     - name: Disable ufw
       community.general.ufw:
         state: disabled
       ignore_errors: yes
       when: ansible_distribution == "Ubuntu"
       tags:
-        - base
+        - prep
     - name: Disable firewalld
       ansible.builtin.systemd:
         name: firewalld
@@ -31,7 +51,7 @@
       ignore_errors: yes
       when: ansible_os_family == "RedHat"
       tags:
-        - base
+        - prep
     - name: Set persistent sysctl params for Kubernetes
       ansible.posix.sysctl:
         name: "{{ item['param'] }}"
@@ -42,7 +62,7 @@
         state: present
       loop: "{{ k8s_sysctl }}"
       tags:
-        - base
+        - prep
     - name: disable swap
       ansible.builtin.command: swapoff -a
       tags:
@@ -53,7 +73,7 @@
         fstype: swap
         state: absent
       tags:
-        - base
+        - prep
     - name: mount bpffs on Ubuntu 18.04
       ansible.posix.mount:
         path: /sys/fs/bpf
@@ -63,17 +83,25 @@
         state: mounted
       when: ansible_distribution == "Ubuntu" and ansible_distribution_major_version == "18"
       tags:
-        - base
+        - prep
     - name: Disable SELinux on CentOS/RHEL
       ansible.posix.selinux:
         state: disabled
       when: ansible_os_family == "RedHat"
-      # TODO: @memes - this reboot will happen after all services are installed;
-      # should it be forced/flushed prior to kube install?
       notify:
         - reboot
       tags:
-        - base
+        - prep
+  handlers:
+    - name: reboot
+      ansible.builtin.reboot:
+        post_reboot_delay: 120
+        reboot_timeout: 300
+
+- name: Install kubernetes
+  hosts: servers
+  become: yes
+  tasks:
     - name: Add Kubernetes apt keys
       ansible.builtin.apt_key:
         url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
@@ -167,7 +195,7 @@
       tags:
         - init
     - name: Execute kubeadm (first master)
-      ansible.builtin.command: "kubeadm init {% if kubeadm_skip_phases | default([]) | length > 0 %}--skip-phases={{ kubeadm_skip_phases | join(',') }}{% endif %} --node-name={{ inventory_hostname }} --config=/var/tmp/kubeadm.yml --upload-certs"
+      ansible.builtin.command: "kubeadm init {% if kubeadm_skip_phases | default([]) | length > 0 %}--skip-phases={{ kubeadm_skip_phases | join(',') }}{% endif %} --node-name={{ k8s_node_name }} --config=/var/tmp/kubeadm.yml --upload-certs"
       args:
         creates: /etc/kubernetes/admin.conf
       run_once: yes
@@ -189,18 +217,18 @@
       tags:
         - join
     - name: Join other kubeadm servers
-      ansible.builtin.command: "{{ kubeadm_join_command.stdout }} {{ (k8s_master | default(False)) | ternary('--control-plane --apiserver-advertise-address ' + ansible_host + ' --certificate-key ' + kubeadm_cert_hash.stdout, '', '') }} --node-name={{ inventory_hostname }}"
+      ansible.builtin.command: "{{ kubeadm_join_command.stdout }} {{ (k8s_master | default(False)) | ternary('--control-plane --apiserver-advertise-address ' + (vlan100_addresses | ansible.utils.ipv4('host/prefix') | ansible.utils.ipaddr('address') | first) + ' --certificate-key ' + kubeadm_cert_hash.stdout, '', '') }} --node-name={{ k8s_node_name }}"
       args:
         creates: /etc/kubernetes/kubelet.conf
       tags:
         - join
     - name: Remove scheduling taints
-      ansible.builtin.command: kubectl taint nodes {{ inventory_hostname }} node-role.kubernetes.io/control-plane- --kubeconfig=/etc/kubernetes/admin.conf
+      ansible.builtin.command: kubectl taint nodes {{ k8s_node_name }} node-role.kubernetes.io/control-plane- --kubeconfig=/etc/kubernetes/admin.conf
       when: (k8s_master | default(False)) and (k8s_worker | default(True))
       tags:
         - taints
     - name: Remove legacy scheduling taints
-      ansible.builtin.command: kubectl taint nodes {{ inventory_hostname }} node-role.kubernetes.io/master- --kubeconfig=/etc/kubernetes/admin.conf
+      ansible.builtin.command: kubectl taint nodes {{ k8s_node_name }} node-role.kubernetes.io/master- --kubeconfig=/etc/kubernetes/admin.conf
       when: (k8s_master | default(False)) and (k8s_worker | default(True))
       tags:
         - taints
@@ -269,9 +297,3 @@
       when: (k8s_master | default(False))
       tags:
         - never
-
-  handlers:
-    - name: reboot
-      ansible.builtin.reboot:
-        post_reboot_delay: 120
-        reboot_timeout: 300
