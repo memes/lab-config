@@ -1,0 +1,8 @@
+# Configure vlan {{ vlan }}
+{{ ansible_managed | comment }}
+network:
+  version: 2
+  vlans:
+    {{ device }}.{{ vlan }}:
+      addresses:
+        {{ addresses | to_nice_yaml | indent(8) }}

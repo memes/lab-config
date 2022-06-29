@@ -1,0 +1,80 @@
+# Setup static vlan configurations post-deployment
+# yamllint disable rule:truthy rule:line-length
+---
+- name: Prepare non-vmgmt vlan interfaces
+  hosts: servers
+  become: yes
+  vars:
+    dataplane_device: "{{ (ansible_os_family == 'RedHat') | ternary('team0', 'bond0') }}"
+  tasks:
+    - name: Configure vlan 100 (Ubuntu)
+      vars:
+        device: "{{ dataplane_device }}"
+        vlan: 100
+        addresses: "{{ vlan100_addresses }}"
+      ansible.builtin.template:
+        src: templates/servers/netplan-vlan.yaml.j2
+        dest: /etc/netplan/20-vlan100.yaml
+        owner: root
+        group: root
+        mode: 0640
+      when: ansible_distribution == "Ubuntu" and (vlan100_addresses | default([]) | length > 0)
+      notify:
+        - validate netplan
+      tags:
+        - vlan
+    - name: Configure vlan 100 (CentOS/RHEL)
+      ansible.builtin.command: >-
+        nmcli connection modify {{ dataplane_device }}.100 {% if vlan100_addresses | ansible.utils.ipv4('host/prefix') | length > 0 %}
+          ipv4.method manual
+          ipv4.never-default yes
+          ipv4.addresses "{{ vlan100_addresses | ansible.utils.ipv4('host/prefix') | join(' ') }}"{% endif %}{% if vlan100_addresses | ansible.utils.ipv6('host/prefix') | length > 0 %}
+          ipv6.method manual
+          ipv6.never-default yes
+          ipv6.addresses "{{ vlan100_addresses | ansible.utils.ipv6('host/prefix') | join(' ') }}"{% endif %}
+      when: ansible_os_family == "RedHat" and (vlan100_addresses | default([]) | length > 0)
+      notify:
+        - update con vlan100
+      tags:
+        - vlan
+    - name: Configure vlan 200 (Ubuntu)
+      vars:
+        device: "{{ dataplane_device }}"
+        vlan: 200
+        addresses: "{{ vlan200_addresses }}"
+      ansible.builtin.template:
+        src: templates/servers/netplan-vlan.yaml.j2
+        dest: /etc/netplan/30-vlan200.yaml
+        owner: root
+        group: root
+        mode: 0640
+      when: ansible_distribution == "Ubuntu" and (vlan200_addresses | default([]) | length > 0)
+      notify:
+        - validate netplan
+      tags:
+        - vlan
+    - name: Configure vlan 200 (CentOS/RHEL)
+      ansible.builtin.command: >-
+        nmcli connection modify {{ dataplane_device }}.200 {% if vlan200_addresses | ansible.utils.ipv4('host/prefix') | length > 0 %}
+          ipv4.method manual
+          ipv4.never-default yes
+          ipv4.addresses "{{ vlan200_addresses | ansible.utils.ipv4('host/prefix') | join(' ') }}"{% endif %}{% if vlan200_addresses | ansible.utils.ipv6('host/prefix') | length > 0 %}
+          ipv6.method manual
+          ipv6.never-default yes
+          ipv6.addresses "{{ vlan200_addresses | ansible.utils.ipv6('host/prefix') | join(' ') }}"{% endif %}
+      when: ansible_os_family == "RedHat" and (vlan200_addresses | default([]) | length > 0)
+      notify:
+        - update con vlan200
+      tags:
+        - vlan
+
+  handlers:
+    - name: validate netplan
+      ansible.builtin.command: netplan generate
+      notify: apply netplan
+    - name: apply netplan
+      ansible.builtin.command: netplan apply
+    - name: update con vlan100
+      ansible.builtin.command: nmcli con up {{ dataplane_device }}.100
+    - name: update con vlan200
+      ansible.builtin.command: nmcli con up {{ dataplane_device }}.200
