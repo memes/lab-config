@@ -18,7 +18,7 @@
           data:
             config.yaml: |
               peers:
-                - peer-address: 172.17.0.1
+                - peer-address: 172.24.0.1
                   peer-asn: 64512
                   my-asn: 64513
               address-pools:
@@ -48,9 +48,18 @@
             enabled: true
             announce:
               loadbalancerIP: true
+              podCIDR: true
+          ipam:
+            mode: kubernetes
+          loadbalancer:
+            mode: dsr
           kubeProxyReplacement: strict
+          k8s:
+            requireIPv4PodCIDR: true
           k8sServiceHost: "{{ kubernetes_api_address }}"
           k8sServicePort: "6443"
+          tunnel: disabled
+          ipv4NativeRoutingCIDR: "{{ kubernetes_pod_cidr | default('10.0.0.0/17') }}"
       tags:
         - init
     - name: Wait for Cilium to be ready
