@@ -27,4 +27,4 @@ certs/*
 
 # Ignore kubeconfigs
 kubeconfig*
-!ansible/templates/kubernetes/kubeconfig.memes.j2
+!ansible/templates/kubernetes/kubeconfig.user.j2
