@@ -6,3 +6,8 @@ network:
     {{ device }}.{{ vlan }}:
       addresses:
         {{ addresses | to_nice_yaml | indent(8) }}
+      routes:
+{% if addresses | ansible.utils.ipv4 | length > 0 %}
+        - to: {{ kubernetes_cidr | default('10.0.0.0/8') }}
+          via: {{ addresses | ansible.utils.ipv4 | ansible.utils.ipaddr('1') | ansible.utils.ipaddr('address') | first }}
+{% endif %}

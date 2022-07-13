@@ -28,7 +28,8 @@
         nmcli connection modify {{ dataplane_device }}.100 {% if vlan100_addresses | ansible.utils.ipv4('host/prefix') | length > 0 %}
           ipv4.method manual
           ipv4.never-default yes
-          ipv4.addresses "{{ vlan100_addresses | ansible.utils.ipv4('host/prefix') | join(' ') }}"{% endif %}{% if vlan100_addresses | ansible.utils.ipv6('host/prefix') | length > 0 %}
+          ipv4.addresses "{{ vlan100_addresses | ansible.utils.ipv4('host/prefix') | join(' ') }}"
+          ipv4.routes "{{ kubernetes_cidr | default('10.0.0.0/8') }} {{ vlan100_addresses | ansible.utils.ipv4('host/prefix') | ansible.utils.ipaddr('1') | ansible.utils.ipaddr('address') | first }}"{% endif %}{% if vlan100_addresses | ansible.utils.ipv6('host/prefix') | length > 0 %}
           ipv6.method manual
           ipv6.never-default yes
           ipv6.addresses "{{ vlan100_addresses | ansible.utils.ipv6('host/prefix') | join(' ') }}"{% endif %}
