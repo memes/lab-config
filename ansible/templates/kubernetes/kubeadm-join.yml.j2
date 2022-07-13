@@ -1,0 +1,25 @@
+# Overide the default configuration for joining nodes
+# Reference generated from kubeadm config print init-defaults --component-configs=KubeletConfiguration
+{{ ansible_managed | comment }}
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: JoinConfiguration
+patches:
+  directory: /var/tmp/kubernetes
+discovery:
+  bootstrapToken:
+    apiServerEndpoint: {{ kubernetes_api_address }}:{{ kubernetes_api_port | default(6443) }}
+    token: {{ kubeadm_token }}
+    caCertHashes:
+      - "{{ kubeadm_ca_cert_hash }}"
+nodeRegistration:
+  name: {{ k8s_node_name }}
+  kubeletExtraArgs:
+    node-ip: {{ addresses | ansible.utils.ipv4('host/prefix') | ansible.utils.ipv4('address') | join(',') }}
+    address: {{ addresses | ansible.utils.ipv4('host/prefix') | ansible.utils.ipv4('address') | first }}
+{% if k8s_master | default(False) -%}
+controlPlane:
+  localAPIEndpoint:
+    advertiseAddress: {{ addresses | ansible.utils.ipv4('host/prefix') | ansible.utils.ipv4('address') | first }}
+    bindPort: {{ kubernetes_api_port | default(6443) }}
+  certificateKey: {{ kubeadm_cert_key }}
+{%- endif %}

@@ -1,17 +1,24 @@
-# Overide the default configuration with these values
+# Overide the default configuration for initial master node
 # Reference generated from kubeadm config print init-defaults --component-configs=KubeletConfiguration
 {{ ansible_managed | comment }}
 apiVersion: kubeadm.k8s.io/v1beta3
 kind: InitConfiguration
+patches:
+  directory: /var/tmp/kubernetes
 bootstrapTokens:
   - groups:
       - system:bootstrappers:kubeadm:default-node-token
     token: {{ kubeadm_token }}
 certificateKey: {{ kubeadm_cert_key }}
 localAPIEndpoint:
-  advertiseAddress: {{ ansible_host }}
+  advertiseAddress: {{ addresses | ansible.utils.ipv4('host/prefix') | ansible.utils.ipv4('address') | first }}
+  bindPort: {{ kubernetes_api_port | default(6443) }}
 nodeRegistration:
-  name: {{ inventory_hostname }}
+  name: {{ k8s_node_name }}
+  kubeletExtraArgs:
+    node-ip: {{ addresses | ansible.utils.ipv4('host/prefix') | ansible.utils.ipv4('address') | join(',') }}
+    address: {{ addresses | ansible.utils.ipv4('host/prefix') | ansible.utils.ipv4('address') | first }}
+skipPhases: {{ kubeadm_skip_phases | to_yaml }}
 ---
 apiVersion: kubeadm.k8s.io/v1beta3
 kind: ClusterConfiguration
@@ -19,11 +26,11 @@ apiServer:
   certSANs:
     - {{ kubernetes_api_server }}
 clusterName: {{ kubernetes_cluster_name | default('lab') }}
-controlPlaneEndpoint: {{ kubernetes_api_address }}
+controlPlaneEndpoint: {{ kubernetes_api_address }}:{{ kubernetes_api_port | default(6443) }}
 networking:
   dnsDomain: {{ kubernetes_dns_domain | default('cluster.local') }}
   serviceSubnet: {{ kubernetes_service_cidr | default('10.1.0.0/22') }}
-  podSubnet: {{ kubernetes_pod_cidr | default('10.0.0.0/17') }}
+  podSubnet: {{ kubernetes_pod_cidr | default('10.0.0.0/16') }}
 ---
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration

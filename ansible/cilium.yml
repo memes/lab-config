@@ -1,10 +1,17 @@
 # Install Cilium as CNI
 # yamllint disable rule:truthy rule:line-length
 ---
+- name: Gather facts
+  hosts: servers
+  become: yes
+  gather_facts: yes
 - name: Install Cilium
   hosts: localhost
   become: no
   gather_facts: no
+  vars:
+    dataplane_device: "{{ (hostvars[groups['servers'][0]]['ansible_os_family'] == 'RedHat') | ternary('team0.100', 'bond0.100') }}"
+    bgp_peer: "{{ hostvars[groups['servers'][0]]['vlan100_addresses'] | ansible.utils.ipv4 | ansible.utils.ipaddr('1') | ansible.utils.ipaddr('address') | first }}"
   tasks:
     - name: Create BGP ConfigMap
       kubernetes.core.k8s:
@@ -18,9 +25,9 @@
           data:
             config.yaml: |
               peers:
-                - peer-address: 172.24.0.1
-                  peer-asn: 64512
-                  my-asn: 64513
+                - peer-address: {{ bgp_peer }}
+                  peer-asn: {{ bgp_peer_asn | default('64512') }}
+                  my-asn: {{ bgp_asn | default('64513') }}
               address-pools:
                 - name: default
                   protocol: bgp
@@ -49,6 +56,8 @@
             announce:
               loadbalancerIP: true
               podCIDR: true
+          extraArgs:
+            - "--devices={{ dataplane_device }}"
           ipam:
             mode: kubernetes
           loadbalancer:
@@ -57,9 +66,9 @@
           k8s:
             requireIPv4PodCIDR: true
           k8sServiceHost: "{{ kubernetes_api_address }}"
-          k8sServicePort: "6443"
+          k8sServicePort: "{{ kubernetes_api_port | default(6443) }}"
           tunnel: disabled
-          ipv4NativeRoutingCIDR: "{{ kubernetes_pod_cidr | default('10.0.0.0/17') }}"
+          ipv4NativeRoutingCIDR: "{{ kubernetes_pod_cidr | default('10.0.0.0/16') }}"
       tags:
         - init
     - name: Wait for Cilium to be ready

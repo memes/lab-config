@@ -38,6 +38,8 @@
   hosts: localhost
   become: no
   gather_facts: no
+  vars:
+    bgp_peer: "{{ hostvars[groups['servers'][0]]['vlan100_addresses'] | ansible.utils.ipv4 | ansible.utils.ipaddr('1') | ansible.utils.ipaddr('address') | first }}"
   tasks:
     - name: Create tigera-operator namespace
       kubernetes.core.k8s:
@@ -60,7 +62,7 @@
             namespace: tigera-operator
           data:
             KUBERNETES_SERVICE_HOST: "{{ kubernetes_api_address }}"
-            KUBERNETES_SERVICE_PORT: "6443"
+            KUBERNETES_SERVICE_PORT: "{{ kubernetes_api_port | default(6443) }}"
       tags:
         - init
     - name: Install Tigera operator
@@ -91,14 +93,13 @@
               linuxDataplane: BPF
               bgp: Enabled
               ipPools:
-                - cidr: "{{ kubernetes_pod_cidr | default('10.0.0.0/17') }}"
+                - cidr: "{{ kubernetes_pod_cidr | default('10.0.0.0/16') }}"
                   encapsulation: None
                   natOutgoing: Enabled
                   nodeSelector: all()
                   blockSize: 24
               nodeAddressAutodetectionV4:
-                cidrs:
-                  - 172.17.0.0/16
+                canReach: "{{ bgp_peer }}"
       tags:
         - config
     - name: Enable Calico API server
@@ -141,8 +142,8 @@
           metadata:
             name: router-ipv4-peer
           spec:
-            peerIP: 172.17.0.1
-            asNumber: 64512
+            peerIP: "{{ bgp_peer }}"
+            asNumber: "{{ bgp_peer_asn | default('64512') }}"
       tags:
         - bgp
     - name: Update Calico BGPConfiguration
@@ -156,7 +157,7 @@
           spec:
             logSeverityScreen: Info
             nodeToNodeMeshEnabled: false
-            asNumber: 64513
+            asNumber: "{{ bgp_asn | default('64513') }}"
             listenPort: 179
             serviceClusterIPs:
               - cidr: "{{ kubernetes_service_cidr | default('10.1.0.0/22') }}"

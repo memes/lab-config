@@ -168,72 +168,148 @@
         daemon_reload: yes
       tags:
         - base
+    - name: Create temp kubeadm config directory
+      ansible.builtin.file:
+        path: /var/tmp/kubernetes
+        state: directory
+        owner: root
+        group: root
+        mode: 0755
+      when: (k8s_master | default(False)) or (k8s_worker | default(False))
+      tags:
+        - base
+    - name: Generate kube-apiserver patch file
+      vars:
+        addresses: "{{ vlan100_addresses }}"
+      ansible.builtin.template:
+        src: templates/kubernetes/kube-apiserver0+json.yaml.j2
+        dest: /var/tmp/kubernetes/kube-apiserver0+json.yaml
+        owner: root
+        group: root
+        mode: 0644
+        force: no
+      when: (k8s_master | default(False)) or (k8s_worker | default(False))
+      tags:
+        - base
     - name: Generate kubeadm join token
       ansible.builtin.command: kubeadm token generate
       register: kubeadm_token_command
       run_once: yes
       tags:
         - init
-    - name: Generate kubeadm cert token
+    - name: Generate kubeadm cert key
       ansible.builtin.command: kubeadm certs certificate-key
       register: kubeadm_cert_key_command
       run_once: yes
       tags:
         - init
-    - name: Generate kubeadm configuration (first master)
+    - name: Generate kubeadm init configuration for first master
       vars:
+        addresses: "{{ vlan100_addresses }}"
         kubeadm_token: "{{ kubeadm_token_command.stdout }}"
         kubeadm_cert_key: "{{ kubeadm_cert_key_command.stdout }}"
       ansible.builtin.template:
-        src: templates/kubernetes/kubeadm.yml.j2
-        dest: /var/tmp/kubeadm.yml
+        src: templates/kubernetes/kubeadm-init.yml.j2
+        dest: /var/tmp/kubernetes/kubeadm.yml
         owner: root
         group: root
         mode: 0644
+        force: no
       run_once: yes
       when: k8s_master | default(False)
       tags:
         - init
-    - name: Execute kubeadm (first master)
-      ansible.builtin.command: "kubeadm init {% if kubeadm_skip_phases | default([]) | length > 0 %}--skip-phases={{ kubeadm_skip_phases | join(',') }}{% endif %} --node-name={{ k8s_node_name }} --config=/var/tmp/kubeadm.yml --upload-certs"
+    - name: Execute kubeadm init on first master
+      ansible.builtin.command: >-
+        kubeadm init --config=/var/tmp/kubernetes/kubeadm.yml --upload-certs
       args:
         creates: /etc/kubernetes/admin.conf
       run_once: yes
       when: k8s_master | default(False)
       tags:
         - init
-    - name: Get base kubeadm join command
-      ansible.builtin.command: kubeadm token create --print-join-command
-      register: kubeadm_join_command
-      when: k8s_master | default(False)
+    - name: Get generated CA certificate from first master
+      community.crypto.x509_certificate_info:
+        path: /etc/kubernetes/pki/ca.crt
+      register: ca_cert
       run_once: yes
-      tags:
-        - join
-    - name: Get kubeadm cert hash
-      ansible.builtin.shell: kubeadm init phase upload-certs --upload-certs 2>/dev/null | tail -n1
-      register: kubeadm_cert_hash
       when: k8s_master | default(False)
-      run_once: yes
       tags:
-        - join
-    - name: Join other kubeadm servers
-      ansible.builtin.command: "{{ kubeadm_join_command.stdout }} {{ (k8s_master | default(False)) | ternary('--control-plane --apiserver-advertise-address ' + (vlan100_addresses | ansible.utils.ipv4('host/prefix') | ansible.utils.ipaddr('address') | first) + ' --certificate-key ' + kubeadm_cert_hash.stdout, '', '') }} --node-name={{ k8s_node_name }}"
+        - init
+    - name: Generate kubeadm join configuration for all other nodes
+      vars:
+        addresses: "{{ vlan100_addresses }}"
+        kubeadm_token: "{{ kubeadm_token_command.stdout }}"
+        kubeadm_ca_cert_hash: "sha256:{{ ca_cert.public_key_fingerprints.sha256 | replace(':', '') }}"
+        kubeadm_cert_key: "{{ kubeadm_cert_key_command.stdout }}"
+      ansible.builtin.template:
+        src: templates/kubernetes/kubeadm-join.yml.j2
+        dest: /var/tmp/kubernetes/kubeadm.yml
+        owner: root
+        group: root
+        mode: 0644
+        force: no
+      when: (k8s_master | default(False)) or (k8s_worker | default(False))
+      tags:
+        - init
+    - name: Execute kubeadm join on all other nodes
+      ansible.builtin.command: >-
+        kubeadm join --config=/var/tmp/kubernetes/kubeadm.yml
       args:
         creates: /etc/kubernetes/kubelet.conf
+      when: (k8s_master | default(False)) or (k8s_worker | default(False))
       tags:
         - join
-    - name: Remove scheduling taints
-      ansible.builtin.command: kubectl taint nodes {{ k8s_node_name }} node-role.kubernetes.io/control-plane- --kubeconfig=/etc/kubernetes/admin.conf
+    - name: Generate CoreDNS configmap on first master
+      vars:
+        addresses: "{{ vlan100_addresses }}"
+      ansible.builtin.template:
+        src: templates/kubernetes/coredns-configmap.yaml.j2
+        dest: /var/tmp/kubernetes/coredns-configmap.yaml
+        owner: root
+        group: root
+        mode: 0644
+        force: no
+      run_once: yes
+      when: k8s_master | default(False)
+      tags:
+        - dns
+    - name: Apply CoreDNS configmap on first master
+      ansible.builtin.command: >-
+        kubectl apply -f /var/tmp/kubernetes/coredns-configmap.yaml
+          --kubeconfig /etc/kubernetes/admin.conf
+      run_once: yes
+      when: k8s_master | default(False)
+      tags:
+        - dns
+    - name: Delete CoreDNS pods
+      ansible.builtin.command: >-
+        kubectl delete pod -n kube-system -l k8s-app=kube-dns --force
+          --kubeconfig=/etc/kubernetes/admin.conf
+      run_once: yes
+      when: k8s_master | default(False)
+      tags:
+        - dns
+    - name: Remove scheduling taints from masters that are also workers
+      ansible.builtin.command: >-
+        kubectl taint nodes {{ k8s_node_name }} node-role.kubernetes.io/control-plane-
+          --kubeconfig=/etc/kubernetes/admin.conf
       when: (k8s_master | default(False)) and (k8s_worker | default(True))
+      ignore_errors: yes
       tags:
         - taints
-    - name: Remove legacy scheduling taints
-      ansible.builtin.command: kubectl taint nodes {{ k8s_node_name }} node-role.kubernetes.io/master- --kubeconfig=/etc/kubernetes/admin.conf
+    - name: Remove legacy scheduling taints from masters that are also workers
+      ansible.builtin.command: >-
+        kubectl taint nodes {{ k8s_node_name }} node-role.kubernetes.io/master-
+          --kubeconfig=/etc/kubernetes/admin.conf
       when: (k8s_master | default(False)) and (k8s_worker | default(True))
+      ignore_errors: yes
       tags:
         - taints
     - name: Create admin user account(s)
-      ansible.builtin.command: "kubeadm kubeconfig user --config=/var/tmp/kubeadm.yml --client-name {{ item }}@{{ lab_domain }}"
+      ansible.builtin.command: >-
+        kubeadm kubeconfig user --client-name {{ item }}@{{ lab_domain }}
+          --config=/var/tmp/kubernetes/kubeadm.yml
       register: kubeconfig
       loop: "{{ k8s_admins | default(['memes']) }}"
       run_once: yes
@@ -243,7 +319,7 @@
     - name: Write admin accounts YAML
       ansible.builtin.template:
         src: templates/kubernetes/admin-user-rbac.yml.j2
-        dest: /var/tmp/{{ item.item }}-admin-rbac.yml
+        dest: /var/tmp/kubernetes/{{ item.item }}-admin-rbac.yml
         owner: root
         group: root
         mode: 0644
@@ -255,7 +331,9 @@
       tags:
         - users
     - name: Execute admin account bindings
-      ansible.builtin.command: "kubectl apply -f /var/tmp/{{ item.item }}-admin-rbac.yml --kubeconfig=/etc/kubernetes/admin.conf"
+      ansible.builtin.command: >-
+        kubectl apply -f /var/tmp/kubernetes/{{ item.item }}-admin-rbac.yml
+          --kubeconfig=/etc/kubernetes/admin.conf
       run_once: yes
       when: k8s_master | default(False) and item.rc == 0
       loop: "{{ kubeconfig.results }}"
@@ -278,22 +356,10 @@
         label: "{{ item.item }}"
       tags:
         - users
-    - name: Clean up kubeadm template
+    - name: Clean up kubeadm templates
       ansible.builtin.file:
-        path: /var/tmp/kubeadm.yml
+        path: /var/tmp/kubernetes
         state: absent
-      loop:
-        - /var/tmp/kubeadm.yml
-      run_once: yes
-      when: (k8s_master | default(False))
-      tags:
-        - never
-    - name: Clean up user rbac templates
-      ansible.builtin.file:
-        path: /var/tmp/{{ item }}-admin-rbac.yml
-        state: absent
-      loop: "{{ k8s_admins | default(['memes']) }}"
-      run_once: yes
-      when: (k8s_master | default(False))
+      when: (k8s_master | default(False)) or (k8s_worker | default(False))
       tags:
         - never
