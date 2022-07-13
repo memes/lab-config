@@ -44,7 +44,7 @@ label rhel85
 label ubuntu2004
   menu label Autoprovision ^Ubuntu Server 20.04 LTS
   kernel ::boot/ubuntu20.04-LTS-x86_64/vmlinuz
-  append initrd=::boot/ubuntu20.04-LTS-x86_64/initrd vga=788 root=/dev/ram0 ramdisk_size=1500000 ip=dhcp url={{ lab_shared_http_url }}/isos/ubuntu-20.04.4-live-server-amd64.iso autoinstall ds=nocloud-net;s={{ lab_shared_http_url }}/cloud-init/focal/
+  append initrd=::boot/ubuntu20.04-LTS-x86_64/initrd vga=788 root=/dev/ram0 ramdisk_size=1500000 ip=dhcp url={{ default_shared_http_url }}/isos/ubuntu-20.04.4-live-server-amd64.iso autoinstall ds=nocloud-net;s={{ default_shared_http_url }}/cloud-init/focal/
   text help
   Install Ubuntu Server 20.04 LTS with minimal cloud-init/autoprovision for lab
   endtext
