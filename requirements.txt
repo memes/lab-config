@@ -2,7 +2,7 @@
 # see also ansible/requirements.yml for Ansible galaxy packages
 # Also need vsan-sdk-python for VMWare playbooks; download and unpack somewhere
 # and add to PYTHONPATH via .envrc.
-pre-commit==2.19.0
+pre-commit==2.20.0
 ansible==6.0.0
 ansible-lint==6.3.0
 pyghmi==1.5.51
