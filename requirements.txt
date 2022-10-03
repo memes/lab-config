@@ -5,7 +5,7 @@
 pre-commit==2.20.0
 ansible==6.4.0
 ansible-lint==6.5.2
-pyghmi==1.5.52
+pyghmi==1.5.53
 hvac==1.0.2
 jmespath==1.0.1
 kubernetes==24.2.0
