@@ -13,8 +13,6 @@ terraform.config
 
 # Ignore all json files; these *may* be a credential
 *.json
-# Except in .vscode
-!.vscode/*.json
 
 # Ignore root CA files
 ca/*
@@ -28,3 +26,7 @@ certs/*
 # Ignore kubeconfigs
 kubeconfig*
 !ansible/templates/kubernetes/kubeconfig.user.j2
+
+# Ignore VS Code files, except settings.json
+.vscode
+!.vscode/settings.json
