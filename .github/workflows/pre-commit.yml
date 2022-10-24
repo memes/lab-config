@@ -21,7 +21,7 @@ jobs:
           sudo chmod 0755 /usr/local/bin/terraform-docs
       - name: install talisman
         run: |
-          sudo curl -sLo /usr/local/bin/talisman https://github.com/thoughtworks/talisman/releases/download/v1.27.0/talisman_linux_amd64
+          sudo curl -sLo /usr/local/bin/talisman https://github.com/thoughtworks/talisman/releases/download/v1.29.1/talisman_linux_amd64
           sudo chmod 0755 /usr/local/bin/talisman
       - uses: actions/setup-python@v4.3.0
         with:
