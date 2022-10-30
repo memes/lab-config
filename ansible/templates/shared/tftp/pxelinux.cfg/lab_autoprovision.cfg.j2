@@ -24,15 +24,6 @@ label centos85
   Install CentOS 8.5 with minimal kickstart for Lab
   endtext
 
-
-{% if bios | default(False) %}
-label esxi67
-  menu label Autoprovision ^ESXi 6.7
-  # NOTE: this target chain-loads an ESXi specific syslinux version
-  com32 ::bios/pxechn.c32
-  append ::esxi/pxelinux.0 -c ::esxi/pxelinux.cfg/lab_autoprovision.cfg
-{% endif %}
-
 label rhel85
   menu label Autoprovision ^RHEL 8.5
   kernel ::boot/rhel8.5-x86_64/vmlinuz

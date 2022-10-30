@@ -34,19 +34,6 @@ menu begin debian
   include pxelinux.cfg/debian.cfg
 menu end
 
-{% if bios | default(False) %}
-# ESXi option will chain-load an ESXi specific PXE environment and configuration
-# files. See the folder ../esxi/pxelinux.cfg for details.
-label esxi
-  menu label Chainload ^ESXi installers
-  com32 ::bios/pxechn.c32
-  append ::esxi/pxelinux.0 -c ::esxi/pxelinux.cfg/default
-  text help
-  Load VMware ESXi installation and upgrade menu.
-  NOTE: this will chainload an older syslinux/pxelinux without Back option.
-  endtext
-{% endif %}
-
 menu begin redhat
   menu label ^RedHat installers
   menu title RedHat installers

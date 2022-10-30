@@ -77,15 +77,12 @@
         - tftp
         - tftp/boot
         - tftp/boot/debian{{ ansible_distribution_major_version }}-x86_64
-        - tftp/boot/dell_emc_esxi67-x86_64
         - tftp/bios
         - tftp/bios/pxelinux.cfg
         - tftp/efi32
         - tftp/efi32/pxelinux.cfg
         - tftp/efi64
         - tftp/efi64/pxelinux.cfg
-        - tftp/esxi
-        - tftp/esxi/pxelinux.cfg
       tags:
         - pxe
     - name: Copy syslinux files for TFTP
@@ -162,16 +159,6 @@
         - efi64
       tags:
         - pxe
-    - name: Copy static ESXi PXE configurations
-      ansible.builtin.copy:
-        src: "files/shared/tftp/esxi/pxelinux.cfg/"
-        dest: "/srv/tftp/esxi/pxelinux.cfg/"
-        force: yes
-        owner: tftp
-        group: root
-        mode: 0644
-      tags:
-        - pxe
     - name: Copy templated BIOS PXE configurations
       vars:
         - bios: true
@@ -232,16 +219,6 @@
         - redhat.cfg
         - ubuntu.cfg
         - tools.cfg
-      tags:
-        - pxe
-    - name: Copy templated ESXi lab configuration
-      ansible.builtin.template:
-        src: templates/shared/tftp/boot/dell_emc_esxi67-x86_64/lab.cfg.j2
-        dest: /srv/tftp/boot/dell_emc_esxi67-x86_64/lab.cfg
-        force: yes
-        owner: tftp
-        group: root
-        mode: 0644
       tags:
         - pxe
     - name: Create hard-links for server MACs to autoprovision via BIOS
@@ -366,7 +343,6 @@
         - d-i
         - d-i/bionic
         - el8
-        - esxi
         - keys
         - kubernetes
         - scripts
@@ -437,7 +413,6 @@
         - cloud-init/focal/meta-data
         - d-i/bionic/preseed.cfg
         - el8/centos8-minimal.ks
-        - esxi/esxi67.ks
         - el8/rhel8-minimal.ks
         - scripts/post-onboard-centos8.sh
         - scripts/post-onboard-debian.sh

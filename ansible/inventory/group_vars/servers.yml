@@ -2,15 +2,3 @@
 # yamllint disable rule:line-length
 ---
 ansible_ssh_extra_args: '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
-# ESXi/vSphere
-vcenter_ova_url: "{{ lab_shared_https_url }}/software/vcsa6.7.0-16046470-x86_64/vcsa/VMware-vCenter-Server-Appliance-6.7.0.44000-16046470_OVF10.ova"
-vcenter_ova_path: /Volumes/shared/software/vcsa6.7.0-16046470-x86_64/vcsa/VMware-vCenter-Server-Appliance-6.7.0.44000-16046470_OVF10.ova
-vcenter_machine: vcenter
-vcenter_hostname: "{{ vcenter_machine }}.{{ lab_domain }}"
-vcenter_url: "https://{{ vcenter_hostname }}/"
-vcenter_config_url: "https://{{ vcenter_hostname }}:5480/"
-vcenter_address: '172.17.1.1'
-vcenter_vnet: vmgmt
-vsphere_datacenter: lab
-vsphere_cluster: cluster0
-vsphere_dvswitch: dvSwitch0

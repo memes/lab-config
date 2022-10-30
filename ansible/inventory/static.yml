@@ -20,9 +20,6 @@ all:
       ansible_host: 172.17.0.8
       ipmi_host: 172.17.0.7
       real_hostname: eternal.lab.acceleratedgcp.com
-    vcenter.lab.acceleratedgcp.com:
-      ansible_host: 172.17.1.1
-      ansible_user: root
   children:
     vault:
       hosts:
