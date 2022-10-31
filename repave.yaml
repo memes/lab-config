@@ -7,7 +7,7 @@
   tasks:
     - name: set PXE target on shared
       ansible.builtin.template:
-        src: templates/shared/tftp/pxelinux.cfg//lab_default_target.cfg.j2
+        src: shared/templates/tftp/pxelinux.cfg//lab_default_target.cfg.j2
         dest: /srv/tftp/{{ item }}/pxelinux.cfg/lab_default_target.cfg
         force: yes
         owner: root
