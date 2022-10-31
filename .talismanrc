@@ -48,3 +48,7 @@ fileignoreconfig:
   checksum: 9404d4f4095897773abe6aedda47947ea0a0b174dd3c53330aa381b4c7930241
 - filename: ansible/templates/shared/cloud-init/jammy/user-data.j2
   checksum: 6712f75f304c6bbe14f0919ada2d10075f0ec1a0048b587f95294bd09e6f434c
+- filename: ansible/templates/shared/scripts/post-onboard-debian.sh.j2
+  checksum: a5e5e31057b52347272a749895c140eaf7b01e9e4973d75c25ba6832d2822651
+- filename: ansible/vault.yml
+  checksum: 9437c97643f71287bc7bfe2367c028f22052e022d83092d36f438a07b0e74baa

@@ -51,12 +51,16 @@ update-ca-certificates || \
     info "Failed to update CA trust repository: update-ca-certificates exit code: $?"
 
 # Install pre-verified Hashicorp GPG key from shared server
-curl -fsSL {{ lab_shared_http_url }}/keys/hashicorp.asc | apt-key add -
+mkdir -p -m 0755 /etc/apt/keyrings
+curl -fsSL {{ lab_shared_http_url }}/keys/hashicorp.asc | \
+    gpg --dearmor --output /etc/apt/keyrings/hashicorp.gpg
 
 # Install Vault from Hashicorp repo, but don't run as a service
-apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
-apt-get update
-apt-get install -y vault
+cat > /etc/apt/sources.list.d/hashicorp.list <<EOR
+deb [arch=amd64 signed-by=/etc/apt/keyrings/hashicorp.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main
+EOR
+apt update
+apt install -y vault
 systemctl stop vault.service
 systemctl mask vault.service
 
