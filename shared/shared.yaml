@@ -21,7 +21,7 @@
         - init
     - name: Manage shared file system configs
       ansible.builtin.template:
-        src: "templates/shared/etc/{{ item }}.j2"
+        src: "templates/etc/{{ item }}.j2"
         dest: "/etc/{{ item }}"
         force: yes
         owner: root
@@ -39,7 +39,7 @@
         - init
     - name: Set NFS kernel modprobe file
       ansible.builtin.template:
-        src: templates/shared/etc/modprobe.d/nfs-modules.conf.j2
+        src: templates/etc/modprobe.d/nfs-modules.conf.j2
         dest: "/etc/modprobe.d/nfs-modules.conf"
         owner: root
         group: root
@@ -135,19 +135,9 @@
         - initrd.gz
       tags:
         - pxe
-    - name: Copy static boot configurations
-      ansible.builtin.copy:
-        src: "files/shared/tftp/boot/"
-        dest: "/srv/tftp/boot/"
-        force: yes
-        owner: tftp
-        group: root
-        mode: 0644
-      tags:
-        - pxe
     - name: Copy static PXE configurations
       ansible.builtin.copy:
-        src: "files/shared/tftp/pxelinux.cfg/"
+        src: "files/tftp/pxelinux.cfg/"
         dest: "/srv/tftp/{{ item }}/pxelinux.cfg/"
         force: yes
         owner: tftp
@@ -163,7 +153,7 @@
       vars:
         - bios: true
       ansible.builtin.template:
-        src: "templates/shared/tftp/pxelinux.cfg/{{ item }}.j2"
+        src: "templates/tftp/pxelinux.cfg/{{ item }}.j2"
         dest: "/srv/tftp/bios/pxelinux.cfg/{{ item }}"
         force: yes
         owner: tftp
@@ -183,7 +173,7 @@
         - pxe
     - name: Copy templated EFI32 PXE configurations
       ansible.builtin.template:
-        src: "templates/shared/tftp/pxelinux.cfg/{{ item }}.j2"
+        src: "templates/tftp/pxelinux.cfg/{{ item }}.j2"
         dest: "/srv/tftp/efi32/pxelinux.cfg/{{ item }}"
         force: yes
         owner: tftp
@@ -203,7 +193,7 @@
         - pxe
     - name: Copy templated EFI64 PXE configurations
       ansible.builtin.template:
-        src: "templates/shared/tftp/pxelinux.cfg/{{ item }}.j2"
+        src: "templates/tftp/pxelinux.cfg/{{ item }}.j2"
         dest: "/srv/tftp/efi64/pxelinux.cfg/{{ item }}"
         force: yes
         owner: tftp
@@ -302,7 +292,7 @@
         - http
     - name: Configure nginx for shared
       ansible.builtin.template:
-        src: templates/shared/nginx/shared.j2
+        src: templates/nginx/shared.j2
         dest: /etc/nginx/sites-available/shared
         force: yes
         owner: root
@@ -343,9 +333,8 @@
         - cloud-init/jammy
         - d-i
         - d-i/bionic
-        - el8
+        - kickstart
         - keys
-        - kubernetes
         - scripts
       tags:
         - http
@@ -363,7 +352,7 @@
         - pxe
     - name: Update static key files
       ansible.builtin.copy:
-        src: "files/shared/keys/{{ item }}"
+        src: "files/keys/{{ item }}"
         dest: "/srv/shared/keys/{{ item }}"
         force: yes
         owner: root
@@ -403,7 +392,7 @@
         ssh_pubkey: "{{ ks_secrets.secret.ssh_pubkey }}"
         root_password: "{{ ks_secrets.secret.root }}"
       ansible.builtin.template:
-        src: "templates/shared/{{ item }}.j2"
+        src: "templates/{{ item }}.j2"
         dest: "/srv/shared/{{ item }}"
         force: yes
         owner: root
@@ -415,8 +404,8 @@
         - cloud-init/jammy/user-data
         - cloud-init/jammy/meta-data
         - d-i/bionic/preseed.cfg
-        - el8/centos8-minimal.ks
-        - el8/rhel8-minimal.ks
+        - kickstart/centos8-minimal.ks
+        - kickstart/rhel8-minimal.ks
         - scripts/post-onboard-centos8.sh
         - scripts/post-onboard-debian.sh
         - scripts/post-onboard-el8.sh
