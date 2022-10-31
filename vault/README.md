@@ -1,8 +1,9 @@
 # Vault provisioning
 
-This folder contains Terraform to configure Vault for Accelerated GCP lab. When
-applied, Terraform will create resources that define the behaviour of Vault, but
-not actual secrets or tokens.
+This folder contains Terraform and Ansible to configure Vault for Accelerated GCP
+lab. When applied, the Ansible playbook in `vault.yaml` will install and configure
+Vault on a server, and the Terraform will create resources that define the behaviour
+of Vault, but not actual secrets or tokens.
 
 * &#x2713; Authentication methods
 * &#x2713; Policies
@@ -12,7 +13,7 @@ not actual secrets or tokens.
 
 > NOTE: This script will need to run as `root` or other privileged account.
 
-## Unsealing - reminder!
+## Unsealing reminder
 
 Do this for each key.
 
@@ -42,7 +43,7 @@ vault login -method=oidc
 1. Install Vault and run with TLS disabled
 
    ```shell
-   ansible-playbook -i inventory vault.yml vault
+   ansible-playbook -Ki ../inventory vault.yaml --tags bootstrap
    ```
 
 1. Initialise Vault
@@ -102,7 +103,7 @@ vault login -method=oidc
    1. Regenerate Vault certificate
 
       ```shell
-      make clean vault.lab.acceleratedgcp.com.pem
+      make -C ../certs clean vault.lab.acceleratedgcp.com.pem
       ```
 
    1. Revoke current root OTP token
@@ -115,7 +116,7 @@ vault login -method=oidc
    1. Rotate the Vault certificate and restart service
 
       ```shell
-      ansible-playbook -Ki ansible/inventory ansible.vault.yml
+      ansible-playbook -Ki ../inventory vault.yaml
       ```
 
    1. Launch a new shell or reset VAULT_ADDR environment to use TLS

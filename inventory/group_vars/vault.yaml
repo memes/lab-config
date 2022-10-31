@@ -6,4 +6,3 @@ vault_gcs: 18ad5ebfd63af0e4
 vault_tls_disable: false
 vault_tls_cert_file: "{{ vault_home }}/tls/{{ vault_host }}.pem"
 vault_tls_key_file: "{{ vault_home }}/tls/{{ vault_host }}.key"
-vault_gcp_sa_creds_file: files/vault/vault-sa.json

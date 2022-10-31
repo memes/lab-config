@@ -4,6 +4,8 @@
 - name: Install/update Vault service
   hosts: vault
   become: yes
+  vars:
+    vault_gcp_sa_creds_file: files/vault-sa.json
   tasks:
     - name: Ensure /etc/apt/keyrings exists
       ansible.builtin.file:
@@ -13,19 +15,25 @@
         group: root
         mode: 0755
       when: ansible_os_family == "Debian"
+      tags:
+        - bootstrap
     - name: Copy static hashicorp key
       ansible.builtin.copy:
-        src: files/shared/keys/hashicorp.asc
+        src: ../ansible/files/shared/keys/hashicorp.asc
         dest: /etc/apt/keyrings/hashicorp.asc
         force: yes
         owner: root
         group: root
         mode: 0664
+      tags:
+        - bootstrap
     - name: Add Hashicorp apt repo
       ansible.builtin.apt_repository:
         repo: deb [arch=amd64 signed-by=/etc/apt/keyrings/hashicorp.asc] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main
         state: present
       when: ansible_os_family == "Debian"
+      tags:
+        - bootstrap
     - name: Add Hashicorp yum repo
       ansible.builtin.get_url:
         url: https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
@@ -34,13 +42,17 @@
         group: root
         mode: 0644
       when: ansible_os_family == "RedHat"
+      tags:
+        - bootstrap
     - name: Install Vault
       ansible.builtin.package:
         name: vault
         state: present
+      tags:
+        - bootstrap
     - name: Update Vault configuration
       ansible.builtin.template:
-        src: templates/vault.d/{{ item }}.j2
+        src: ./templates/{{ item }}.j2
         dest: "/etc/vault.d/{{ item }}"
         force: yes
         owner: root
@@ -51,6 +63,27 @@
         - vault.env
       notify:
         - restart Vault
+      tags:
+        - bootstrap
+    - name: Add GCP creds
+      ansible.builtin.copy:
+        src: "{{ vault_gcp_sa_creds_file }}"
+        dest: "{{ vault_home }}/vault-sa.json"
+        force: yes
+        owner: root
+        group: vault
+        mode: 0640
+      notify:
+        - restart Vault
+      tags:
+        - bootstrap
+    - name: Enable systemd unit
+      ansible.builtin.service:
+        name: vault
+        enabled: yes
+        state: started
+      tags:
+        - bootstrap
     - name: Copy Vault TLS files
       ansible.builtin.copy:
         src: "../certs/{{ item }}"
@@ -64,21 +97,8 @@
         - "{{ vault_host }}.key"
       notify:
         - restart Vault
-    - name: Add GCP creds
-      ansible.builtin.copy:
-        src: "{{ vault_gcp_sa_creds_file }}"
-        dest: "{{ vault_home }}/vault-sa.json"
-        force: yes
-        owner: root
-        group: vault
-        mode: 0640
-      notify:
-        - restart Vault
-    - name: Enable systemd unit
-      ansible.builtin.service:
-        name: vault
-        enabled: yes
-        state: started
+      tags:
+        - tls
 
   handlers:
     - name: restart Vault
