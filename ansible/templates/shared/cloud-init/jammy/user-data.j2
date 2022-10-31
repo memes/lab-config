@@ -1,0 +1,174 @@
+#cloud-config
+{{ ansible_managed | comment }}
+autoinstall:
+  version: 1
+  locale: en_US.UTF-8
+  refresh-installer:
+    update: false
+  keyboard:
+    layout: us
+    toggle: null
+    variant: ''
+  identity:
+    realname: Matthew Emes
+    username: memes
+    hostname: unknown
+    password: {{ memes_password | password_hash('sha512') }}
+  ssh:
+    install-server: true
+    allow-pw: true
+    authorized-keys:
+      - {{ ssh_pubkey }}
+  apt:
+    geoip: false
+    preserve_sources_list: false
+    primary:
+    - arches: [amd64, i386]
+      uri: http://us.archive.ubuntu.com/ubuntu
+    - arches: [default]
+      uri: http://ports.ubuntu.com/ubuntu-ports
+  network:
+    version: 2
+    ethernets:
+      eno1:
+        critical: yes
+        dhcp4: no
+        dhcp6: no
+      eno2:
+        dhcp4: no
+        dhcp6: no
+      eno3:
+        dhcp4: no
+        dhcp6: no
+      eno4:
+        dhcp4: no
+        dhcp6: no
+    bonds:
+      bond0:
+        interfaces:
+          - eno2
+          - eno3
+          - eno4
+        parameters:
+          mode: '802.3ad'
+          lacp-rate: fast
+          mii-monitor-interval: 100
+          transmit-hash-policy: 'layer2+3'
+    vlans:
+      eno1.10:
+        dhcp4: yes
+        dhcp6: yes
+        id: 10
+        link: eno1
+      bond0.100:
+        dhcp4: no
+        dhcp6: no
+        id: 100
+        link: bond0
+        dhcp4-overrides:
+          use-dns: false
+          use-ntp: false
+          route-metric: 200
+        dhcp6-overrides:
+          use-dns: false
+          use-ntp: false
+          route-metric: 200
+  storage:
+    swap:
+      size: 0
+    grub:
+      probe_additional_os: false
+    config:
+      - id: disk-0
+        type: disk
+        match:
+          size: smallest
+        wipe: superblock-recursive
+        preserve: false
+        name: ''
+        grub_device: true
+        ptable: gpt
+      - id: disk-0-part-0
+        type: partition
+        device: disk-0
+        number: 1
+        size: 1M
+        preserve: false
+        flag: bios_grub
+        name: ''
+        grub_device: false
+      - id: disk-0-part-1
+        type: partition
+        device: disk-0
+        number: 2
+        size: 2048M
+        wipe: superblock
+        preserve: false
+        flag: ''
+        name: ''
+        grub_device: false
+      - id: disk-0-part-1-format
+        type: format
+        fstype: xfs
+        volume: disk-0-part-1
+        preserve: false
+        label: boot
+      - id: mount-boot
+        type: mount
+        device: disk-0-part-1-format
+        path: /boot
+      - id: disk-1
+        type: disk
+        match:
+          size: largest
+        wipe: superblock-recursive
+        preserve: false
+        name: ''
+        grub_device: false
+        ptable: gpt
+      - id: vg-0
+        type: lvm_volgroup
+        name: vg.0
+        devices:
+          - disk-1
+        preserve: false
+      - id: lvm-part-0
+        type: lvm_partition
+        name: swap
+        volgroup: vg-0
+        size: 4096M
+        preserve: false
+      - id: lvm-part-0-format
+        type: format
+        fstype: swap
+        volume: lvm-part-0
+        preserve: false
+      - id: mount-swap
+        type: mount
+        device: lvm-part-0-format
+        path: ''
+      - id: lvm-part-1
+        type: lvm_partition
+        name: root
+        volgroup: vg-0
+        size: -1
+        preserve: false
+      - id: lvm-part-1-format
+        type: format
+        fstype: xfs
+        volume: lvm-part-1
+        label: root
+        preserve: false
+      - id: mount-root
+        type: mount
+        device: lvm-part-1-format
+        path: /
+  packages:
+    - apt-transport-https
+    - curl
+    - gnupg
+    - dbus-user-session
+
+  late-commands:
+    - curl -sLo /target/root/post-onboard-debian.sh {{ lab_shared_http_url }}/scripts/post-onboard-debian.sh
+    - curtin in-target --target=/target -- /bin/sh /root/post-onboard-debian.sh

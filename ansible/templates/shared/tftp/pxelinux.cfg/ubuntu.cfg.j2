@@ -1,8 +1,16 @@
 # Ubuntu PXE boot options shared on this server
 {{ ansible_managed | comment }}
 
+label ubuntu2204
+  menu label Ubuntu Server ^22.04.1 LTS
+  kernel ::boot/ubuntu22.04-LTS-x86_64/vmlinuz
+  append initrd=::boot/ubuntu22.04-LTS-x86_64/initrd root=/dev/ram0 ramdisk_size=1500000 vga=normal fb=false ip=dhcp url={{ default_shared_http_url }}/isos/ubuntu-22.04.1-live-server-amd64.iso
+  text help
+  Install Ubuntu Server 22.04.1 LTS from Live server DVD
+  endtext
+
 label ubuntu2004
-  menu label Ubuntu Server ^20.04.4 LTS
+  menu label Ubuntu Server 2^0.04.4 LTS
   kernel ::boot/ubuntu20.04-LTS-x86_64/vmlinuz
   append initrd=::boot/ubuntu20.04-LTS-x86_64/initrd root=/dev/ram0 ramdisk_size=1500000 vga=normal fb=false ip=dhcp url={{ default_shared_http_url }}/isos/ubuntu-20.04.4-live-server-amd64.iso
   text help

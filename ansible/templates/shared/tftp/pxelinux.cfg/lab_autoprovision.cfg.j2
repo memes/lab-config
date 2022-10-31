@@ -32,8 +32,16 @@ label rhel85
   Install RHEL 8.5 with minimal kickstart for Lab
   endtext
 
+label ubuntu2204
+  menu label Autoprovision ^Ubuntu Server 22.04 LTS
+  kernel ::boot/ubuntu22.04-LTS-x86_64/vmlinuz
+  append initrd=::boot/ubuntu22.04-LTS-x86_64/initrd vga=788 root=/dev/ram0 ramdisk_size=1500000 ip=eno1 url={{ default_shared_http_url }}/isos/ubuntu-22.04.1-live-server-amd64.iso autoinstall ds=nocloud-net;s={{ default_shared_http_url }}/cloud-init/jammy/
+  text help
+  Install Ubuntu Server 22.04 LTS with minimal cloud-init/autoprovision for lab
+  endtext
+
 label ubuntu2004
-  menu label Autoprovision ^Ubuntu Server 20.04 LTS
+  menu label Autoprovision Ubuntu ^Server 20.04 LTS
   kernel ::boot/ubuntu20.04-LTS-x86_64/vmlinuz
   append initrd=::boot/ubuntu20.04-LTS-x86_64/initrd vga=788 root=/dev/ram0 ramdisk_size=1500000 ip=dhcp url={{ default_shared_http_url }}/isos/ubuntu-20.04.4-live-server-amd64.iso autoinstall ds=nocloud-net;s={{ default_shared_http_url }}/cloud-init/focal/
   text help
@@ -41,7 +49,7 @@ label ubuntu2004
   endtext
 
 label ubuntu1804
-  menu label Autoprovision Ubuntu ^Server 18.04 LTS
+  menu label Autoprovision Ubuntu Server ^18.04 LTS
   kernel ::boot/ubuntu18.04-LTS-netboot-x86_64/linux
   append initrd=::boot/ubuntu18.04-LTS-netboot-x86_64/initrd.gz auto url={{ lab_shared_host }} locale=en_US.UTF-8 console-setup/ask_detect=false console-setup/layoutcode=us keyboard-configuration/layoutcode=us netcfg/get_hostname=unknown netcfg/get_domain={{ lab_domain }} interface=eno1 netcfg/dhcp_timeout=60 netcfg/use_vlan=true netcfg/vlan_id=10
   text help

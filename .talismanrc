@@ -46,3 +46,5 @@ fileignoreconfig:
   checksum: dbe34b111457bbf1cc0e9d4779d3277dc72631c6f00e63da6377bde66157a109
 - filename: ansible/templates/kubernetes/kubeadm-join.yml.j2
   checksum: 9404d4f4095897773abe6aedda47947ea0a0b174dd3c53330aa381b4c7930241
+- filename: ansible/templates/shared/cloud-init/jammy/user-data.j2
+  checksum: 6712f75f304c6bbe14f0919ada2d10075f0ec1a0048b587f95294bd09e6f434c

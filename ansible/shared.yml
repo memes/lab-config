@@ -340,6 +340,7 @@
         - certs
         - cloud-init
         - cloud-init/focal
+        - cloud-init/jammy
         - d-i
         - d-i/bionic
         - el8
@@ -411,6 +412,8 @@
       loop:
         - cloud-init/focal/user-data
         - cloud-init/focal/meta-data
+        - cloud-init/jammy/user-data
+        - cloud-init/jammy/meta-data
         - d-i/bionic/preseed.cfg
         - el8/centos8-minimal.ks
         - el8/rhel8-minimal.ks

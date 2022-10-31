@@ -2,7 +2,7 @@
 ---
 # lab_target will be the default PXE option for repave servers. Must be one
 # of the labels defined for PXE auto-deploy.
-lab_target: ubuntu2004
+lab_target: ubuntu2204
 # limit NFS export to the following CIDRs
 nfs_export_shared_cidrs:
   - 10.0.0.0/16
