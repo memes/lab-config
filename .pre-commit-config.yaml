@@ -9,7 +9,7 @@ repos:
         types: [file, yaml]
         entry: yamllint --strict
   - repo: https://github.com/ansible-community/ansible-lint
-    rev: v6.8.2
+    rev: v6.8.4
     hooks:
       - id: ansible-lint
   - repo: https://github.com/antonbabenko/pre-commit-terraform

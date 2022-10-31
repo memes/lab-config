@@ -30,3 +30,6 @@ kubeconfig*
 # Ignore VS Code files, except settings.json
 .vscode
 !.vscode/settings.json
+
+# Ignore any pytest caches
+.pytest_cache

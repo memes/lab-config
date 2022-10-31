@@ -1,15 +1,9 @@
 # lab-config required packages
 # see also ansible/requirements.yml for Ansible galaxy packages
-# Also need vsan-sdk-python for VMWare playbooks; download and unpack somewhere
-# and add to PYTHONPATH via .envrc.
-pre-commit==2.20.0
 ansible==6.5.0
-ansible-lint==6.8.2
 pyghmi==1.5.53
 hvac==1.0.2
 jmespath==1.0.1
-kubernetes==24.2.0
-pyvmomi==7.0.3
+kubernetes==25.3.0
 passlib==1.7.4
 netaddr==0.8.0
-git+https://github.com/vmware/vsphere-automation-sdk-python.git ; python_version >= '2.7'  # Python 2.6 is not supported
