@@ -10,7 +10,7 @@
   become: no
   gather_facts: no
   vars:
-    dataplane_device: "{{ (hostvars[groups['servers'][0]]['ansible_os_family'] == 'RedHat') | ternary('team0.100', 'bond0.100') }}"
+    dataplane_device: 'bond0.100'
     bgp_peer: "{{ hostvars[groups['servers'][0]]['vlan100_addresses'] | ansible.utils.ipv4 | ansible.utils.ipaddr('1') | ansible.utils.ipaddr('address') | first }}"
   tasks:
     - name: Create BGP ConfigMap

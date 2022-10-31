@@ -5,7 +5,7 @@
   hosts: servers
   become: yes
   vars:
-    dataplane_device: "{{ (ansible_os_family == 'RedHat') | ternary('team0', 'bond0') }}"
+    dataplane_device: bond0
   tasks:
     - name: Configure vlan 100 (Ubuntu)
       vars:
