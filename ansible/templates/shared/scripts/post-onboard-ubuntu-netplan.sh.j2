@@ -61,19 +61,6 @@ network:
         use-dns: false
         use-ntp: false
         route-metric: 200
-    bond0.200:
-      dhcp4: no
-      dhcp6: no
-      id: 200
-      link: bond0
-      dhcp4-overrides:
-        use-dns: false
-        use-ntp: false
-        route-metric: 200
-      dhcp6-overrides:
-        use-dns: false
-        use-ntp: false
-        route-metric: 200
 EOF
 chown root:root /etc/netplan/02-bond0.yaml
 chmod 0640 /etc/netplan/02-bond0.yaml

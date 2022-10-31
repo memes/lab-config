@@ -34,12 +34,11 @@ network --bootproto=dhcp --device=eno1 --ipv6=auto --activate --vlanid=10
 network --bootproto=dhcp --device=eno1 --onboot=no --noipv4 --noipv6 --no-activate --nodefroute
 network --bootproto=dhcp --device=team0 --noipv4 --noipv6 --activate --teamslaves="eno2'{}',eno3'{}',eno4'{}'" --teamconfig="{\"runner\": {\"name\": \"lacp\", \"active\": true, \"fast_rate\": true, \"tx_hash\": [\"eth\", \"vlan\", \"ip\"], \"tx_balancer\": { \"name\": \"basic\"}}, \"link_watch\": {\"name\": \"ethtool\"}}"
 network --bootproto=dhcp --device=team0 --noipv4 --noipv6 --activate --nodefroute --vlanid=100
-network --bootproto=dhcp --device=team0 --noipv4 --noipv6 --activate --nodefroute --vlanid=200
 %include /tmp/hostname.ks
 
 # NTP
 services --enabled="chronyd"
-timezone Etc/UTC --isUtc --ntpservers=172.17.0.1
+timezone Etc/UTC --isUtc --ntpservers=10.10.0.1
 
 rootpw --iscrypted {{ root_password | password_hash('sha512') }}
 user --groups=wheel --name=memes --iscrypted --password={{ memes_password | password_hash('sha512') }}

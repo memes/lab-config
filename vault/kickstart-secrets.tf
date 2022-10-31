@@ -22,13 +22,19 @@ resource "vault_approle_auth_backend_role" "kickstart-secrets" {
 
   ]
   # Default TTL is 5 minutes.
-  token_ttl         = 300
-  token_num_uses    = 10
-  token_bound_cidrs = ["172.16.0.0/12"]
+  token_ttl      = 300
+  token_num_uses = 10
+  token_bound_cidrs = [
+    "10.0.0.0/16",
+    "10.10.0.0/16",
+  ]
   # Secret TTL is 2 hours
-  secret_id_ttl         = 7200
-  secret_id_num_uses    = 10
-  secret_id_bound_cidrs = ["172.16.0.0/12"]
+  secret_id_ttl      = 7200
+  secret_id_num_uses = 10
+  secret_id_bound_cidrs = [
+    "10.0.0.0/16",
+    "10.10.0.0/16",
+  ]
 }
 
 # Policy that grants access to read AppRole RoleID

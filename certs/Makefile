@@ -23,21 +23,21 @@ vault.$(LAB_DOMAIN_NAME).json:
 	vault write -format=json pki/issue/server \
 		common_name=$(subst .json,,$@) \
 		alt_names=vault.$(LAN_DOMAIN_NAME) \
-		ip_sans=172.16.0.2,172.17.0.2,2001:470:49a5::2,2001:470:49a5:1::2 > $@
+		ip_sans=10.0.0.2,10.10.0.2,2001:470:49a5::2,2001:470:49a5:10::2 > $@
 
 # Repair is the firewall and router combo
 repair.$(LAB_DOMAIN_NAME).json:
 	vault write -format=json pki/issue/server \
 		common_name=$(subst .json,,$@) \
 		alt_names=repair.$(LAN_DOMAIN_NAME),fwl01.$(LAB_DOMAIN_NAME),fwl01.$(LAN_DOMAIN_NAME) \
-		ip_sans=172.16.0.1,172.17.0.1,2001:470:49a5::1,2001:470:49a5:1::1 > $@
+		ip_sans=10.0.0.1,10.10.0.1,2001:470:49a5::1,2001:470:49a5:10::1 > $@
 
 # Shared provides internal HTTPS for installation and sharing of files
 shared.$(LAB_DOMAIN_NAME).json:
 	vault write -format=json pki/issue/server \
 		common_name=$(subst .json,,$@) \
 		alt_names=shared.$(LAN_DOMAIN_NAME),sto01.$(LAB_DOMAIN_NAME),sto01.$(LAN_DOMAIN_NAME) \
-		ip_sans=172.16.0.2,172.17.0.2,2001:470:49a5::2,2001:470:49a5:1::2 > $@
+		ip_sans=10.0.0.2,10.10.0.2,2001:470:49a5::2,2001:470:49a5:10::2 > $@
 
 # VPN cert is used for IPSec authentication
 vpn.$(LAB_DOMAIN_NAME).json:
