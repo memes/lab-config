@@ -9,7 +9,7 @@ pyghmi==1.5.53
 hvac==1.0.2
 jmespath==1.0.1
 kubernetes==24.2.0
-pyvmomi==7.0.3
+pyvmomi==8.0.0.1
 passlib==1.7.4
 netaddr==0.8.0
 git+https://github.com/vmware/vsphere-automation-sdk-python.git ; python_version >= '2.7'  # Python 2.6 is not supported
