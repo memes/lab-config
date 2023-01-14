@@ -1,5 +1,5 @@
 # Additional python packages for hacking on the solution
-ansible-lint==6.8.4
+ansible-lint==6.10.2
 black==22.10.0
 isort==5.10.1
 pre-commit==2.20.0
