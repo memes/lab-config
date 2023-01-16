@@ -62,7 +62,7 @@
         - vault.hcl
         - vault.env
       notify:
-        - restart Vault
+        - Restart Vault
       tags:
         - bootstrap
     - name: Add GCP creds
@@ -74,7 +74,7 @@
         group: vault
         mode: 0640
       notify:
-        - restart Vault
+        - Restart Vault
       tags:
         - bootstrap
     - name: Enable systemd unit
@@ -96,12 +96,12 @@
         - "{{ vault_host }}.pem"
         - "{{ vault_host }}.key"
       notify:
-        - restart Vault
+        - Restart Vault
       tags:
         - tls
 
   handlers:
-    - name: restart Vault
+    - name: Restart Vault
       ansible.builtin.service:
         name: vault
         state: restarted
