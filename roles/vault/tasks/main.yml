@@ -1,0 +1,88 @@
+# Manage Vault service
+# yamllint disable rule:truthy rule:line-length
+---
+- name: Copy static hashicorp key
+  ansible.builtin.copy:
+    src: "{{ hashi_gpg_key }}"
+    dest: /usr/share/keyrings/hashicorp-archive-keyring.gpg
+    force: yes
+    owner: root
+    group: root
+    mode: 0644
+    directory_mode: 0755
+  when: ansible_os_family == "Debian"
+  tags:
+    - bootstrap
+- name: Add Hashicorp apt repo
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
+    state: present
+    filename: hashicorp
+  when: ansible_os_family == "Debian"
+  tags:
+    - bootstrap
+- name: Add Hashicorp yum repo
+  ansible.builtin.get_url:
+    url: https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
+    dest: /etc/yum.repos.d/
+    owner: root
+    group: root
+    mode: 0644
+  when: ansible_os_family == "RedHat"
+  tags:
+    - bootstrap
+- name: Install Vault
+  ansible.builtin.package:
+    name: vault
+    state: present
+  tags:
+    - bootstrap
+- name: Update Vault configuration
+  ansible.builtin.template:
+    src: "./templates/{{ item }}.j2"
+    dest: "/etc/vault.d/{{ item }}"
+    force: yes
+    owner: root
+    group: vault
+    mode: 0640
+  loop:
+    - vault.hcl
+    - vault.env
+  notify:
+    - Restart Vault
+  tags:
+    - bootstrap
+- name: Add GCP creds
+  ansible.builtin.copy:
+    src: "{{ vault_gcp_sa_creds_file }}"
+    dest: "{{ vault_home }}/vault-sa.json"
+    force: yes
+    owner: root
+    group: vault
+    mode: 0640
+  notify:
+    - Restart Vault
+  tags:
+    - bootstrap
+- name: Enable systemd unit
+  ansible.builtin.service:
+    name: vault
+    enabled: yes
+    state: started
+  tags:
+    - bootstrap
+- name: Copy Vault TLS files
+  ansible.builtin.copy:
+    src: "./certs/{{ item }}"
+    dest: "{{ vault_home }}/tls/{{ item }}"
+    force: yes
+    owner: root
+    group: vault
+    mode: 0640
+  loop:
+    - "{{ vault_host }}.pem"
+    - "{{ vault_host }}.key"
+  notify:
+    - Restart Vault
+  tags:
+    - tls

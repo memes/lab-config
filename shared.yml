@@ -1,4 +1,5 @@
 # Update shared server playbook
+# In my lab, the shared group hosts both shared file services and vault services
 # code: language=ansible
 # yamllint disable rule:truthy rule:line-length
 ---
@@ -7,3 +8,8 @@
   become: yes
   roles:
     - shared
+- name: Update Vault service
+  hosts: vault
+  become: yes
+  roles:
+    - vault

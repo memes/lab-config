@@ -1,0 +1,2 @@
+---
+vault_gcp_sa_creds_file: files/vault-sa.json

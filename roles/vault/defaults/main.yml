@@ -1,0 +1,10 @@
+---
+hashi_gpg_key: files/hashicorp-archive-keyring.gpg
+vault_host: "vault.{{ lab_domain }}"
+vault_url: "https://{{ vault_host }}:8200"
+vault_cluster_url: https://{{ vault_host }}:8201
+vault_home: /opt/vault
+vault_gcs: 18ad5ebfd63af0e4
+vault_tls_disable: false
+vault_tls_cert_file: "{{ vault_home }}/tls/{{ vault_host }}.pem"
+vault_tls_key_file: "{{ vault_home }}/tls/{{ vault_host }}.key"
