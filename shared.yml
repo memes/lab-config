@@ -1,0 +1,9 @@
+# Update shared server playbook
+# code: language=ansible
+# yamllint disable rule:truthy rule:line-length
+---
+- name: Update shared services and files
+  hosts: shared
+  become: yes
+  roles:
+    - shared

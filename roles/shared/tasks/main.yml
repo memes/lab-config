@@ -1,0 +1,425 @@
+# Update shared server
+# yamllint disable rule:truthy rule:line-length
+---
+- name: Install required packages
+  ansible.builtin.package:
+    name:
+      - samba
+      - nfs-kernel-server
+      - rpcbind
+      - tftpd-hpa
+      - pxelinux
+      - syslinux
+      - "debian-installer-{{ ansible_distribution_major_version }}-netboot-amd64"
+      - nginx
+    state: present
+  tags:
+    - init
+- name: Manage shared file system configs
+  ansible.builtin.template:
+    src: "templates/etc/{{ item }}.j2"
+    dest: "/etc/{{ item }}"
+    force: yes
+    owner: root
+    group: root
+    mode: 0644
+  loop:
+    - exports
+    - default/nfs-common
+    - default/nfs-kernel-server
+    - samba/smb.conf
+  notify:
+    - Restart NFS
+    - Restart Samba
+  tags:
+    - init
+- name: Set NFS kernel modprobe file
+  ansible.builtin.template:
+    src: templates/etc/modprobe.d/nfs-modules.conf.j2
+    dest: "/etc/modprobe.d/nfs-modules.conf"
+    owner: root
+    group: root
+    mode: 0644
+  tags:
+    - init
+- name: Set NFS kernel module params
+  ansible.posix.sysctl:
+    name: "{{ item['param'] }}"
+    value: "{{ item['value'] }}"
+    sysctl_file: /etc/sysctl.d/90-nfs-static-ports.conf
+    sysctl_set: yes
+    # If modules aren't loaded yet, the param keys will be undefined; ignore
+    ignoreerrors: yes
+    reload: yes
+    state: present
+  loop:
+    - param: fs.nfs.nfs_callback_tcpport
+      value: 32764
+    - param: fs.nfs.nlm_tcpport
+      value: 32768
+    - param: fs.nfs.nlm_udpport
+      value:
+  tags:
+    # Emes - reverted
+    - never
+- name: Create directories for TFTP
+  ansible.builtin.file:
+    path: "/srv/{{ item }}"
+    state: directory
+    owner: tftp
+    group: root
+    mode: 0755
+  loop:
+    - tftp
+    - tftp/boot
+    - tftp/boot/debian{{ ansible_distribution_major_version }}-x86_64
+    - tftp/bios
+    - tftp/bios/pxelinux.cfg
+    - tftp/efi32
+    - tftp/efi32/pxelinux.cfg
+    - tftp/efi64
+    - tftp/efi64/pxelinux.cfg
+  tags:
+    - pxe
+- name: Copy syslinux files for TFTP
+  ansible.builtin.copy:
+    remote_src: yes
+    src: "/usr/lib/syslinux/modules/{{ item }}/"
+    dest: "/srv/tftp/{{ item }}/"
+    force: yes
+    owner: tftp
+    group: root
+    mode: 0644
+    directory_mode: 0755
+  loop:
+    - bios
+    - efi32
+    - efi64
+  tags:
+    - pxe
+- name: Copy pxelinux BIOS files for TFTP
+  ansible.builtin.copy:
+    remote_src: yes
+    src: /usr/lib/PXELINUX/
+    dest: /srv/tftp/bios/
+    force: yes
+    owner: tftp
+    group: root
+    mode: 0644
+    directory_mode: 0755
+  tags:
+    - pxe
+- name: Copy syslinux EFI files for TFTP
+  ansible.builtin.copy:
+    remote_src: yes
+    src: "/usr/lib/SYSLINUX.EFI/{{ item }}/"
+    dest: "/srv/tftp/{{ item }}/"
+    force: yes
+    owner: tftp
+    group: root
+    mode: 0644
+    directory_mode: 0755
+  loop:
+    - efi32
+    - efi64
+  tags:
+    - pxe
+- name: Copy Debian netboot files for TFTP
+  ansible.builtin.copy:
+    remote_src: yes
+    src: "/usr/lib/debian-installer/images/{{ ansible_distribution_major_version }}/amd64/text/debian-installer/amd64/{{ item }}"
+    dest: "/srv/tftp/boot/debian{{ ansible_distribution_major_version }}-x86_64/{{ item }}"
+    force: yes
+    owner: tftp
+    group: root
+    mode: 0644
+    directory_mode: 0755
+  loop:
+    - linux
+    - initrd.gz
+  tags:
+    - pxe
+- name: Copy static PXE configurations
+  ansible.builtin.copy:
+    src: "files/tftp/pxelinux.cfg/"
+    dest: "/srv/tftp/{{ item }}/pxelinux.cfg/"
+    force: yes
+    owner: tftp
+    group: root
+    mode: 0644
+    directory_mode: 0755
+  loop:
+    - bios
+    - efi32
+    - efi64
+  tags:
+    - pxe
+- name: Copy templated BIOS PXE configurations
+  vars:
+    bios: true
+  ansible.builtin.template:
+    src: "templates/tftp/pxelinux.cfg/{{ item }}.j2"
+    dest: "/srv/tftp/bios/pxelinux.cfg/{{ item }}"
+    force: yes
+    owner: tftp
+    group: root
+    mode: 0644
+    directory_mode: 0755
+  loop:
+    - centos.cfg
+    - debian.cfg
+    - default
+    - kali.cfg
+    - lab_autoprovision.cfg
+    - redhat.cfg
+    - ubuntu.cfg
+    - tools.cfg
+  tags:
+    - pxe
+- name: Copy templated EFI32 PXE configurations
+  ansible.builtin.template:
+    src: "templates/tftp/pxelinux.cfg/{{ item }}.j2"
+    dest: "/srv/tftp/efi32/pxelinux.cfg/{{ item }}"
+    force: yes
+    owner: tftp
+    group: root
+    mode: 0644
+    directory_mode: 0755
+  loop:
+    - centos.cfg
+    - debian.cfg
+    - default
+    - kali.cfg
+    - lab_autoprovision.cfg
+    - redhat.cfg
+    - ubuntu.cfg
+    - tools.cfg
+  tags:
+    - pxe
+- name: Copy templated EFI64 PXE configurations
+  ansible.builtin.template:
+    src: "templates/tftp/pxelinux.cfg/{{ item }}.j2"
+    dest: "/srv/tftp/efi64/pxelinux.cfg/{{ item }}"
+    force: yes
+    owner: tftp
+    group: root
+    mode: 0644
+    directory_mode: 0755
+  loop:
+    - centos.cfg
+    - debian.cfg
+    - default
+    - kali.cfg
+    - lab_autoprovision.cfg
+    - redhat.cfg
+    - ubuntu.cfg
+    - tools.cfg
+  tags:
+    - pxe
+- name: Copy placeholder lab_default_target.cfg, if needed
+  ansible.builtin.template:
+    src: templates/tftp/pxelinux.cfg/lab_default_target.cfg.j2
+    dest: "/srv/tftp/{{ item }}/pxelinux.cfg/lab_default_target.cfg"
+    force: no
+    owner: tftp
+    group: root
+    mode: 0644
+    directory_mode: 0755
+  loop:
+    - bios
+    - efi32
+    - efi64
+  tags:
+    - pxe
+- name: Create hard-links for server MACs to autoprovision via BIOS
+  ansible.builtin.file:
+    src: "/srv/tftp/bios/pxelinux.cfg/lab_autoprovision.cfg"
+    path: "/srv/tftp/bios/pxelinux.cfg/{{ item }}"
+    state: hard
+    force: yes
+    owner: tftp
+    group: root
+    mode: 0644
+  loop: "{{ autoprovision_macs | map('regex_replace', ':', '-') | map('lower') | list }}"
+  tags:
+    - pxe
+- name: Create hard-links for server MACs to autoprovision via EFI32
+  ansible.builtin.file:
+    src: "/srv/tftp/efi32/pxelinux.cfg/lab_autoprovision.cfg"
+    path: "/srv/tftp/efi32/pxelinux.cfg/{{ item }}"
+    state: hard
+    force: yes
+    owner: tftp
+    group: root
+    mode: 0644
+  loop: "{{ autoprovision_macs | map('regex_replace', ':', '-') | map('lower') | list }}"
+  tags:
+    - pxe
+- name: Create hard-links for server MACs to autoprovision via EFI64
+  ansible.builtin.file:
+    src: "/srv/tftp/efi64/pxelinux.cfg/lab_autoprovision.cfg"
+    path: "/srv/tftp/efi64/pxelinux.cfg/{{ item }}"
+    state: hard
+    force: yes
+    owner: tftp
+    group: root
+    mode: 0644
+  loop: "{{ autoprovision_macs | map('regex_replace', ':', '-') | map('lower') | list }}"
+  tags:
+    - pxe
+- name: Start tftpd-hpa
+  ansible.builtin.service:
+    name: tftpd-hpa
+    state: started
+    enabled: yes
+  tags:
+    - pxe
+- name: Update CA cert
+  ansible.builtin.copy:
+    src: "{{ ca_cert_pem }}"
+    dest: /usr/local/share/ca-certificates/acceleratedgcp-root-ca.crt
+    force: yes
+    owner: root
+    group: root
+    mode: 0644
+    directory_mode: 0755
+  notify:
+    - Update CA Certs
+  tags:
+    - http
+- name: Update HTTPS TLS cert
+  ansible.builtin.copy:
+    src: "{{ shared_tls_cert_pem }}"
+    dest: /etc/ssl/certs/
+    force: yes
+    owner: root
+    group: root
+    mode: 0644
+    directory_mode: 0755
+  notify:
+    - Restart NGINX
+  tags:
+    - http
+- name: Update HTTPS TLS key
+  ansible.builtin.copy:
+    src: "{{ shared_tls_key_pem }}"
+    dest: /etc/ssl/private/
+    force: yes
+    owner: root
+    group: root
+    mode: 0600
+    directory_mode: 0755
+  notify:
+    - Restart NGINX
+  tags:
+    - http
+- name: Configure NGINX for shared
+  ansible.builtin.template:
+    src: templates/nginx/shared.j2
+    dest: /etc/nginx/sites-available/shared
+    force: yes
+    owner: root
+    group: root
+    mode: 0644
+    directory_mode: 0755
+  notify:
+    - Restart NGINX
+  tags:
+    - http
+- name: Enable shared NGINX site
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/shared
+    dest: /etc/nginx/sites-enabled/shared
+    owner: root
+    group: root
+    state: link
+  notify:
+    - Restart NGINX
+- name: Disable default NGINX site
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify:
+    - Restart NGINX
+  tags:
+    - http
+- name: Copy CA file
+  ansible.builtin.copy:
+    src: "{{ ca_cert_pem }}"
+    dest: /srv/shared/certs/
+    force: yes
+    owner: root
+    group: shared
+    mode: 0664
+    directory_mode: 0755
+  tags:
+    - http
+    - pxe
+- name: Update static key files
+  ansible.builtin.copy:
+    src: "files/keys/{{ item }}"
+    dest: "/srv/shared/keys/{{ item }}"
+    force: yes
+    owner: root
+    group: shared
+    mode: 0664
+    directory_mode: 0755
+  loop:
+    - 0x1285491434D8786F.asc
+    - 0x3CA66B4946770C59.asc
+    - 0x756ba70b1019ced6.asc
+    - 0xca77951d23b66a9d.asc
+    - hashicorp.asc
+    - RPM-GPG-KEY-CentOS-Official.asc
+    - RPM-GPG-KEY-elrepo.asc
+    - RPM-GPG-KEY-redhat-release.asc
+  tags:
+    - http
+    - pxe
+- name: Get kickstart secret from Vault
+  community.hashi_vault.vault_kv2_get:
+    url: "{{ vault_url }}"
+    ca_cert: "{{ root_ca | realpath }}"
+    path: "{{ vault_kickstart_secrets_path }}"
+    auth_method: token
+    token_validate: no
+  register: ks_secrets
+  delegate_to: localhost
+  become: no
+  tags:
+    - http
+    - pxe
+- name: Update templated lab files
+  vars:
+    administrator_password: "{{ ks_secrets.secret.administrator }}"
+    memes_password: "{{ ks_secrets.secret.memes }}"
+    rhn_password: "{{ ks_secrets.secret.rhn_password }}"
+    rhn_user: "{{ ks_secrets.secret.rhn_user }}"
+    ssh_pubkey: "{{ ks_secrets.secret.ssh_pubkey }}"
+    root_password: "{{ ks_secrets.secret.root }}"
+  ansible.builtin.template:
+    src: "templates/{{ item }}.j2"
+    dest: "/srv/shared/{{ item }}"
+    force: yes
+    owner: root
+    group: shared
+    mode: 0664
+    directory_mode: 0755
+  loop:
+    - cloud-init/focal/user-data
+    - cloud-init/focal/meta-data
+    - cloud-init/jammy/user-data
+    - cloud-init/jammy/meta-data
+    - d-i/bionic/preseed.cfg
+    - kickstart/centos8-minimal.ks
+    - kickstart/rhel8-minimal.ks
+    - scripts/post-onboard-centos8.sh
+    - scripts/post-onboard-debian.sh
+    - scripts/post-onboard-el8.sh
+    - scripts/post-onboard-rhel8.sh
+    - scripts/post-onboard-ssh-pubkey.sh
+    - scripts/post-onboard-ubuntu-netplan.sh
+    - scripts/pre-onboard-el8.sh
+  tags:
+    - http
+    - pxe

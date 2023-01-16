@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  author: Matthew Emes
+  description: Prepares a shared NFS/CIFS/TFTP server for Accelerated GCP Lab
+  license: MIT
+  min_ansible_version: '2.1'
+  galaxy_tags: []
+  platforms:
+    - name: Debian
+      versions:
+        - all
+dependencies: []

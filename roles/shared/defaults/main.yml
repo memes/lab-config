@@ -1,0 +1,17 @@
+---
+# List of acceptable CIDRs for NFS export
+nfs_export_shared_cidrs:
+  - 10.0.0.0/16
+  - 10.10.0.0/16
+  - 10.100.0.0/16
+  - 2001:470:49a5::/60
+  - 2001:470:49a5:10::/60
+  - 2001:470:49a5:100::/56
+
+# List of MAC addresses that will be allowed to autoprovision via TFTP.
+# This list must match the MAC address of the first NIC (eno1) in each physical
+# server.
+autoprovision_macs:
+  - 01-14-fe-b5-c9-73-12
+  - 01-d4-ae-52-94-b1-a6
+  - 01-d4-ae-52-98-b7-a8

@@ -1,0 +1,15 @@
+---
+- name: Restart NFS
+  ansible.builtin.service:
+    name: nfs-kernel-server
+    state: restarted
+- name: Restart Samba
+  ansible.builtin.service:
+    name: smbd
+    state: restarted
+- name: Update CA Certs
+  ansible.builtin.command: /usr/sbin/update-ca-certificates
+- name: Restart NGINX
+  ansible.builtin.service:
+    name: nginx
+    state: restarted

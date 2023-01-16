@@ -6,8 +6,8 @@ server {
         listen [::]:80 default_server;
         listen 443 ssl default_server;
         listen [::]:443 ssl default_server;
-        ssl_certificate /etc/ssl/certs/{{ lab_shared_host }}.pem;
-        ssl_certificate_key /etc/ssl/private/{{ lab_shared_host }}.key;
+        ssl_certificate /etc/ssl/certs/{{ shared_tls_cert_pem | basename }};
+        ssl_certificate_key /etc/ssl/private/{{ shared_tls_key_pem | basename}};
 
         server_name _;
         root /srv/shared;
