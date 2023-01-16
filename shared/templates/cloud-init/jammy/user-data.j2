@@ -32,8 +32,8 @@ autoinstall:
     ethernets:
       eno1:
         critical: yes
-        dhcp4: no
-        dhcp6: no
+        dhcp4: yes
+        dhcp6: yes
       eno2:
         dhcp4: no
         dhcp6: no
@@ -55,11 +55,6 @@ autoinstall:
           mii-monitor-interval: 100
           transmit-hash-policy: 'layer2+3'
     vlans:
-      eno1.10:
-        dhcp4: yes
-        dhcp6: yes
-        id: 10
-        link: eno1
       bond0.100:
         dhcp4: no
         dhcp6: no

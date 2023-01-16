@@ -52,3 +52,5 @@ fileignoreconfig:
   checksum: a5e5e31057b52347272a749895c140eaf7b01e9e4973d75c25ba6832d2822651
 - filename: ansible/vault.yml
   checksum: 9437c97643f71287bc7bfe2367c028f22052e022d83092d36f438a07b0e74baa
+- filename: shared/templates/tftp/pxelinux.cfg/lab_autoprovision.cfg.j2
+  checksum: 961020d0a9be112765ba56b7419b7f3062e19c274c0b645a5d42a8f330760128

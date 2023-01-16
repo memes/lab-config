@@ -25,8 +25,8 @@ info()
 info "El8 onboarding script started"
 
 info "Disabling non-vlan interfaces"
-sed -i -e 's/^ONBOOT=yes/ONBOOT=no/' /etc/sysconfig/network-scripts/ifcfg-eno{1,2,3,4} ||
-    info "Failed to disable ONBOOT for eno1/2/3/4; Continuing."
+sed -i -e 's/^ONBOOT=yes/ONBOOT=no/' /etc/sysconfig/network-scripts/ifcfg-eno{2,3,4} ||
+    info "Failed to disable ONBOOT for eno2/3/4; Continuing."
 info "Removing default route from bonded interfaces"
 sed -i -e 's/^DEFROUTE=yes/DEFROUTE=no/' \
     -e 's/^IPV6_DEFROUTE=yes/IPV6_DEFROUTE=no/' \
