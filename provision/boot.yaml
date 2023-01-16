@@ -15,7 +15,7 @@
         token_validate: no
       register: ipmi_secrets
       delegate_to: localhost
-    - name: cycle power through IPMI
+    - name: Cycle power through IPMI
       community.general.ipmi_power:
         name: "{{ ipmi_host }}"
         user: "{{ ipmi_secrets.secret.user }}"

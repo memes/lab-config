@@ -33,8 +33,8 @@
         - default/nfs-kernel-server
         - samba/smb.conf
       notify:
-        - restart NFS
-        - restart Samba
+        - Restart NFS
+        - Restart Samba
       tags:
         - init
     - name: Set NFS kernel modprobe file
@@ -93,6 +93,7 @@
         force: yes
         owner: tftp
         group: root
+        mode: 0644
       loop:
         - bios
         - efi32
@@ -107,6 +108,7 @@
         force: yes
         owner: tftp
         group: root
+        mode: 0644
       tags:
         - pxe
     - name: Copy syslinux EFI files for TFTP
@@ -117,6 +119,7 @@
         force: yes
         owner: tftp
         group: root
+        mode: 0644
       loop:
         - efi32
         - efi64
@@ -130,6 +133,7 @@
         force: yes
         owner: tftp
         group: root
+        mode: 0644
       loop:
         - linux
         - initrd.gz
@@ -151,7 +155,7 @@
         - pxe
     - name: Copy templated BIOS PXE configurations
       vars:
-        - bios: true
+        bios: true
       ansible.builtin.template:
         src: "templates/tftp/pxelinux.cfg/{{ item }}.j2"
         dest: "/srv/tftp/bios/pxelinux.cfg/{{ item }}"
@@ -165,7 +169,6 @@
         - default
         - kali.cfg
         - lab_autoprovision.cfg
-        - lab_default_target.cfg
         - redhat.cfg
         - ubuntu.cfg
         - tools.cfg
@@ -185,7 +188,6 @@
         - default
         - kali.cfg
         - lab_autoprovision.cfg
-        - lab_default_target.cfg
         - redhat.cfg
         - ubuntu.cfg
         - tools.cfg
@@ -205,10 +207,23 @@
         - default
         - kali.cfg
         - lab_autoprovision.cfg
-        - lab_default_target.cfg
         - redhat.cfg
         - ubuntu.cfg
         - tools.cfg
+      tags:
+        - pxe
+    - name: Copy placeholder lab_default_target.cfg, if needed
+      ansible.builtin.template:
+        src: templates/tftp/pxelinux.cfg/lab_default_target.cfg.j2
+        dest: "/srv/tftp/{{ item }}/pxelinux.cfg/lab_default_target.cfg"
+        force: no
+        owner: tftp
+        group: root
+        mode: 0644
+      loop:
+        - bios
+        - efi32
+        - efi64
       tags:
         - pxe
     - name: Create hard-links for server MACs to autoprovision via BIOS
@@ -263,7 +278,7 @@
         group: root
         mode: 0644
       notify:
-        - update ca certs
+        - Update CA Certs
       tags:
         - http
     - name: Update HTTPS TLS cert
@@ -275,7 +290,7 @@
         group: root
         mode: 0644
       notify:
-        - restart nginx
+        - Restart NGINX
       tags:
         - http
     - name: Update HTTPS TLS key
@@ -287,10 +302,10 @@
         group: root
         mode: 0600
       notify:
-        - restart nginx
+        - Restart NGINX
       tags:
         - http
-    - name: Configure nginx for shared
+    - name: Configure NGINX for shared
       ansible.builtin.template:
         src: templates/nginx/shared.j2
         dest: /etc/nginx/sites-available/shared
@@ -299,10 +314,10 @@
         group: root
         mode: 0644
       notify:
-        - restart nginx
+        - Restart NGINX
       tags:
         - http
-    - name: Enable shared nginx site
+    - name: Enable shared NGINX site
       ansible.builtin.file:
         src: /etc/nginx/sites-available/shared
         dest: /etc/nginx/sites-enabled/shared
@@ -310,13 +325,13 @@
         group: root
         state: link
       notify:
-        - restart nginx
-    - name: Disable default nginx site
+        - Restart NGINX
+    - name: Disable default NGINX site
       ansible.builtin.file:
         path: /etc/nginx/sites-enabled/default
         state: absent
       notify:
-        - restart nginx
+        - Restart NGINX
       tags:
         - http
     - name: Create directories for shared files
@@ -418,17 +433,17 @@
         - pxe
 
   handlers:
-    - name: restart NFS
+    - name: Restart NFS
       ansible.builtin.service:
         name: nfs-kernel-server
         state: restarted
-    - name: restart Samba
+    - name: Restart Samba
       ansible.builtin.service:
         name: smbd
         state: restarted
-    - name: update ca certs
+    - name: Update CA Certs
       ansible.builtin.command: /usr/sbin/update-ca-certificates
-    - name: restart nginx
+    - name: Restart NGINX
       ansible.builtin.service:
         name: nginx
         state: restarted

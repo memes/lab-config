@@ -5,9 +5,9 @@
   hosts: shared
   become: yes
   tasks:
-    - name: set PXE target on shared
+    - name: Set PXE target on shared
       ansible.builtin.template:
-        src: shared/templates/tftp/pxelinux.cfg//lab_default_target.cfg.j2
+        src: templates/tftp/pxelinux.cfg/lab_default_target.cfg.j2
         dest: /srv/tftp/{{ item }}/pxelinux.cfg/lab_default_target.cfg
         force: yes
         owner: root
@@ -31,7 +31,7 @@
         token_validate: no
       register: ipmi_secrets
       delegate_to: localhost
-    - name: set next boot to PXE through IPMI
+    - name: Set next boot to PXE through IPMI
       community.general.ipmi_boot:
         name: "{{ ipmi_host }}"
         user: "{{ ipmi_secrets.secret.user }}"
@@ -39,7 +39,7 @@
         bootdev: network
         persistent: no
       delegate_to: localhost
-    - name: cycle power through IPMI
+    - name: Cycle power through IPMI
       community.general.ipmi_power:
         name: "{{ ipmi_host }}"
         user: "{{ ipmi_secrets.secret.user }}"

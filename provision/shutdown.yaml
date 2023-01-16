@@ -23,7 +23,7 @@
         state: shutdown
         timeout: 60
       delegate_to: localhost
-      ignore_errors: yes
+      ignore_errors: yes  # noqa ignore-errors
     - name: Power off through IPMI
       community.general.ipmi_power:
         name: "{{ ipmi_host }}"
