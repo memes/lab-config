@@ -19,14 +19,8 @@ resource "vault_approle_auth_backend_role" "ipmi-secrets" {
     vault_policy.ipmi-secrets.name,
   ]
   # Default TTL is 5 minutes, but a max of 1 hour is supported
-  token_ttl     = 300
-  token_max_ttl = 3600
-  token_bound_cidrs = [
-    "10.0.0.0/16",
-    "10.10.0.0/16",
-  ]
-  secret_id_bound_cidrs = [
-    "10.0.0.0/16",
-    "10.10.0.0/16",
-  ]
+  token_ttl             = 300
+  token_max_ttl         = 3600
+  token_bound_cidrs     = var.bound_cidrs
+  secret_id_bound_cidrs = var.bound_cidrs
 }

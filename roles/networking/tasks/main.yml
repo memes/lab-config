@@ -1,0 +1,34 @@
+# Setup static vlan configurations post-deployment
+# yamllint disable rule:truthy rule:line-length
+---
+- name: Configure vlan 100 (Ubuntu)
+  vars:
+    device: "{{ dataplane_device }}"
+    vlan: 100
+    addresses: "{{ vlan100_addresses }}"
+  ansible.builtin.template:
+    src: templates/netplan-vlan.yaml.j2
+    dest: /etc/netplan/20-vlan100.yaml
+    owner: root
+    group: root
+    mode: 0640
+  when: ansible_distribution == "Ubuntu" and (vlan100_addresses | default([]) | length > 0)
+  notify:
+    - Validate netplan
+  tags:
+    - vlan
+- name: Configure vlan 100 (CentOS/RHEL)
+  ansible.builtin.command: >-
+    nmcli connection modify {{ dataplane_device }}.100 {% if vlan100_addresses | ansible.utils.ipv4('host/prefix') | length > 0 %}
+      ipv4.method manual
+      ipv4.never-default yes
+      ipv4.addresses "{{ vlan100_addresses | ansible.utils.ipv4('host/prefix') | join(' ') }}"
+      ipv4.routes "{{ kubernetes_cidr | default('10.0.0.0/8') }} {{ vlan100_addresses | ansible.utils.ipv4('host/prefix') | ansible.utils.ipaddr('1') | ansible.utils.ipaddr('address') | first }}"{% endif %}{% if vlan100_addresses | ansible.utils.ipv6('host/prefix') | length > 0 %}
+      ipv6.method manual
+      ipv6.never-default yes
+      ipv6.addresses "{{ vlan100_addresses | ansible.utils.ipv6('host/prefix') | join(' ') }}"{% endif %}
+  when: ansible_os_family == "RedHat" and (vlan100_addresses | default([]) | length > 0)
+  notify:
+    - Update con vlan100
+  tags:
+    - vlan

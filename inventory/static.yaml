@@ -3,23 +3,10 @@
 all:
   hosts:
     vault.lab.acceleratedgcp.com:
-      ansible_host: 10.10.0.2
-      real_hostname: flipper.lab.acceleratedgcp.com
     shared.lab.acceleratedgcp.com:
-      ansible_host: 10.10.0.2
-      real_hostname: flipper.lab.acceleratedgcp.com
     vmm01.lab.acceleratedgcp.com:
-      ansible_host: 10.10.0.4
-      ipmi_host: 10.10.0.3
-      real_hostname: gustav.lab.acceleratedgcp.com
     vmm02.lab.acceleratedgcp.com:
-      ansible_host: 10.10.0.6
-      ipmi_host: 10.10.0.5
-      real_hostname: mystic.lab.acceleratedgcp.com
     vmm03.lab.acceleratedgcp.com:
-      ansible_host: 10.10.0.8
-      ipmi_host: 10.10.0.7
-      real_hostname: eternal.lab.acceleratedgcp.com
   children:
     vault:
       hosts:

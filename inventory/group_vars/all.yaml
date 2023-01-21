@@ -23,7 +23,7 @@ vault_kickstart_secrets_path: lab/kickstart
 crio_version: '1.24.1'
 kubernetes_version: '1.24.2'
 kubernetes_api_server: 'control.{{ lab_domain }}'
-kubernetes_api_address: '10.100.0.100'
+kubernetes_api_address: '172.16.96.100'
 calico_version: v3.23.1
 kubernetes_cidr: 10.0.0.0/8
 kubernetes_pod_cidr: 10.0.0.0/16

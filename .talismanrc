@@ -21,7 +21,7 @@ fileignoreconfig:
 - filename: ansible/inventory/group_vars/vault.yml
   checksum: 1f153ddc558e53a4771e143471809b07a9e3d23560687e9472647034dacd25b1
 - filename: ansible/files/shared/keys/hashicorp.asc
-  checksum: e58c16d914a1588ce00652262e0b748233bdf281a7ee251b50e870ac8993536b
+  checksum: 4ae9400d285dbd405e8c58ecbf483157d0d32c17fc3afdf7da5bcf0208b8d42e
 - filename: ansible/templates/shared/scripts/post-onboard-rhel8.sh.j2
   checksum: 14abd52835ccb67398afd39a6aa7a9a48aa4676abc29399eed7f500ac4320e51
 - filename: ansible/templates/shared/esxi/esxi67.ks.j2
@@ -49,7 +49,7 @@ fileignoreconfig:
 - filename: ansible/templates/shared/cloud-init/jammy/user-data.j2
   checksum: 6712f75f304c6bbe14f0919ada2d10075f0ec1a0048b587f95294bd09e6f434c
 - filename: ansible/templates/shared/scripts/post-onboard-debian.sh.j2
-  checksum: a5e5e31057b52347272a749895c140eaf7b01e9e4973d75c25ba6832d2822651
+  checksum: f590d51192408ae02fc18ec7afdba87e9d0c70a7c258ad9bdcced41da9e3e1f2
 - filename: ansible/vault.yml
   checksum: 9437c97643f71287bc7bfe2367c028f22052e022d83092d36f438a07b0e74baa
 - filename: shared/templates/tftp/pxelinux.cfg/lab_autoprovision.cfg.j2
@@ -62,3 +62,7 @@ fileignoreconfig:
   checksum: e7311bcbe34c39dbc3f3b361bc55a6098427a81ca1758a1084ddba357ab7d44b
 - filename: roles/vault/tasks/main.yml
   checksum: 9db6fa1ea15d1f1221ebecfc536be9657289a85216dce43690bf7ef1a8ee323b
+- filename: vault/kickstart-secrets.tf
+  checksum: 81090670f81413a9745b7c975e80901d528cde671c7c5c02c367286ffb5a1e69
+- filename: vault/ipmi-secrets.tf
+  checksum: 811f1a1fa8ab8b359c054559bcfd0a76167a5789e2301a1600513c91ba3a47ca

@@ -48,3 +48,8 @@ variable "gsuite_admin_group" {
   type        = string
   description = "GSuite group that will be granted Vault admin role on authentication."
 }
+
+variable "bound_cidrs" {
+  type        = list(string)
+  description = "A list of CIDRs that will be permitted to access tokens and secrets."
+}

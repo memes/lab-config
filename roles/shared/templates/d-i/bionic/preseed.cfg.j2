@@ -50,7 +50,7 @@ d-i passwd/user-password-crypted password {{ memes_password | password_hash('sha
 d-i clock-setup/utc boolean true
 d-i time/zone string Etc/UTC
 d-i clock-setup/ntp boolean true
-clock-setup	clock-setup/ntp-server string 10.10.0.1
+clock-setup	clock-setup/ntp-server string {{ ntp_host }}
 
 ### Partitioning
 ## NOTE: using a disposable volgroup (vgdummy) to ensure the active volumes are on

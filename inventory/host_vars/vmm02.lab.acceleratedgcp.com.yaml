@@ -1,7 +1,8 @@
 ---
+ipmi_host: 172.16.10.5
 k8s_master: true
 k8s_worker: true
 k8s_node_name: k8s02.lab.acceleratedgcp.com
 vlan100_addresses:
-  - 10.100.2.0/16
+  - 172.16.101.0/16
   - 2001:470:49a5:100:2::0/56

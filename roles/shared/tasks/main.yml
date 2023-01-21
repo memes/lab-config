@@ -89,7 +89,7 @@
     force: yes
     owner: tftp
     group: root
-    mode: 0644
+    mode: preserve
     directory_mode: 0755
   loop:
     - bios
@@ -105,7 +105,7 @@
     force: yes
     owner: tftp
     group: root
-    mode: 0644
+    mode: preserve
     directory_mode: 0755
   tags:
     - pxe
@@ -117,7 +117,7 @@
     force: yes
     owner: tftp
     group: root
-    mode: 0644
+    mode: preserve
     directory_mode: 0755
   loop:
     - efi32
@@ -132,7 +132,7 @@
     force: yes
     owner: tftp
     group: root
-    mode: 0644
+    mode: preserve
     directory_mode: 0755
   loop:
     - linux
@@ -146,7 +146,7 @@
     force: yes
     owner: tftp
     group: root
-    mode: 0644
+    mode: preserve
     directory_mode: 0755
   loop:
     - bios
@@ -385,7 +385,7 @@
     token_validate: no
   register: ks_secrets
   delegate_to: localhost
-  become: no
+  become: false
   tags:
     - http
     - pxe

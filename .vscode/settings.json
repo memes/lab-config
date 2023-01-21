@@ -1,4 +1,7 @@
 {
+  "ansible.ansible.path": ".direnv/python-3.10.8/bin/ansible",
+  "ansible.python.interpreterPath": ".direnv/python-3.10.8/bin/python3",
+  "ansible.validation.lint.path": ".direnv/python-3.10.8/bin/ansible-lint",
   "cSpell.words": [
     "acceleratedgcp",
     "apiserver",
@@ -10,6 +13,7 @@
     "calicoctl",
     "centos",
     "chmod",
+    "CIFS",
     "creds",
     "cri-o",
     "crio",
@@ -67,6 +71,7 @@
     "pubkey",
     "pxelinux",
     "rbac",
+    "realpath",
     "redhat",
     "relatime",
     "repos",
@@ -81,6 +86,7 @@
     "swapoff",
     "syslinux",
     "tcpport",
+    "testinfra",
     "tftpd",
     "Tigera",
     "udpport",
@@ -91,9 +97,5 @@
     "vmware",
     "vnet",
     "vsphere"
-  ],
-  "files.associations": {
-    "**/ansible/*.yml": "ansible",
-    "**/ansible/requirements.yml": "yaml"
-  }
+  ]
 }

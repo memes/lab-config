@@ -1,0 +1,12 @@
+---
+galaxy_info:
+  author: Matthew Emes
+  description: Prepares base networking on Accelerated GCP lab servers
+  license: MIT
+  min_ansible_version: '2.1'
+  galaxy_tags: []
+  platforms:
+    - name: Debian
+      versions:
+        - all
+dependencies: []

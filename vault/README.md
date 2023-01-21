@@ -173,6 +173,7 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_bound_cidrs"></a> [bound\_cidrs](#input\_bound\_cidrs) | A list of CIDRs that will be permitted to access tokens and secrets. | `list(string)` | n/a | yes |
 | <a name="input_gsuite_admin_group"></a> [gsuite\_admin\_group](#input\_gsuite\_admin\_group) | GSuite group that will be granted Vault admin role on authentication. | `string` | n/a | yes |
 | <a name="input_gsuite_admin_impersonate_account"></a> [gsuite\_admin\_impersonate\_account](#input\_gsuite\_admin\_impersonate\_account) | The GSuite administrative user account that will be impersonated for API calls. | `string` | n/a | yes |
 | <a name="input_gsuite_client_id"></a> [gsuite\_client\_id](#input\_gsuite\_client\_id) | The GSuite OIDC client id. | `string` | n/a | yes |

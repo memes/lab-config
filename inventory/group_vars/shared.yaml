@@ -3,3 +3,5 @@
 # lab_target will be the default PXE option for repave servers. Must be one
 # of the labels defined for PXE auto-deploy.
 lab_target: ubuntu2204
+# Set the default NTP host address embedded in startup scripts
+ntp_host: 172.16.10.1

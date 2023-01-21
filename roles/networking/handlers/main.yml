@@ -1,0 +1,8 @@
+---
+- name: Validate netplan
+  ansible.builtin.command: netplan generate
+  notify: Apply netplan
+- name: Apply netplan
+  ansible.builtin.command: netplan apply
+- name: Update con vlan100
+  ansible.builtin.command: nmcli con up {{ dataplane_device }}.100

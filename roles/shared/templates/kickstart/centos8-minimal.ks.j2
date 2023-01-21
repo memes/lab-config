@@ -36,7 +36,7 @@ network --bootproto=dhcp --device=bond0 --noipv4 --noipv6 --activate --nodefrout
 
 # NTP
 services --enabled="chronyd"
-timezone Etc/UTC --isUtc --ntpservers=10.10.0.1
+timezone Etc/UTC --isUtc --ntpservers={{ ntp_host }}
 
 rootpw --iscrypted {{ root_password | password_hash('sha512') }}
 user --groups=wheel --name=memes --iscrypted --password={{ memes_password | password_hash('sha512') }}

@@ -8,13 +8,18 @@
 
 set -e
 
-if [ $# -lt 1 ]; then
-    echo "$0: unseal key must be provided as the only argument" >&2
-    exit 1
-fi
+# if [ $# -lt 1 ]; then
+#     echo "$0: unseal key must be provided as the only argument" >&2
+#     exit 1
+# fi
 JSON="$(vault operator generate-root -init -format=json)"
 NONCE="$(echo "${JSON}" | jq -r '.nonce')"
 OTP="$(echo "${JSON}" | jq -r '.otp')"
+while true; do
+    read -s -p "Unseal token (leave empty when done): " token
+    test -z "${token}" && break
+    set -- "$@" ${token}
+done
 for KEY in "$@"; do
     ENC_TOKEN="$(vault operator generate-root -format=json -nonce ${NONCE} ${KEY} | jq -r '.encoded_token')"
 done
