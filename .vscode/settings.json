@@ -1,7 +1,7 @@
 {
-  "ansible.ansible.path": ".direnv/python-3.10.8/bin/ansible",
-  "ansible.python.interpreterPath": ".direnv/python-3.10.8/bin/python3",
-  "ansible.validation.lint.path": ".direnv/python-3.10.8/bin/ansible-lint",
+  "ansible.ansible.path": ".direnv/python-3.11.3/bin/ansible",
+  "ansible.python.interpreterPath": ".direnv/python-3.11.3/bin/python3",
+  "ansible.validation.lint.path": ".direnv/python-3.11.3/bin/ansible-lint",
   "cSpell.words": [
     "acceleratedgcp",
     "apiserver",
