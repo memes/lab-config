@@ -1,5 +1,4 @@
 ---
 profile: production
 exclude_paths:
-  - kubernetes
   - roles/**/tests/test.yml

@@ -1,7 +1,9 @@
 # Update shared server playbook
 ---
-- name: Install CRI-O
+- name: Install kubernetes
   hosts: servers
   become: true
   roles:
+    - refresh
+    - networking
     - crio

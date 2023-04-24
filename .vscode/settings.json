@@ -6,8 +6,10 @@
     "acceleratedgcp",
     "apiserver",
     "arpa",
+    "autoclean",
     "Autodetection",
     "autoprovision",
+    "autoremove",
     "bionic",
     "bpffs",
     "calicoctl",
@@ -36,6 +38,7 @@
     "hashicorp",
     "hugepages",
     "ignoreerrors",
+    "ipaddr",
     "ipmi",
     "ippool",
     "iscsi",
@@ -59,8 +62,10 @@
     "netfilter",
     "netplan",
     "nmcli",
+    "nobest",
     "nodev",
     "noexec",
+    "noqa",
     "nosuid",
     "outform",
     "paramiko",
@@ -98,5 +103,8 @@
     "vmware",
     "vnet",
     "vsphere"
-  ]
+  ],
+  "yaml.schemas": {
+    "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible-lint-config.json": "/.ansible-lint"
+  }
 }
