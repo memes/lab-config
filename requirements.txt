@@ -1,9 +1,9 @@
 # lab-config required packages
 # see also ansible/requirements.yml for Ansible galaxy packages
-ansible==7.1.0
-pyghmi==1.5.56
-hvac==1.0.2
+ansible==7.4.0
+pyghmi==1.5.60
+hvac==1.1.0
 jmespath==1.0.1
-kubernetes==25.3.0
+kubernetes==26.1.0
 passlib==1.7.4
 netaddr==0.8.0
