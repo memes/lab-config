@@ -22,7 +22,7 @@
     force: true
     owner: root
     group: root
-    mode: 0644
+    mode: '0644'
   loop:
     - exports
     - default/nfs-common
@@ -39,7 +39,7 @@
     dest: "/etc/modprobe.d/nfs-modules.conf"
     owner: root
     group: root
-    mode: 0644
+    mode: '0644'
   tags:
     - init
 - name: Set NFS kernel module params
@@ -68,7 +68,7 @@
     state: directory
     owner: tftp
     group: root
-    mode: 0755
+    mode: '0755'
   loop:
     - tftp
     - tftp/boot
@@ -90,7 +90,7 @@
     owner: tftp
     group: root
     mode: preserve
-    directory_mode: 0755
+    directory_mode: '0755'
   loop:
     - bios
     - efi32
@@ -106,7 +106,7 @@
     owner: tftp
     group: root
     mode: preserve
-    directory_mode: 0755
+    directory_mode: '0755'
   tags:
     - pxe
 - name: Copy syslinux EFI files for TFTP
@@ -118,7 +118,7 @@
     owner: tftp
     group: root
     mode: preserve
-    directory_mode: 0755
+    directory_mode: '0755'
   loop:
     - efi32
     - efi64
@@ -133,7 +133,7 @@
     owner: tftp
     group: root
     mode: preserve
-    directory_mode: 0755
+    directory_mode: '0755'
   loop:
     - linux
     - initrd.gz
@@ -147,7 +147,7 @@
     owner: tftp
     group: root
     mode: preserve
-    directory_mode: 0755
+    directory_mode: '0755'
   loop:
     - bios
     - efi32
@@ -163,8 +163,8 @@
     force: true
     owner: tftp
     group: root
-    mode: 0644
-    directory_mode: 0755
+    mode: '0644'
+    directory_mode: '0755'
   loop:
     - centos.cfg
     - debian.cfg
@@ -183,8 +183,8 @@
     force: true
     owner: tftp
     group: root
-    mode: 0644
-    directory_mode: 0755
+    mode: '0644'
+    directory_mode: '0755'
   loop:
     - centos.cfg
     - debian.cfg
@@ -203,8 +203,8 @@
     force: true
     owner: tftp
     group: root
-    mode: 0644
-    directory_mode: 0755
+    mode: '0644'
+    directory_mode: '0755'
   loop:
     - centos.cfg
     - debian.cfg
@@ -223,8 +223,8 @@
     force: false
     owner: tftp
     group: root
-    mode: 0644
-    directory_mode: 0755
+    mode: '0644'
+    directory_mode: '0755'
   loop:
     - bios
     - efi32
@@ -239,7 +239,7 @@
     force: true
     owner: tftp
     group: root
-    mode: 0644
+    mode: '0644'
   loop: "{{ autoprovision_macs | map('regex_replace', ':', '-') | map('lower') | list }}"
   tags:
     - pxe
@@ -251,7 +251,7 @@
     force: true
     owner: tftp
     group: root
-    mode: 0644
+    mode: '0644'
   loop: "{{ autoprovision_macs | map('regex_replace', ':', '-') | map('lower') | list }}"
   tags:
     - pxe
@@ -263,7 +263,7 @@
     force: true
     owner: tftp
     group: root
-    mode: 0644
+    mode: '0644'
   loop: "{{ autoprovision_macs | map('regex_replace', ':', '-') | map('lower') | list }}"
   tags:
     - pxe
@@ -281,8 +281,8 @@
     force: true
     owner: root
     group: root
-    mode: 0644
-    directory_mode: 0755
+    mode: '0644'
+    directory_mode: '0755'
   notify:
     - Update CA Certs
   tags:
@@ -294,8 +294,8 @@
     force: true
     owner: root
     group: root
-    mode: 0644
-    directory_mode: 0755
+    mode: '0644'
+    directory_mode: '0755'
   notify:
     - Restart NGINX
   tags:
@@ -307,8 +307,8 @@
     force: true
     owner: root
     group: root
-    mode: 0600
-    directory_mode: 0755
+    mode: '0600'
+    directory_mode: '0755'
   notify:
     - Restart NGINX
   tags:
@@ -320,8 +320,8 @@
     force: true
     owner: root
     group: root
-    mode: 0644
-    directory_mode: 0755
+    mode: '0644'
+    directory_mode: '0755'
   notify:
     - Restart NGINX
   tags:
@@ -350,8 +350,8 @@
     force: true
     owner: root
     group: shared
-    mode: 0664
-    directory_mode: 0755
+    mode: '0664'
+    directory_mode: '0755'
   tags:
     - http
     - pxe
@@ -362,8 +362,8 @@
     force: true
     owner: root
     group: shared
-    mode: 0664
-    directory_mode: 0755
+    mode: '0664'
+    directory_mode: '0755'
   loop:
     - 0x1285491434D8786F.asc
     - 0x3CA66B4946770C59.asc
@@ -403,8 +403,8 @@
     force: true
     owner: root
     group: shared
-    mode: 0664
-    directory_mode: 0755
+    mode: '0664'
+    directory_mode: '0755'
   loop:
     - cloud-init/focal/user-data
     - cloud-init/focal/meta-data

@@ -7,14 +7,14 @@
     dest: /tmp/crio.key
     owner: root
     group: root
-    mode: 0640
+    mode: '0640'
 - name: Fetch Debian repo key for stable packages
   ansible.builtin.get_url:
     url: "{{ base_url }}stable/Debian_{{ ansible_distribution_version }}/Release.key"
     dest: /tmp/crio_stable.key
     owner: root
     group: root
-    mode: 0640
+    mode: '0640'
 - name: Add Debian repo key for CRI-O packages
   ansible.builtin.command:
     cmd: gpg --dearmor --output /usr/share/keyrings/crio.gpg /tmp/crio.key
@@ -28,7 +28,7 @@
     path: "/usr/share/keyrings/{{ item }}"
     owner: root
     group: root
-    mode: 0644
+    mode: '0644'
   loop:
     - crio.gpg
     - crio_stable.gpg

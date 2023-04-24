@@ -7,7 +7,7 @@
     dest: "/etc/modules-load.d/cri-o.conf"
     owner: root
     group: root
-    mode: 0644
+    mode: '0644'
 - name: Add modules
   community.general.modprobe:
     name: "{{ item }}"
@@ -44,7 +44,7 @@
     state: directory
     owner: root
     group: root
-    mode: 0755
+    mode: '0755'
 - name: Configure shared mount for CRI-O
   ansible.builtin.copy:
     content: |
@@ -54,7 +54,7 @@
     dest: /etc/systemd/system/crio.service.d/override.conf
     owner: root
     group: root
-    mode: 0644
+    mode: '0644'
 - name: Enable CRI-O unit
   ansible.builtin.systemd:
     name: crio

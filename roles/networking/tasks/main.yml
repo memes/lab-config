@@ -1,5 +1,5 @@
 # Setup static vlan configurations post-deployment
-# yamllint disable rule:truthy rule:line-length
+# yamllint disable rule:line-length
 ---
 - name: Configure vlan 100 (Ubuntu)
   vars:
@@ -11,7 +11,7 @@
     dest: /etc/netplan/20-vlan100.yaml
     owner: root
     group: root
-    mode: 0640
+    mode: '0640'
   when: ansible_distribution == "Ubuntu" and (vlan100_addresses | default([]) | length > 0)
   notify:
     - Validate netplan
@@ -28,6 +28,7 @@
       ipv6.never-default yes
       ipv6.addresses "{{ vlan100_addresses | ansible.utils.ipv6('host/prefix') | join(' ') }}"{% endif %}
   when: ansible_os_family == "RedHat" and (vlan100_addresses | default([]) | length > 0)
+  changed_when: true
   notify:
     - Update con vlan100
   tags:

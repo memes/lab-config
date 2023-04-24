@@ -1,15 +1,15 @@
 # Manage Vault service
-# yamllint disable rule:truthy rule:line-length
+# yamllint disable rule:line-length
 ---
 - name: Copy static hashicorp key
   ansible.builtin.copy:
     src: "{{ hashi_gpg_key }}"
     dest: /usr/share/keyrings/hashicorp-archive-keyring.gpg
-    force: yes
+    force: true
     owner: root
     group: root
-    mode: 0644
-    directory_mode: 0755
+    mode: '0644'
+    directory_mode: '0755'
   when: ansible_os_family == "Debian"
   tags:
     - bootstrap
@@ -27,7 +27,7 @@
     dest: /etc/yum.repos.d/
     owner: root
     group: root
-    mode: 0644
+    mode: '0644'
   when: ansible_os_family == "RedHat"
   tags:
     - bootstrap
@@ -41,10 +41,10 @@
   ansible.builtin.template:
     src: "./templates/{{ item }}.j2"
     dest: "/etc/vault.d/{{ item }}"
-    force: yes
+    force: true
     owner: root
     group: vault
-    mode: 0640
+    mode: '0640'
   loop:
     - vault.hcl
     - vault.env
@@ -56,10 +56,10 @@
   ansible.builtin.copy:
     src: "{{ vault_gcp_sa_creds_file }}"
     dest: "{{ vault_home }}/vault-sa.json"
-    force: yes
+    force: true
     owner: root
     group: vault
-    mode: 0640
+    mode: '0640'
   notify:
     - Restart Vault
   tags:
@@ -67,7 +67,7 @@
 - name: Enable systemd unit
   ansible.builtin.service:
     name: vault
-    enabled: yes
+    enabled: true
     state: started
   tags:
     - bootstrap
@@ -75,10 +75,10 @@
   ansible.builtin.copy:
     src: "./certs/{{ item }}"
     dest: "{{ vault_home }}/tls/{{ item }}"
-    force: yes
+    force: true
     owner: root
     group: vault
-    mode: 0640
+    mode: '0640'
   loop:
     - "{{ vault_host }}.pem"
     - "{{ vault_host }}.key"
