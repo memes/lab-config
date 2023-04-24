@@ -1,0 +1,15 @@
+# yamllint disable rule:line-length
+---
+required_modules:
+  - overlay
+maj_minor: "{{ version.split('.')[:2] | join('.') }}"
+repo_version: "{{ maj_minor }}{% if maj_minor != version %}:/{{ version }}{% endif %}"
+base_url: https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/
+packages:
+  Debian:
+    - cri-o
+    - cri-o-runc
+    - cri-tools
+  RedHat:
+    - cri-o
+    - cri-tools

@@ -1,0 +1,63 @@
+# Install CRI-O runtime
+# yamllint disable rule:line-length
+---
+- name: Configure persistent modules for CRI-O
+  ansible.builtin.template:
+    src: templates/modules-load.conf.j2
+    dest: "/etc/modules-load.d/cri-o.conf"
+    owner: root
+    group: root
+    mode: 0644
+- name: Add modules
+  community.general.modprobe:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ required_modules }}"
+- name: Add CRI-O repos for Debian
+  ansible.builtin.import_tasks: debian.yml
+  when: ansible_distribution == "Debian"
+- name: Add CRI-O repos for Ubuntu
+  ansible.builtin.import_tasks: ubuntu.yml
+  when: ansible_distribution == "Ubuntu"
+- name: Add CRI-O repos for CentOS
+  ansible.builtin.import_tasks: centos.yml
+  when: ansible_distribution == "CentOS"
+- name: Install CRI-O packages
+  ansible.builtin.package:
+    name: "{{ packages[ansible_os_family] }}"
+    state: present
+# Ubuntu 18.04 LTS overlay module doesn't support metacopy param
+- name: Get overlay module params
+  ansible.builtin.shell: modinfo -p overlay | grep -q metacopy
+  changed_when: false
+  ignore_errors: true
+  register: overlay_metacopy
+- name: Rewrite overlay mountopt for /etc/containers/storage
+  ansible.builtin.lineinfile:
+    path: /etc/containers/storage.conf
+    regexp: '^mountopt'
+    line: mountopt = "nodev"
+  when: overlay_metacopy.rc == 1
+- name: Create CRI-O unit override directory
+  ansible.builtin.file:
+    path: /etc/systemd/system/crio.service.d/
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+- name: Configure shared mount for CRI-O
+  ansible.builtin.copy:
+    content: |
+      # Set shared flag to support mount propagation
+      [Service]
+      MountFlags=shared
+    dest: /etc/systemd/system/crio.service.d/override.conf
+    owner: root
+    group: root
+    mode: 0644
+- name: Enable CRI-O unit
+  ansible.builtin.systemd:
+    name: crio
+    enabled: true
+    state: restarted
+    daemon_reload: true

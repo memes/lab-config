@@ -20,7 +20,6 @@ vault_ipmi_secrets_path: lab/ipmi
 vault_kickstart_secrets_path: lab/kickstart
 
 # Kubernetes, CRI, CNI, & CSI settings
-crio_version: '1.24.1'
 kubernetes_version: '1.24.2'
 kubernetes_api_server: 'control.{{ lab_domain }}'
 kubernetes_api_address: '172.16.96.100'

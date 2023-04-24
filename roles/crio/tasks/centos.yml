@@ -1,0 +1,17 @@
+# Perform CentOS specific tasks for CRI-O
+# yamllint disable rule:line-length
+---
+- name: Add CentOS CRI-O package repo
+  ansible.builtin.get_url:
+    url: "{{ base_url }}stable:/cri-o:/{{ repo_version }}/CentOS_{{ ansible_distribution_major_version }}/devel:kubic:libcontainers:stable:cri-o:{{ repo_version | replace('/', '') }}.repo"
+    dest: /etc/yum.repos.d/crio.repo
+    owner: root
+    group: root
+    mode: 0644
+- name: Add CentOS CRI-O stable packages repo
+  ansible.builtin.get_url:
+    url: "{{ base_url }}stable/CentOS_{{ ansible_distribution_major_version }}/devel:kubic:libcontainers:stable.repo"
+    dest: /etc/yum.repos.d/crio_stable.repo
+    owner: root
+    group: root
+    mode: 0644

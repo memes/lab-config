@@ -66,3 +66,7 @@ fileignoreconfig:
   checksum: 81090670f81413a9745b7c975e80901d528cde671c7c5c02c367286ffb5a1e69
 - filename: vault/ipmi-secrets.tf
   checksum: 811f1a1fa8ab8b359c054559bcfd0a76167a5789e2301a1600513c91ba3a47ca
+- filename: roles/crio/tasks/ubuntu.yml
+  checksum: 17977771e05f783f83df3d2e71bd86c6f92be65c02a361072fd98a9041218f62
+- filename: roles/crio/tasks/debian.yml
+  checksum: dd272f580f3af9bbef74975e795e880e8e7a0d47fb03d9a3d3fbbac9286252c6
