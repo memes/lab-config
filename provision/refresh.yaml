@@ -1,9 +1,9 @@
 # Install kubernetes on hosts
-# yamllint disable rule:truthy rule:line-length
+# yamllint disable rule:line-length
 ---
 - name: Update all system packages
   hosts: servers
-  become: yes
+  become: true
   tasks:
     - name: Refresh apt cache
       ansible.builtin.apt:
@@ -21,7 +21,6 @@
     - name: Refresh and update packages
       ansible.builtin.dnf:
         name: '*'
-        # exclude: kmod-megaraid_sas
         nobest: true
         state: latest  # noqa package-latest
         update_cache: true
@@ -36,6 +35,6 @@
       when: ansible_os_family == "RedHat"
 - name: Apply additional networking configuration
   hosts: servers
-  become: yes
+  become: true
   roles:
     - ../roles/networking

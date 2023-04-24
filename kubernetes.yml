@@ -1,0 +1,7 @@
+# Update shared server playbook
+---
+- name: Install CRI-O
+  hosts: servers
+  become: true
+  roles:
+    - crio

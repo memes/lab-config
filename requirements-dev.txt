@@ -2,8 +2,11 @@
 ansible-lint==6.10.2
 black==22.12.0
 isort==5.11.4
+molecule==4.0.4
+molecule-plugins==23.0.0
 pre-commit==2.21.0
 pylint==2.15.10
 pytest==7.2.1
 pytest-cov==4.0.0
+pytest-testinfra==7.0.0
 -r requirements.txt

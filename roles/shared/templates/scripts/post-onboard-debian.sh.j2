@@ -52,12 +52,12 @@ update-ca-certificates || \
 
 # Install pre-verified Hashicorp GPG key from shared server
 mkdir -p -m 0755 /usr/share/keyrings
-curl -fsSL {{ lab_shared_http_url }}/keys/hashicorp.asc | \
-    gpg --dearmor --output /usr/share/keyrings/hashicorp.gpg
+curl -sLo /usr/share/keyrings/hashicorp-archive-keyring.gpg {{ lab_shared_http_url }}/keys/hashicorp-archive-keyring.gpg|| \
+    info "Failed to download Hashicorp GPG keyring; continuing"
 
 # Install Vault from Hashicorp repo, but don't run as a service
 cat > /etc/apt/sources.list.d/hashicorp.list <<EOR
-deb [arch=amd64 signed-by=/usr/share/keyrings/hashicorp.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main
+deb [arch=amd64 signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main
 EOR
 apt update
 apt install -y vault

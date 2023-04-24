@@ -1,5 +1,5 @@
 # Update shared server
-# yamllint disable rule:truthy rule:line-length
+# yamllint disable rule:line-length
 ---
 - name: Install required packages
   ansible.builtin.package:
@@ -19,7 +19,7 @@
   ansible.builtin.template:
     src: "templates/etc/{{ item }}.j2"
     dest: "/etc/{{ item }}"
-    force: yes
+    force: true
     owner: root
     group: root
     mode: 0644
@@ -47,10 +47,10 @@
     name: "{{ item['param'] }}"
     value: "{{ item['value'] }}"
     sysctl_file: /etc/sysctl.d/90-nfs-static-ports.conf
-    sysctl_set: yes
+    sysctl_set: true
     # If modules aren't loaded yet, the param keys will be undefined; ignore
-    ignoreerrors: yes
-    reload: yes
+    ignoreerrors: true
+    reload: true
     state: present
   loop:
     - param: fs.nfs.nfs_callback_tcpport
@@ -83,10 +83,10 @@
     - pxe
 - name: Copy syslinux files for TFTP
   ansible.builtin.copy:
-    remote_src: yes
+    remote_src: true
     src: "/usr/lib/syslinux/modules/{{ item }}/"
     dest: "/srv/tftp/{{ item }}/"
-    force: yes
+    force: true
     owner: tftp
     group: root
     mode: preserve
@@ -99,10 +99,10 @@
     - pxe
 - name: Copy pxelinux BIOS files for TFTP
   ansible.builtin.copy:
-    remote_src: yes
+    remote_src: true
     src: /usr/lib/PXELINUX/
     dest: /srv/tftp/bios/
-    force: yes
+    force: true
     owner: tftp
     group: root
     mode: preserve
@@ -111,10 +111,10 @@
     - pxe
 - name: Copy syslinux EFI files for TFTP
   ansible.builtin.copy:
-    remote_src: yes
+    remote_src: true
     src: "/usr/lib/SYSLINUX.EFI/{{ item }}/"
     dest: "/srv/tftp/{{ item }}/"
-    force: yes
+    force: true
     owner: tftp
     group: root
     mode: preserve
@@ -126,10 +126,10 @@
     - pxe
 - name: Copy Debian netboot files for TFTP
   ansible.builtin.copy:
-    remote_src: yes
+    remote_src: true
     src: "/usr/lib/debian-installer/images/{{ ansible_distribution_major_version }}/amd64/text/debian-installer/amd64/{{ item }}"
     dest: "/srv/tftp/boot/debian{{ ansible_distribution_major_version }}-x86_64/{{ item }}"
-    force: yes
+    force: true
     owner: tftp
     group: root
     mode: preserve
@@ -143,7 +143,7 @@
   ansible.builtin.copy:
     src: "files/tftp/pxelinux.cfg/"
     dest: "/srv/tftp/{{ item }}/pxelinux.cfg/"
-    force: yes
+    force: true
     owner: tftp
     group: root
     mode: preserve
@@ -160,7 +160,7 @@
   ansible.builtin.template:
     src: "templates/tftp/pxelinux.cfg/{{ item }}.j2"
     dest: "/srv/tftp/bios/pxelinux.cfg/{{ item }}"
-    force: yes
+    force: true
     owner: tftp
     group: root
     mode: 0644
@@ -180,7 +180,7 @@
   ansible.builtin.template:
     src: "templates/tftp/pxelinux.cfg/{{ item }}.j2"
     dest: "/srv/tftp/efi32/pxelinux.cfg/{{ item }}"
-    force: yes
+    force: true
     owner: tftp
     group: root
     mode: 0644
@@ -200,7 +200,7 @@
   ansible.builtin.template:
     src: "templates/tftp/pxelinux.cfg/{{ item }}.j2"
     dest: "/srv/tftp/efi64/pxelinux.cfg/{{ item }}"
-    force: yes
+    force: true
     owner: tftp
     group: root
     mode: 0644
@@ -220,7 +220,7 @@
   ansible.builtin.template:
     src: templates/tftp/pxelinux.cfg/lab_default_target.cfg.j2
     dest: "/srv/tftp/{{ item }}/pxelinux.cfg/lab_default_target.cfg"
-    force: no
+    force: false
     owner: tftp
     group: root
     mode: 0644
@@ -236,7 +236,7 @@
     src: "/srv/tftp/bios/pxelinux.cfg/lab_autoprovision.cfg"
     path: "/srv/tftp/bios/pxelinux.cfg/{{ item }}"
     state: hard
-    force: yes
+    force: true
     owner: tftp
     group: root
     mode: 0644
@@ -248,7 +248,7 @@
     src: "/srv/tftp/efi32/pxelinux.cfg/lab_autoprovision.cfg"
     path: "/srv/tftp/efi32/pxelinux.cfg/{{ item }}"
     state: hard
-    force: yes
+    force: true
     owner: tftp
     group: root
     mode: 0644
@@ -260,7 +260,7 @@
     src: "/srv/tftp/efi64/pxelinux.cfg/lab_autoprovision.cfg"
     path: "/srv/tftp/efi64/pxelinux.cfg/{{ item }}"
     state: hard
-    force: yes
+    force: true
     owner: tftp
     group: root
     mode: 0644
@@ -271,14 +271,14 @@
   ansible.builtin.service:
     name: tftpd-hpa
     state: started
-    enabled: yes
+    enabled: true
   tags:
     - pxe
 - name: Update CA cert
   ansible.builtin.copy:
     src: "{{ ca_cert_pem }}"
     dest: /usr/local/share/ca-certificates/acceleratedgcp-root-ca.crt
-    force: yes
+    force: true
     owner: root
     group: root
     mode: 0644
@@ -291,7 +291,7 @@
   ansible.builtin.copy:
     src: "{{ shared_tls_cert_pem }}"
     dest: /etc/ssl/certs/
-    force: yes
+    force: true
     owner: root
     group: root
     mode: 0644
@@ -304,7 +304,7 @@
   ansible.builtin.copy:
     src: "{{ shared_tls_key_pem }}"
     dest: /etc/ssl/private/
-    force: yes
+    force: true
     owner: root
     group: root
     mode: 0600
@@ -317,7 +317,7 @@
   ansible.builtin.template:
     src: templates/nginx/shared.j2
     dest: /etc/nginx/sites-available/shared
-    force: yes
+    force: true
     owner: root
     group: root
     mode: 0644
@@ -347,7 +347,7 @@
   ansible.builtin.copy:
     src: "{{ ca_cert_pem }}"
     dest: /srv/shared/certs/
-    force: yes
+    force: true
     owner: root
     group: shared
     mode: 0664
@@ -359,7 +359,7 @@
   ansible.builtin.copy:
     src: "files/keys/{{ item }}"
     dest: "/srv/shared/keys/{{ item }}"
-    force: yes
+    force: true
     owner: root
     group: shared
     mode: 0664
@@ -369,7 +369,7 @@
     - 0x3CA66B4946770C59.asc
     - 0x756ba70b1019ced6.asc
     - 0xca77951d23b66a9d.asc
-    - hashicorp.asc
+    - hashicorp-archive-keyring.gpg
     - RPM-GPG-KEY-CentOS-Official.asc
     - RPM-GPG-KEY-elrepo.asc
     - RPM-GPG-KEY-redhat-release.asc
@@ -382,7 +382,7 @@
     ca_cert: "{{ root_ca | realpath }}"
     path: "{{ vault_kickstart_secrets_path }}"
     auth_method: token
-    token_validate: no
+    token_validate: false
   register: ks_secrets
   delegate_to: localhost
   become: false
@@ -400,7 +400,7 @@
   ansible.builtin.template:
     src: "templates/{{ item }}.j2"
     dest: "/srv/shared/{{ item }}"
-    force: yes
+    force: true
     owner: root
     group: shared
     mode: 0664

@@ -20,16 +20,16 @@ vault_ipmi_secrets_path: lab/ipmi
 vault_kickstart_secrets_path: lab/kickstart
 
 # Kubernetes, CRI, CNI, & CSI settings
-kubernetes_version: '1.24.2'
+kubernetes_version: '1.26.1'
 kubernetes_api_server: 'control.{{ lab_domain }}'
 kubernetes_api_address: '172.16.96.100'
-calico_version: v3.23.1
+calico_version: v3.25.0
 kubernetes_cidr: 10.0.0.0/8
 kubernetes_pod_cidr: 10.0.0.0/16
 kubernetes_service_cidr: 10.1.0.0/22
 kubernetes_external_cidr: 10.2.0.0/24
 kubernetes_lb_cidr: 10.3.0.0/24
-longhorn_version: v1.3.0
-cilium_version: 1.11.6
+longhorn_version: v1.4.0
+cilium_version: 1.12.5
 kubeadm_skip_phases:
   - addon/kube-proxy
