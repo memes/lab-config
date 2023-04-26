@@ -73,3 +73,5 @@ fileignoreconfig:
   checksum: dd272f580f3af9bbef74975e795e880e8e7a0d47fb03d9a3d3fbbac9286252c6
 - filename: roles/shared/templates/scripts/post-onboard-debian.sh.j2
   checksum: b9109b9587d4a02f83de60c1aea350afd12cd6608b080de5f0807ca7ee23aecf
+- filename: certs/Makefile
+  checksum: 53245cd9c99f6977f62307090d6e2781fa0e0396b59a4921c5e829cd835d0489
