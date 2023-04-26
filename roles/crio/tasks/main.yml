@@ -26,18 +26,6 @@
   ansible.builtin.package:
     name: "{{ packages[ansible_os_family] }}"
     state: present
-# Ubuntu 18.04 LTS overlay module doesn't support metacopy param
-- name: Get overlay module params
-  ansible.builtin.shell: modinfo -p overlay | grep -q metacopy
-  changed_when: false
-  ignore_errors: true
-  register: overlay_metacopy
-- name: Rewrite overlay mountopt for /etc/containers/storage
-  ansible.builtin.lineinfile:
-    path: /etc/containers/storage.conf
-    regexp: '^mountopt'
-    line: mountopt = "nodev"
-  when: overlay_metacopy.rc == 1
 - name: Create CRI-O unit override directory
   ansible.builtin.file:
     path: /etc/systemd/system/crio.service.d/

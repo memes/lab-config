@@ -48,14 +48,6 @@ label ubuntu2004
   Install Ubuntu Server 20.04 LTS with minimal cloud-init/autoprovision for lab
   endtext
 
-label ubuntu1804
-  menu label Autoprovision Ubuntu Server ^18.04 LTS
-  kernel ::boot/ubuntu18.04-LTS-netboot-x86_64/linux
-  append initrd=::boot/ubuntu18.04-LTS-netboot-x86_64/initrd.gz auto url={{ lab_shared_host }} locale=en_US.UTF-8 console-setup/ask_detect=false console-setup/layoutcode=us keyboard-configuration/layoutcode=us netcfg/get_hostname=unknown netcfg/get_domain={{ lab_domain }} interface=eno1 netcfg/dhcp_timeout=60
-  text help
-  Install Ubuntu Server 18.04 LTS with minimal preseed for lab
-  endtext
-
 menu separator
 
 label localboot

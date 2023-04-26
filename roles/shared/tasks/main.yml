@@ -410,7 +410,6 @@
     - cloud-init/focal/meta-data
     - cloud-init/jammy/user-data
     - cloud-init/jammy/meta-data
-    - d-i/bionic/preseed.cfg
     - kickstart/centos8-minimal.ks
     - kickstart/rhel8-minimal.ks
     - scripts/post-onboard-centos8.sh
@@ -418,7 +417,6 @@
     - scripts/post-onboard-el8.sh
     - scripts/post-onboard-rhel8.sh
     - scripts/post-onboard-ssh-pubkey.sh
-    - scripts/post-onboard-ubuntu-netplan.sh
     - scripts/pre-onboard-el8.sh
   tags:
     - http

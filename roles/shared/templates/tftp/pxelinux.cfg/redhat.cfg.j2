@@ -16,11 +16,3 @@ label rhel85r
   text help
   Install RedHat Enterprise Linux 8.5 in rescue mode
   endtext
-
-label rhel82
-  menu label Install RHEL 8.^2
-  kernel ::boot/rhel8.2-x86_64/vmlinuz
-  append initrd=::boot/rhel8.2-x86_64/initrd.img ip=dhcp inst.resolution=1024x768 nomodeset inst.repo={{ default_shared_http_url }}/software/rhel8.2-x86_64 inst.dd={{ default_shared_http_url }}/isos/dd-megaraid_sas-07.710.50.00-1.el8_2.elrepo.iso
-  text help
-  Install RedHat Enterprise Linux 8 in VESA mode
-  endtext
