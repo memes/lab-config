@@ -2,10 +2,11 @@
 - name: Validate netplan
   ansible.builtin.command: netplan generate
   notify: Apply netplan
-  changed_when: false
+  changed_when: true
 - name: Apply netplan
   ansible.builtin.command: netplan apply
   changed_when: true
-- name: Update con vlan100
-  ansible.builtin.command: nmcli con up {{ dataplane_device }}.100
+- name: Update con
+  ansible.builtin.command: nmcli con up {{ dataplane_device }}.{{ item.key }}
   changed_when: true
+  loop: "{{ vlans | default({}) | dict2items }}"

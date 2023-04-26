@@ -1,8 +1,16 @@
 # Update shared server playbook
+# yamllint disable rule:line-length
 ---
 - name: Install kubernetes
   hosts: servers
   become: true
+  vars:
+    kubernetes_routes:
+      100:
+        routes:
+          - route: 10.0.0.0/8
+            gw: 172.16.96.1
+    vlans: "{{ hostvars[inventory_hostname]['vlans'] | combine(kubernetes_routes, recursive=true) }} "
   roles:
     - refresh
     - networking
