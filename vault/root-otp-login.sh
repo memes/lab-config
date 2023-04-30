@@ -3,20 +3,17 @@
 # Shell script to perform an OTP login as root to Vault
 #
 # Use environment vars to override behaviour; e.g.
-# VAULT_SKIP_VERIFY=true ./root-otp-login.sh UNSEAL_KEY
+# VAULT_SKIP_VERIFY=true ./root-otp-login.sh
 #
 
 set -e
 
-# if [ $# -lt 1 ]; then
-#     echo "$0: unseal key must be provided as the only argument" >&2
-#     exit 1
-# fi
 JSON="$(vault operator generate-root -init -format=json)"
 NONCE="$(echo "${JSON}" | jq -r '.nonce')"
 OTP="$(echo "${JSON}" | jq -r '.otp')"
 while true; do
     read -s -p "Unseal token (leave empty when done): " token
+    echo
     test -z "${token}" && break
     set -- "$@" ${token}
 done

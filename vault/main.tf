@@ -2,6 +2,10 @@
 terraform {
   required_version = "~> 1.3"
   required_providers {
+    local = {
+      source  = "hashicorp/local"
+      version = "~> 2.4"
+    }
     vault = {
       # Provider is configured through environment vars to facilitate bootstrapping
       # and updates.
@@ -100,25 +104,36 @@ path "sys/health"
 }
 
 # List, create, update, and delete KV secrets.
-path "secret/*"
+path "${vault_mount.secret.path}/*"
 {
   capabilities = ["create", "read", "update", "delete", "list", "sudo"]
 }
 
 # List, create, update, and delete PKI engine.
-path "pki/*" {
+path "${vault_mount.pki.path}/*" {
   capabilities = ["create", "read", "update", "delete", "list", "sudo"]
 }
 
 # List, create, update, and delete PKI CA engine.
-path "pki_ca/*" {
+path "${vault_mount.pki_ca.path}/*" {
+  capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+}
+EOP
+}
+
+resource "vault_policy" "audit" {
+  name   = "audit"
+  policy = <<EOP
+# 'sudo' capability is required to manage audit devices
+path "sys/audit/*"
+{
   capabilities = ["create", "read", "update", "delete", "list", "sudo"]
 }
 
-
-# List, create, update, and delete F5 Anthos engine.
-path "anthos-f5/*" {
-  capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+# To list enabled audit devices, 'sudo' capability is required
+path "sys/audit"
+{
+  capabilities = ["read", "sudo"]
 }
 EOP
 }

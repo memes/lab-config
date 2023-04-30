@@ -35,7 +35,13 @@ vault login -method=oidc
 ### Root with one-time password
 
 ```shell
-./root-otp-login.sh UNSEAL_KEY1 UNSEAL_KEY2
+./root-otp-login.sh
+```
+
+```text
+Unseal token (leave empty when done): UNSEAL_KEY1
+Unseal token (leave empty when done): UNSEAL_KEY2
+Unseal token (leave empty when done):
 ```
 
 ## Bootstrapping
@@ -134,6 +140,7 @@ vault login -method=oidc
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.3 |
+| <a name="requirement_local"></a> [local](#requirement\_local) | ~> 2.4 |
 | <a name="requirement_vault"></a> [vault](#requirement\_vault) | ~> 3.10 |
 
 ## Modules
@@ -147,10 +154,12 @@ No modules.
 | [vault_approle_auth_backend_role.ipmi-secrets](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/approle_auth_backend_role) | resource |
 | [vault_approle_auth_backend_role.kickstart-secrets](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/approle_auth_backend_role) | resource |
 | [vault_auth_backend.approle](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/auth_backend) | resource |
+| [vault_auth_backend.k8s](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/auth_backend) | resource |
 | [vault_identity_group.admins](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/identity_group) | resource |
 | [vault_identity_group_alias.admins_alias](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/identity_group_alias) | resource |
 | [vault_jwt_auth_backend.oidc](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/jwt_auth_backend) | resource |
 | [vault_jwt_auth_backend_role.domain_user](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/jwt_auth_backend_role) | resource |
+| [vault_jwt_auth_backend_role.k8s_default](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/jwt_auth_backend_role) | resource |
 | [vault_mount.pki](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/mount) | resource |
 | [vault_mount.pki_ca](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/mount) | resource |
 | [vault_mount.secret](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/mount) | resource |
@@ -163,7 +172,9 @@ No modules.
 | [vault_pki_secret_backend_role.server_2048](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/pki_secret_backend_role) | resource |
 | [vault_pki_secret_backend_root_sign_intermediate.intermediate](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/pki_secret_backend_root_sign_intermediate) | resource |
 | [vault_policy.admin](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/policy) | resource |
+| [vault_policy.audit](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/policy) | resource |
 | [vault_policy.ipmi-secrets](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/policy) | resource |
+| [vault_policy.k8s_default](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/policy) | resource |
 | [vault_policy.kickstart-secrets](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/policy) | resource |
 | [vault_policy.kickstart-secrets-roleid](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/policy) | resource |
 | [vault_policy.kickstart-secrets-secretid](https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/policy) | resource |
@@ -180,7 +191,7 @@ No modules.
 | <a name="input_gsuite_client_secret"></a> [gsuite\_client\_secret](#input\_gsuite\_client\_secret) | The GSuite OIDC client secret. | `string` | n/a | yes |
 | <a name="input_gsuite_service_account_cred_path"></a> [gsuite\_service\_account\_cred\_path](#input\_gsuite\_service\_account\_cred\_path) | The path to the JSON credentials for a GCP service account with access to GSuite user data. | `string` | n/a | yes |
 | <a name="input_person_domains"></a> [person\_domains](#input\_person\_domains) | The list of domains that will be permitted for person (VPN) CSRs. | `list(string)` | <pre>[<br>  "home.arpa",<br>  "lab.acceleratedgcp.com"<br>]</pre> | no |
-| <a name="input_server_2048_domains"></a> [server\_2048\_domains](#input\_server\_2048\_domains) | The list of domains that will be permitted for server CSRs that must be restricted to 2048 bits (iDRAC). | `list(string)` | <pre>[<br>  "lab.acceleratedgcp.com"<br>]</pre> | no |
+| <a name="input_server_2048_domains"></a> [server\_2048\_domains](#input\_server\_2048\_domains) | The list of domains that will be permitted for server CSRs that must be restricted to 2048 bits (iDRAC). | `list(string)` | <pre>[<br>  "lab.acceleratedgcp.com",<br>  "home.arpa"<br>]</pre> | no |
 | <a name="input_server_domains"></a> [server\_domains](#input\_server\_domains) | The list of domains that will be permitted for server CSRs. | `list(string)` | <pre>[<br>  "home.arpa",<br>  "lab.acceleratedgcp.com"<br>]</pre> | no |
 
 ## Outputs

@@ -20,6 +20,7 @@ variable "server_2048_domains" {
   type = list(string)
   default = [
     "lab.acceleratedgcp.com",
+    "home.arpa",
   ]
   description = "The list of domains that will be permitted for server CSRs that must be restricted to 2048 bits (iDRAC)."
 }

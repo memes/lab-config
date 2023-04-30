@@ -17,6 +17,10 @@ resource "vault_jwt_auth_backend" "oidc" {
     groups_recurse_max_depth = 5
     user_custom_schemas      = ""
   }
+
+  lifecycle {
+    ignore_changes = [provider_config]
+  }
 }
 
 resource "vault_jwt_auth_backend_role" "domain_user" {
@@ -39,6 +43,7 @@ resource "vault_identity_group" "admins" {
   type = "external"
   policies = [
     vault_policy.admin.name,
+    vault_policy.audit.name,
   ]
   metadata = {
     responsibility = "Admin Group"
