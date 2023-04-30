@@ -87,3 +87,5 @@ fileignoreconfig:
   checksum: 095902f1751350c410061b57eaaafacdd8b1ea90cdaef4be3e13086cceb89365
 - filename: roles/kubeadm/templates/kubeadm-init.yml.j2
   checksum: bb7e71a39b91430ce89dce56bcaf94d6d615e151e10b747fb63d5edfa5fdebfe
+- filename: kubernetes.yml
+  checksum: db1c3f78b9659e1d5cbed0397fa02c45142966a8d986a3ae6936b76e01471eee

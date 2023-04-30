@@ -1,17 +1,201 @@
-# Update shared server playbook
+# Provision kubernetes on bare metal hosts
 # yamllint disable rule:line-length
 ---
-- name: Install kubernetes
+- name: Prepare requirements and install Kubernetes on bare-metal hosts
   hosts: servers
   become: true
+  gather_facts: true
   vars:
-    kubernetes_routes:
-      100:
+    # These values are explicitly defined here so that changes to CIDRs, etc,
+    # are propagated to the roles. In most cases they match the defaults for
+    # each role.
+    api_bind_port: 6443
+    api_external_hostname: "control.{{ lab_domain | default('lab.acceleratedgcp.com') }}"
+    api_external_port: 6443
+    bgp_peer: 172.16.96.1
+    bgp_peer_asn: 64512
+    bgp_asn: 64513
+    certificate_dir: ./certs/kubernetes/
+    cluster_name: lab
+    link_device: bond0
+    dataplane_device: "{{ link_device }}.100"
+    dns_domain: cluster.local
+    ipv4_native_routing_cidr: 172.16.96.0/20
+    lb_cidrs:
+      - 172.16.105.0/24
+      - 2001:470:49a5:84::/112
+    pod_cidrs:
+      - 172.16.100.0/22
+      - 2001:470:49a5:82::/96
+    overrides:
+      96:
+        nameservers:
+          addresses:
+            - 172.16.96.1
+            - '2001:470:49a5:80::1'
+        routing-policy:
+          - from: 172.16.96.0/20
+            priority: 1000
+            table: 96
+          - from: '2001:470:49a5:80::/57'
+            priority: 1000
+            table: 96
         routes:
-          - route: 10.0.0.0/8
-            gw: 172.16.96.1
-    vlans: "{{ hostvars[inventory_hostname]['vlans'] | combine(kubernetes_routes, recursive=true) }} "
-  roles:
-    - refresh
-    - networking
-    - crio
+          - to: 0.0.0.0/0
+            via: 172.16.96.1
+            table: 96
+            # metric: 50
+          - to: ::/0
+            via: '2001:470:49a5:80::1'
+            table: 96
+            # metric: 50
+    service_cidrs:
+      - 172.16.104.0/24
+      - 2001:470:49a5:83::/112
+    skip_phases:
+      init:
+        - addon/kube-proxy
+      join:
+        - control-plane-prepare/download-certs
+    upstream_dns:
+      - 172.16.96.1
+      - '2001:470:49a5:80::1'
+
+  tasks:
+    - name: Setup networking for VLAN 96
+      include_role:
+        name: networking
+      vars:
+        vlans: "{{ hostvars[inventory_hostname]['vlans'] | combine(overrides | default({}), recursive=true) }}"
+    - name: Prepare hosts for kubernetes
+      include_role:
+        name: pre-kube
+    - name: Flush pending handlers
+      ansible.builtin.meta: flush_handlers
+    - name: Reset connections
+      ansible.builtin.meta: reset_connection
+    - name: Install CRI-O
+      include_role:
+        name: crio
+    - name: Install Kubernetes with Kubeadm
+      include_role:
+        name: kubeadm
+      vars:
+        node_addresses: "{{ vlans[96]['addresses'] }}"
+    - name: Flush pending handlers
+      ansible.builtin.meta: flush_handlers
+    - name: Remove scheduling taints from masters that are also workers
+      kubernetes.core.k8s_taint:
+        ca_cert: "{{ certificate_dir }}/ca.chain.pem"
+        state: absent
+        name: "{{ k8s.node_name }}"
+        taints:
+          - effect: NoSchedule
+            key: node-role.kubernetes.io/control-plane
+          - effect: NoSchedule
+            key: node-role.kubernetes.io/master
+      when: (k8s.master | default(False)) and (k8s.worker | default(True))
+      delegate_to: 127.0.0.1
+      become: false
+    - name: Set upstream DNS for CoreDNS
+      kubernetes.core.k8s:
+        ca_cert: "{{ certificate_dir }}/ca.chain.pem"
+        state: patched
+        kind: ConfigMap
+        name: coredns
+        namespace: kube-system
+        definition:
+          data:
+            Corefile: |
+              .:53 {
+                  errors
+                  health {
+                    lameduck 5s
+                  }
+                  ready
+                  kubernetes {{ dns_domain }} in-addr.arpa ip6.arpa {
+                    pods insecure
+                    fallthrough in-addr.arpa ip6.arpa
+                    ttl 30
+                  }
+                  prometheus :9153
+                  forward . {{ upstream_dns | unique | ansible.utils.ipwrap | map('regex_replace', '$', ':53') | join(' ') }} {
+                    max_concurrent 1000
+                  }
+                  cache 30
+                  loop
+                  reload
+                  loadbalance
+              }
+      delegate_to: 127.0.0.1
+      become: false
+      run_once: true
+    - name: Delete running CoreDNS pods
+      kubernetes.core.k8s:
+        ca_cert: "{{ certificate_dir }}/ca.chain.pem"
+        state: absent
+        kind: Pod
+        namespace: kube-system
+        label_selectors:
+          - k8s-app=kube-dns
+        delete_options:
+          gracePeriodSeconds: 1
+      delegate_to: 127.0.0.1
+      become: false
+      run_once: true
+    - name: Wait for CoreDNS to be ready
+      kubernetes.core.k8s_info:
+        ca_cert: "{{ certificate_dir }}/ca.chain.pem"
+        kind: Deployment
+        name: coredns
+        namespace: kube-system
+      register: coredns_ready
+      until: coredns_ready.resources | json_query('[0].status | numberReady == desiredNumberScheduled')
+      delay: 10
+      retries: 6
+      delegate_to: 127.0.0.1
+      become: false
+      run_once: true
+    - name: Allow unauthenticated access to OIDC discovery URL for Vault integration
+      kubernetes.core.k8s:
+        ca_cert: "{{ certificate_dir }}/ca.chain.pem"
+        state: present
+        force: true
+        name: external-secrets-oidc-reviewer
+        api_version: rbac.authorization.k8s.io/v1
+        kind: ClusterRoleBinding
+        definition:
+          roleRef:
+            kind: ClusterRole
+            name: system:service-account-issuer-discovery
+          subjects:
+            - kind: Group
+              name: system:unauthenticated
+      delegate_to: 127.0.0.1
+      become: false
+      run_once: true
+    - name: Allow OIDC integration with kubernetes tokens by configuring the *existing* auth mount via OIDC discovery
+      community.hashi_vault.vault_write:
+        path: auth/k8s/config
+        data:
+          oidc_discovery_url: "https://{{ api_external_hostname }}:{{ api_external_port }}"
+          oidc_discovery_ca_pem: "{{ lookup('ansible.builtin.file', certificate_dir + './ca.chain.pem') | ansible.builtin.regex_replace('\r?\n+','\\n') }}"
+      delegate_to: 127.0.0.1
+      become: false
+      run_once: true
+    - name: Install Cilium
+      include_role:
+        name: cilium
+    # https://docs.cilium.io/en/stable/network/kubernetes/configuration/#crio
+    - name: Restart CRI-O to recognise Cilium
+      ansible.builtin.systemd:
+        name: kubelet
+        enabled: true
+        state: restarted
+        daemon_reload: false
+    - name: Install external-secrets
+      include_role:
+        name: external-secrets
+    - name: Install Longhorn
+      include_role:
+        name: longhorn

@@ -1,0 +1,70 @@
+# Remove kubernetes from bare metal hosts
+---
+- name: Remove Kubernetes and CRI-O from bare-metal hosts
+  hosts: servers
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Get installed packages
+      ansible.builtin.package_facts:
+        manager: auto
+    - name: Uninstall cilium
+      kubernetes.core.helm:
+        release_name: cilium
+        release_namespace: kube-system
+        state: absent
+        force: true
+        wait: true
+      delegate_to: 127.0.0.1
+      become: false
+      run_once: true
+      ignore_errors: true
+    - name: Reset kubeadm
+      ansible.builtin.command: kubeadm reset --force
+      when: "'kubeadm' in ansible_facts.packages"
+    - name: Disable kubelet unit
+      ansible.builtin.systemd:
+        name: kubelet
+        enabled: false
+        state: stopped
+        daemon_reload: true
+      when: "'kubelet' in ansible_facts.packages"
+    - name: Remove all pods
+      ansible.builtin.command: crictl rmp --all --force
+      ignore_errors: true
+      when: "'cri-tools' in ansible_facts.packages"
+    - name: Remove all containers
+      ansible.builtin.command: crictl rm --all
+      ignore_errors: true
+      when: "'cri-tools' in ansible_facts.packages"
+    - name: Remove all images
+      ansible.builtin.command: crictl rmi --all
+      ignore_errors: true
+      when: "'cri-tools' in ansible_facts.packages"
+    - name: Disable CRI-O
+      ansible.builtin.systemd:
+        name: crio
+        enabled: false
+        state: stopped
+        daemon_reload: true
+      when: "'cri-o' in ansible_facts.packages"
+    - name: Uninstall kubernetes and CRI-O packages
+      ansible.builtin.package:
+        name:
+          - cri-tools
+          - kubectl
+          - kubelet
+          - kubeadm
+          - cri-o
+          - cri-o-runc
+        state: absent
+    - name: Clean-up directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/kubernetes
+        - /etc/cni
+        - /etc/crio
+        - /var/tmp/kubeadm
