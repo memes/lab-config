@@ -30,8 +30,7 @@ logvol swap --fstype="swap" --size=4096 --name=swap --vgname=vg.0
 
 # Network information
 network --bootproto=dhcp --device=eno1 --ipv6=auto --activate
-network --bootproto=dhcp --device=bond0 --noipv4 --noipv6 --activate --bondslaves="eno2'{}',eno3'{}',eno4'{}'" --bondopts="mode=802.03ad,lacp-rate=1,miimon=100"
-network --bootproto=dhcp --device=bond0 --noipv4 --noipv6 --activate --nodefroute --vlanid=100
+network --bootproto=dhcp --device=bond0 --noipv4 --noipv6 --nodefroute --activate --bondslaves="eno2,eno3,eno4" --bondopts="mode=802.3ad,lacp_rate=1,miimon=100,xmit_hash_policy=layer2+3"
 %include /tmp/hostname.ks
 
 # NTP

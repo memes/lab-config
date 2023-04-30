@@ -277,16 +277,19 @@
 - name: Update CA cert
   ansible.builtin.copy:
     src: "{{ ca_cert_pem }}"
-    dest: /usr/local/share/ca-certificates/acceleratedgcp-root-ca.crt
+    dest: "{{ item }}/acceleratedgcp-root-ca.crt"
     force: true
     owner: root
     group: root
     mode: '0644'
     directory_mode: '0755'
+  loop:
+    - /usr/local/share/ca-certificates
   notify:
     - Update CA Certs
   tags:
     - http
+    - tftp
 - name: Update HTTPS TLS cert
   ansible.builtin.copy:
     src: "{{ shared_tls_cert_pem }}"

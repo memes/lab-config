@@ -56,7 +56,7 @@ fileignoreconfig:
 - filename: shared/templates/tftp/pxelinux.cfg/lab_autoprovision.cfg.j2
   checksum: 961020d0a9be112765ba56b7419b7f3062e19c274c0b645a5d42a8f330760128
 - filename: roles/shared/vars/main.yml
-  checksum: 377d52b7762ea080ac217d60b21b9f60e62b16bc631e39bb4397bcce08b68c0f
+  checksum: 8be9b586a2fae6dbf1beafb191d4cd2731411c1c0478076636d084ef7b480826
 - filename: roles/shared/tasks/main.yml
   checksum: 7fdf44dc8bfabe5839cc4dae3c014e946aff65208280235c04a43db099f8d62b
 - filename: roles/vault/defaults/main.yml

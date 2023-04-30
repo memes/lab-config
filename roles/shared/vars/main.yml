@@ -2,5 +2,5 @@
 # Path to externally generated root CA certificate
 ca_cert_pem: ./ca/acceleratedgcp-root-ca.pem
 # Path to externally generated shared server TLS certificate and key
-shared_tls_cert_pem: ./certs/{{ lab_shared_host }}.pem
-shared_tls_key_pem: ./certs/{{ lab_shared_host }}.key
+shared_tls_cert_pem: ./certs/{{ lab_shared_host }}.chain.pem
+shared_tls_key_pem: ./certs/{{ lab_shared_host }}.key.pem

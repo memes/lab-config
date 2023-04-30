@@ -45,6 +45,8 @@ autoinstall:
         dhcp6: no
     bonds:
       bond0:
+        dhcp4: no
+        dhcp6: no
         interfaces:
           - eno2
           - eno3
@@ -54,20 +56,6 @@ autoinstall:
           lacp-rate: fast
           mii-monitor-interval: 100
           transmit-hash-policy: 'layer2+3'
-    vlans:
-      bond0.100:
-        dhcp4: no
-        dhcp6: no
-        id: 100
-        link: bond0
-        dhcp4-overrides:
-          use-dns: false
-          use-ntp: false
-          route-metric: 200
-        dhcp6-overrides:
-          use-dns: false
-          use-ntp: false
-          route-metric: 200
   storage:
     swap:
       size: 0

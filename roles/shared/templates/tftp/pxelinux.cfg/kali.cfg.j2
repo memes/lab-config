@@ -2,9 +2,17 @@
 {{ ansible_managed | comment }}
 
 label kali
-  menu label ^Kali Live
+  menu label ^Kali Netinst
+  kernel ::boot/kali-x86_64/linux vga=788
+  append initrd=::boot/kali-x86_64/initrd.gz
+  text help
+  Run Kali network installer.
+  endtext
+
+label kalilive
+  menu label Kali ^Live
   kernel ::boot/kali-live-x86_64/vmlinuz
-  append initrd=::boot/kali-live-x86_64/initrd.img vga=788 append boot=live components fetch={{ default_shared_http_url }}/software/kali-live-x86_64/live/filesystem.squashfs utc=no timezone=America/Los_Angeles
+  append initrd=::boot/kali-live-x86_64/initrd.gz net.ifnames vga=788 boot=live components fetch={{ default_shared_http_url }}/software/kali-live-x86_64/live/filesystem.squashfs utc=no timezone=America/Los_Angeles
   text help
   Run Kali Live without persistence.
   endtext

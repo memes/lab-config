@@ -34,6 +34,17 @@ menu begin debian
   include pxelinux.cfg/debian.cfg
 menu end
 
+menu begin kali
+  menu label ^Kali installers
+  menu title Kali installers
+  label back
+    menu label ^Back
+    menu default
+    menu exit
+  menu separator
+  include pxelinux.cfg/kali.cfg
+menu end
+
 menu begin redhat
   menu label ^RedHat installers
   menu title RedHat installers
@@ -57,8 +68,6 @@ menu begin ubuntu
 menu end
 
 menu separator
-
-include pxelinux.cfg/kali.cfg
 
 menu begin tools
   menu label ^Tools
