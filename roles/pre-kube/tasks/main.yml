@@ -1,0 +1,52 @@
+---
+# - name: Prepare Debian/Ubuntu hosts
+#   ansible.builtin.import_tasks: debian.yml
+#   when: ansible_os_family == "Debian"
+# - name: Prepare CentOS/RHEL hosts
+#   ansible.builtin.import_tasks: rhel.yml
+#   when: ansible_os_family == "RedHat"
+- name: Configure persistent modules for Kubernetes
+  ansible.builtin.template:
+    src: templates/modules-load.conf.j2
+    dest: "/etc/modules-load.d/kubernetes.conf"
+    owner: root
+    group: root
+    mode: '0644'
+- name: Add required modules
+  community.general.modprobe:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ required_modules }}"
+- name: Set persistent sysctl params for Kubernetes
+  ansible.posix.sysctl:
+    name: "{{ item['param'] }}"
+    value: "{{ item['value'] }}"
+    sysctl_file: /etc/sysctl.d/90-kubernetes.conf
+    sysctl_set: true
+    reload: true
+    state: present
+  loop: "{{ sysctls }}"
+- name: Disable swap
+  ansible.builtin.command: swapoff -a
+- name: Remove swapfs
+  ansible.posix.mount:
+    path: none
+    fstype: swap
+    state: absent
+- name: Disable SELinux
+  ansible.posix.selinux:
+    state: disabled
+  ignore_errors: true
+  notify:
+    - reboot
+- name: Disable ufw, if installed
+  community.general.ufw:
+    state: disabled
+  ignore_errors: true
+- name: Disable firewalld, if present
+  ansible.builtin.systemd:
+    name: firewalld
+    enabled: false
+    masked: true
+    state: stopped
+  ignore_errors: true

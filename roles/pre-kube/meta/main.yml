@@ -1,0 +1,16 @@
+---
+galaxy_info:
+  author: Matthew Emes
+  description: Prepare Accelerated GCP Lab servers for kubernetes
+  license: MIT
+  min_ansible_version: '2.1'
+  galaxy_tags: []
+  platforms:
+    - name: EL
+      versions:
+        - '8'
+    - name: Ubuntu
+      versions:
+        - jammy
+        - focal
+dependencies: []
