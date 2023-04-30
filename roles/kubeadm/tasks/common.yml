@@ -1,0 +1,63 @@
+---
+- name: Create Kubernetes PKI directories
+  ansible.builtin.file:
+    path: /etc/kubernetes/pki/etcd
+    state: directory
+    mode: 0755
+    owner: root
+    group: root
+- name: Copy Kubernetes CA certificates
+  ansible.builtin.copy:
+    src: "{{ certificate_dir }}/{{ item }}"
+    dest: /etc/kubernetes/pki/
+    force: true
+    mode: 0644
+    owner: root
+    group: root
+  loop:
+    - ca.crt
+    - front-proxy-ca.crt
+    - sa.pub
+- name: Copy Kubernetes CA keys
+  ansible.builtin.copy:
+    src: "{{ certificate_dir }}/{{ item }}"
+    dest: /etc/kubernetes/pki/
+    force: true
+    mode: 0600
+    owner: root
+    group: root
+  loop:
+    - ca.key
+    - front-proxy-ca.key
+    - sa.key
+- name: Copy Kubernetes etcd CA certificate
+  ansible.builtin.copy:
+    src: "{{ certificate_dir }}/etcd-ca.crt"
+    dest: /etc/kubernetes/pki/etcd/ca.crt
+    force: true
+    mode: 0644
+    owner: root
+    group: root
+- name: Copy Kubernetes etcd CA key
+  ansible.builtin.copy:
+    src: "{{ certificate_dir }}/etcd-ca.key"
+    dest: /etc/kubernetes/pki/etcd/ca.key
+    force: true
+    mode: 0600
+    owner: root
+    group: root
+- name: Create temp kubeadm config directory
+  ansible.builtin.file:
+    path: /var/tmp/kubeadm
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+- name: Generate kube-apiserver patch file
+  ansible.builtin.template:
+    src: templates/kube-apiserver0+json.yaml.j2
+    dest: /var/tmp/kubeadm/kube-apiserver0+json.yaml
+    owner: root
+    group: root
+    mode: '0644'
+    force: false

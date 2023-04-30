@@ -1,0 +1,115 @@
+# yamllint disable rule:line-length
+---
+- name: Generate kubeadm token
+  ansible.builtin.command: kubeadm token generate
+  args:
+    creates: /var/tmp/kubeadm/config.yml
+  register: token_command
+  run_once: true
+  delegate_to: "{{ init_target }}"
+  # when: inventory_hostname == init_target
+  changed_when: token_command.rc == 0 and token_command.stdout != ""
+- name: Generate kubeadm cert key, if needed
+  ansible.builtin.command: kubeadm certs certificate-key
+  args:
+    creates: /var/tmp/kubeadm/config.yml
+  register: cert_key_command
+  run_once: true
+  delegate_to: "{{ init_target }}"
+  # when: inventory_hostname == init_target
+  changed_when: cert_key_command.rc == 0 and token_command.stdout != ""
+- name: Generate kubeadm init configuration
+  vars:
+    token: "{{ token_command.stdout }}"
+    cert_key: "{{ cert_key_command.stdout }}"
+    external_hostname: "{{ api_external_hostname }}"
+    node_name: "{{ k8s.node_name }}"
+  ansible.builtin.template:
+    src: templates/kubeadm-init.yml.j2
+    dest: /var/tmp/kubeadm/config.yml
+    owner: root
+    group: root
+    mode: '0644'
+    force: false
+  run_once: true
+  delegate_to: "{{ init_target }}"
+  # when: inventory_hostname == init_target
+- name: Execute kubeadm init
+  ansible.builtin.command: >-
+    kubeadm init --config=/var/tmp/kubeadm/config.yml
+  args:
+    creates: /etc/kubernetes/admin.conf
+  run_once: true
+  delegate_to: "{{ init_target }}"
+  # when: inventory_hostname == init_target
+- name: Read the generated kubeadm initialisation file
+  ansible.builtin.slurp:
+    src: /var/tmp/kubeadm/config.yml
+  register: init_kubeadm
+  run_once: true
+  delegate_to: "{{ init_target }}"
+  # when: inventory_hostname == init_target
+- name: Get CA certificate info
+  community.crypto.x509_certificate_info:
+    path: "{{ certificate_dir }}/ca.crt"
+  register: ca_cert
+  become: false
+  run_once: true
+  delegate_to: localhost
+- name: Setting kubeadm facts
+  ansible.builtin.set_fact:
+    kubeadm:
+      ca_cert_hash: "sha256:{{ ca_cert.public_key_fingerprints.sha256 | replace(':', '') }}"
+      cert_key: "{{ (init_kubeadm.content | b64decode | from_yaml_all)[0].certificateKey }}"
+      token: "{{ (init_kubeadm.content | b64decode | from_yaml_all)[0].bootstrapTokens[0].token }}"
+  run_once: true
+  delegate_to: "{{ init_target }}"
+  # when: inventory_hostname == init_target
+- name: Create admin user account(s)
+  ansible.builtin.command: >-
+    kubeadm kubeconfig user --client-name {{ item }}@{{ lab_domain }}
+      --config=/var/tmp/kubeadm/config.yml
+  register: kubeconfig
+  loop: "{{ k8s_admins | default(['memes']) }}"
+  run_once: true
+  delegate_to: "{{ init_target }}"
+  # when: inventory_hostname == init_target
+- name: Write admin accounts YAML
+  vars:
+    user: "{{ item.item }}"
+  ansible.builtin.template:
+    src: templates/admin-user-rbac.yml.j2
+    dest: /var/tmp/kubeadm/{{ item.item }}-admin-rbac.yml
+    owner: root
+    group: root
+    mode: '0644'
+  run_once: true
+  delegate_to: "{{ init_target }}"
+  when: item.rc == 0
+  loop: "{{ kubeconfig.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+- name: Execute admin account bindings
+  ansible.builtin.command: >-
+    kubectl apply -f /var/tmp/kubeadm/{{ item.item }}-admin-rbac.yml
+      --kubeconfig=/etc/kubernetes/admin.conf
+  run_once: true
+  delegate_to: "{{ init_target }}"
+  when: item.rc == 0
+  loop: "{{ kubeconfig.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+- name: Write user kubeconfig(s) locally
+  ansible.builtin.template:
+    src: templates/kubeconfig.user.j2
+    dest: kubeconfig.{{ item.item }}
+    # Always update the local kubeconfig
+    force: true
+    mode: '0600'
+  run_once: true
+  become: false
+  delegate_to: localhost
+  when: item.rc == 0
+  loop: "{{ kubeconfig.results }}"
+  loop_control:
+    label: "{{ item.item }}"

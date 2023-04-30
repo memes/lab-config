@@ -75,3 +75,15 @@ fileignoreconfig:
   checksum: b9109b9587d4a02f83de60c1aea350afd12cd6608b080de5f0807ca7ee23aecf
 - filename: certs/Makefile
   checksum: 53245cd9c99f6977f62307090d6e2781fa0e0396b59a4921c5e829cd835d0489
+- filename: roles/kubeadm/tasks/rhel.yml
+  checksum: 72cd5839d9219a6282a222490838f728e23871bcd856b8752879095dbc432127
+- filename: roles/kubeadm/templates/kubeadm-join.yml.j2
+  checksum: 12fab3d3b53036b2a10f01f13ee09229830ec981147b500c19e066bc968f2974
+- filename: roles/kubeadm/tasks/join.yml
+  checksum: caf7c75789884be3545550d62c15f2fba1611d4c188bb1a3bf8ec306d1c3fd80
+- filename: roles/kubeadm/tasks/debian.yml
+  checksum: 1ff1caddbe342dee7f657a91a0fdbe7bac1392ecbc65faa20488f69e48dcbbb7
+- filename: roles/kubeadm/tasks/init.yml
+  checksum: 095902f1751350c410061b57eaaafacdd8b1ea90cdaef4be3e13086cceb89365
+- filename: roles/kubeadm/templates/kubeadm-init.yml.j2
+  checksum: bb7e71a39b91430ce89dce56bcaf94d6d615e151e10b747fb63d5edfa5fdebfe

@@ -1,0 +1,20 @@
+# Role to install kubernetes on hosts
+---
+- name: Prepare all hosts
+  ansible.builtin.import_tasks: common.yml
+- name: Prepare Debian/Ubuntu hosts
+  ansible.builtin.import_tasks: debian.yml
+  when: ansible_os_family == "Debian"
+- name: Prepare CentOS/RHEL hosts
+  ansible.builtin.import_tasks: rhel.yml
+  when: ansible_os_family == "RedHat"
+- name: Enable kubelet unit
+  ansible.builtin.systemd:
+    name: kubelet
+    enabled: true
+    state: started
+    daemon_reload: true
+- name: Initialize cluster
+  ansible.builtin.import_tasks: init.yml
+- name: Join cluster
+  ansible.builtin.import_tasks: join.yml

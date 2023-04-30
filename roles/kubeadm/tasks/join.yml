@@ -1,0 +1,22 @@
+---
+- name: Generate kubeadm join configuration
+  vars:
+    token: "{{ kubeadm.token }}"
+    ca_cert_hash: "{{ kubeadm.ca_cert_hash }}"
+    cert_key: "{{ kubeadm.cert_key }}"
+    node_name: "{{ k8s.node_name }}"
+    is_master: "{{ k8s.master | default(False) }}"
+  ansible.builtin.template:
+    src: templates/kubeadm-join.yml.j2
+    dest: /var/tmp/kubeadm/config.yml
+    owner: root
+    group: root
+    mode: '0644'
+    force: false
+  when: inventory_hostname != init_target
+- name: Execute kubeadm join on nodes
+  ansible.builtin.command: >-
+    kubeadm join --config=/var/tmp/kubeadm/config.yml
+  args:
+    creates: /etc/kubernetes/kubelet.conf
+  when: inventory_hostname != init_target

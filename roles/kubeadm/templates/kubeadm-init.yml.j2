@@ -1,0 +1,46 @@
+# Overide the default configuration for initial master node
+# Reference generated from kubeadm config print init-defaults --component-configs=KubeletConfiguration
+{{ ansible_managed | comment }}
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: InitConfiguration
+patches:
+  directory: /var/tmp/kubeadm
+bootstrapTokens:
+  - groups:
+      - system:bootstrappers:kubeadm:default-node-token
+    token: {{ token }}
+certificateKey: {{ cert_key }}
+localAPIEndpoint:
+  advertiseAddress: "{{ node_addresses | ansible.utils.ipaddr('address') | first }}"
+  bindPort: {{ api_bind_port }}
+nodeRegistration:
+  name: {{ node_name }}
+  kubeletExtraArgs:
+    node-ip: "{{ node_addresses | ansible.utils.ipaddr('address') | join(',') }}"
+    address: "{{ node_addresses | ansible.utils.ipaddr('address') | first }}"
+skipPhases: {{ skip_phases['init'] | default([]) | to_yaml }}
+---
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: ClusterConfiguration
+apiServer:
+  certSANs:
+    - {{ external_hostname }}
+  extraArgs:
+    external-hostname: {{ api_external_hostname }}
+    service-account-issuer: "https://{{ api_external_hostname }}:{{ api_external_port }}"
+controllerManager:
+  extraArgs: {{ ipv4_extra_args | combine(ipv6_extra_args) | to_yaml }}
+clusterName: {{ cluster_name }}
+controlPlaneEndpoint: "{{ api_external_hostname }}:{{ api_external_port }}"
+kubernetesVersion: {{ version }}
+networking:
+  dnsDomain: {{ dns_domain }}
+  serviceSubnet: "{{ service_cidrs | join(',') }}"
+  podSubnet: "{{ pod_cidrs | join(',') }}"
+---
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+cgroupDriver: {{ cgroup_driver }}
+clusterDNS:
+  - "{{ dns_service | default(service_cidrs | first | ansible.utils.nthhost(10)) }}"
+clusterDomain: {{ dns_domain }}

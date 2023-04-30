@@ -1,0 +1,46 @@
+# Perform Debian/Ubuntu specific tasks common to all hosts
+# yamllint disable rule:line-length
+---
+- name: Fetch repo key for kubernetes apt packages
+  ansible.builtin.get_url:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    dest: /var/tmp/kubeadm/repo.asc
+    owner: root
+    group: root
+    mode: '0644'
+- name: Add repo key for kubernetes apt packages
+  ansible.builtin.command:
+    cmd: >-
+      gpg --batch --yes --dearmor --output /usr/share/keyrings/kubernetes.gpg
+        /var/tmp/kubeadm/repo.asc
+    creates: /usr/share/keyrings/kubernetes.gpg
+- name: Fix repo key permissions
+  ansible.builtin.file:
+    path: /usr/share/keyrings/kubernetes.gpg
+    owner: root
+    group: root
+    mode: '0644'
+- name: Add Kubernetes apt repo
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/kubernetes.gpg] https://apt.kubernetes.io/ kubernetes-xenial main"
+    state: present
+    filename: kubernetes
+    update_cache: true
+- name: Install required packages
+  ansible.builtin.apt:
+    name:
+      - cri-tools
+      - "kubectl={{ version }}-00"
+      - "kubelet={{ version }}-00"
+      - "kubeadm={{ version }}-00"
+    state: present
+    allow_change_held_packages: false
+    allow_downgrade: false
+- name: Hold kubectl, kubeadm, and kubelet packages
+  ansible.builtin.dpkg_selections:
+    name: "{{ item }}"
+    selection: hold
+  loop:
+    - kubectl
+    - kubelet
+    - kubeadm
