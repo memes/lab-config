@@ -60,7 +60,7 @@ fileignoreconfig:
 - filename: roles/shared/tasks/main.yml
   checksum: 7fdf44dc8bfabe5839cc4dae3c014e946aff65208280235c04a43db099f8d62b
 - filename: roles/vault/defaults/main.yml
-  checksum: e7311bcbe34c39dbc3f3b361bc55a6098427a81ca1758a1084ddba357ab7d44b
+  checksum: 2232da9d2fea90e539c0a88742afd740729143d88ac63837affe79b0a060217c
 - filename: roles/vault/tasks/main.yml
   checksum: 9db6fa1ea15d1f1221ebecfc536be9657289a85216dce43690bf7ef1a8ee323b
 - filename: vault/kickstart-secrets.tf
