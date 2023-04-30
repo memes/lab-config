@@ -13,12 +13,16 @@
     name: "{{ item }}"
     state: present
   loop: "{{ required_modules }}"
-- name: Add CRI-O repos for Debian
+- name: Create temp crio config directory
+  ansible.builtin.file:
+    path: /var/tmp/crio
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+- name: Add CRI-O repos for Debian/Ubuntu
   ansible.builtin.import_tasks: debian.yml
-  when: ansible_distribution == "Debian"
-- name: Add CRI-O repos for Ubuntu
-  ansible.builtin.import_tasks: ubuntu.yml
-  when: ansible_distribution == "Ubuntu"
+  when: ansible_os_family == "Debian"
 - name: Add CRI-O repos for CentOS
   ansible.builtin.import_tasks: centos.yml
   when: ansible_distribution == "CentOS"

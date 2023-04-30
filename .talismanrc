@@ -70,7 +70,7 @@ fileignoreconfig:
 - filename: roles/crio/tasks/ubuntu.yml
   checksum: 17977771e05f783f83df3d2e71bd86c6f92be65c02a361072fd98a9041218f62
 - filename: roles/crio/tasks/debian.yml
-  checksum: dd272f580f3af9bbef74975e795e880e8e7a0d47fb03d9a3d3fbbac9286252c6
+  checksum: 7a55c5565f4ed159e6004f2851804c578aa23b081cc53e9a806e7a816e624d73
 - filename: roles/shared/templates/scripts/post-onboard-debian.sh.j2
   checksum: b9109b9587d4a02f83de60c1aea350afd12cd6608b080de5f0807ca7ee23aecf
 - filename: certs/Makefile

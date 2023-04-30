@@ -9,7 +9,8 @@ packages:
   Debian:
     - cri-o
     - cri-o-runc
-    - cri-tools
   RedHat:
     - cri-o
-    - cri-tools
+apt_repo_mapping:
+  Debian: "Debian_{{ ansible_distribution_version }}"
+  Ubuntu: "xUbuntu_{{ ansible_distribution_version }}"
