@@ -1,0 +1,133 @@
+# Install Cilium as CNI
+# yamllint disable rule:line-length
+---
+- set_fact:
+    lb_cidr_pool: "{{ lb_cidr_pool | default([]) + [{'cidr': item}] }}"
+  loop: "{{ lb_cidrs }}"
+- name: Label nodes to accept default BGP peering policy
+  kubernetes.core.k8s:
+    ca_cert: "{{ certificate_dir }}/ca.chain.pem"
+    state: patched
+    kind: Node
+    definition:
+      metadata:
+        name: "{{ k8s.node_name }}"
+        labels:
+          lab.acceleratedgcp.com/bgp-peering-policy: default-peering-policy
+  delegate_to: 127.0.0.1
+  become: false
+- name: Add Cilium helm repo
+  kubernetes.core.helm_repository:
+    name: cilium
+    repo_url: https://helm.cilium.io/
+  delegate_to: 127.0.0.1
+  become: false
+  run_once: true
+- name: Install Cilium from chart
+  kubernetes.core.helm:
+    ca_cert: "{{ certificate_dir }}/ca.chain.pem"
+    name: cilium
+    chart_ref: cilium/cilium
+    chart_version: "{{ version }}"
+    update_repo_cache: false
+    force: true
+    wait: true
+    release_namespace: kube-system
+    values:
+      # bgp:
+      #   enabled: true
+      #   announce:
+      #     loadbalancerIP: true
+      #     podCIDR: true
+      bgpControlPlane:
+        enabled: true
+      bpf:
+        masquerade: false
+      containerRuntime:
+        integration: crio
+      enableIPv4Masquerade: false
+      enableIPv6Masquerade: false
+      extraArgs: "{{ ['--devices=%s' | format(dataplane_device)] if dataplane_device else [] | to_yaml }}"
+      extraConfig:
+        enable-ipv6-ndp: "{{ ((pod_cidrs + service_cidrs + lb_cidrs) | ansible.utils.ipv6 | length > 0) | string | lower }}"
+        ipv6-mcast-device: "{{ dataplane_device }}"
+        ipv6-service-range: "{{ service_cidrs | ansible.utils.ipv6 | default(['auto'], true) | join(',') }}"
+      ipv4:
+        enabled: "{{ (pod_cidrs + service_cidrs + lb_cidrs) | ansible.utils.ipv4 | length > 0 }}"
+      ipv4NativeRoutingCIDR: "{{ ipv4_native_routing_cidr }}"
+      ipv6:
+        enabled: "{{ (pod_cidrs + service_cidrs + lb_cidrs) | ansible.utils.ipv6 | length > 0 }}"
+      ipam:
+        mode: kubernetes
+      k8s:
+        requireIPv4PodCidr: "{{ pod_cidrs | ansible.utils.ipv4 | length > 0 }}"
+        requireIPv6PodCidr: "{{ pod_cidrs | ansible.utils.ipv6 | length > 0 }}"
+      k8sServiceHost: "{{ api_external_hostname }}"
+      k8sServicePort: "{{ api_external_port }}"
+      kubeProxyReplacement: strict
+      tunnel: disabled
+  delegate_to: 127.0.0.1
+  become: false
+  run_once: true
+- name: Wait for Cilium to be ready
+  kubernetes.core.k8s_info:
+    ca_cert: "{{ certificate_dir }}/ca.chain.pem"
+    kind: DaemonSet
+    name: cilium
+    namespace: kube-system
+  register: cilium_ready
+  until: cilium_ready.resources | json_query('[0].status | numberReady == desiredNumberScheduled')
+  delay: 10
+  retries: 6
+  delegate_to: 127.0.0.1
+  become: false
+  run_once: true
+- name: Create load-balancer IP pool
+  kubernetes.core.k8s:
+    ca_cert: "{{ certificate_dir }}/ca.chain.pem"
+    state: present
+    definition:
+      apiVersion: cilium.io/v2alpha1
+      kind: CiliumLoadBalancerIPPool
+      metadata:
+        name: lb-pool
+      spec:
+        cidrs: "{{ lb_cidr_pool }}"
+  delegate_to: 127.0.0.1
+  become: false
+  run_once: true
+- name: Create BGP peering policy
+  kubernetes.core.k8s:
+    ca_cert: "{{ certificate_dir }}/ca.chain.pem"
+    state: present
+    definition:
+      apiVersion: cilium.io/v2alpha1
+      kind: CiliumBGPPeeringPolicy
+      metadata:
+        name: default-peering-policy
+      spec:
+        nodeSelector:
+          matchLabels:
+            lab.acceleratedgcp.com/bgp-peering-policy: default-peering-policy
+        virtualRouters:
+          - localASN: "{{ bgp_asn }}"
+            exportPodCIDR: true
+            neighbors:
+              - peerAddress: "{{ bgp_peer | ansible.utils.ipaddr('host') }}"
+                peerASN: "{{ bgp_peer_asn }}"
+                eBGPMultihopTTL: 10
+                connectRetryTimeSeconds: 120
+                holdTimeSeconds: 90
+                keepAliveTimeSeconds: 30
+                gracefulRestart:
+                  enabled: true
+                  restartTimeSeconds: 120
+            serviceSelector:
+              matchExpressions:
+                - key: dummy
+                  operator: NotIn
+                  values:
+                    - dummy
+  delegate_to: 127.0.0.1
+  become: false
+  run_once: true
