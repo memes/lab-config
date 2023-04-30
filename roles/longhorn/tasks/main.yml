@@ -1,0 +1,58 @@
+# Install longhorn pre-requisites on hosts and provision from published manifest
+---
+- name: Install required packages
+  ansible.builtin.package:
+    name: "{{ packages[ansible_os_family] }}"
+    state: present
+- name: Enable iscsid unit
+  ansible.builtin.systemd:
+    name: iscsid
+    enabled: true
+    state: restarted
+    daemon_reload: true
+- name: Create tempfile for manifest
+  ansible.builtin.tempfile:
+    state: file
+  register: tmpfile
+- name: Get longhorn manifest
+  ansible.builtin.get_url:
+    url: "{{ base_url }}/{{ version }}/deploy/longhorn.yaml"
+    dest: "{{ tmpfile.path }}"
+    mode: '0640'
+  when: tmpfile.path is defined
+  delegate_to: 127.0.0.1
+  become: false
+  run_once: true
+- name: Deploy longhorn
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ tmpfile.path }}"
+  when: tmpfile.path is defined
+  delegate_to: 127.0.0.1
+  become: false
+  run_once: true
+- name: Set longhorn as default storage class
+  kubernetes.core.k8s:
+    state: patched
+    kind: StorageClass
+    name: longhorn
+    definition:
+      metadata:
+        annotations:
+          storageclass.kubernetes.io/is-default-class: 'true'
+  delegate_to: 127.0.0.1
+  become: false
+  run_once: true
+- name: Add a LoadBalancer for longhorn-frontend
+  kubernetes.core.k8s:
+    state: patched
+    kind: Service
+    name: longhorn-frontend
+    namespace: longhorn-system
+    definition:
+      spec:
+        type: LoadBalancer
+  when: enable_frontend_loadbalancer | default(False)
+  delegate_to: 127.0.0.1
+  become: false
+  run_once: true

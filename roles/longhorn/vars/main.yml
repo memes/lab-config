@@ -1,0 +1,10 @@
+---
+base_url: https://raw.githubusercontent.com/longhorn/longhorn
+packages:
+  Debian:
+    - open-iscsi
+    - nfs-common
+  RedHat:
+    - iscsi-initiator-utils
+    - nfs-utils
+enable_frontend_loadbalancer: true
