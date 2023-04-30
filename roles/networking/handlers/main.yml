@@ -1,12 +1,15 @@
 ---
 - name: Validate netplan
   ansible.builtin.command: netplan generate
+  register: validate_netplan
   notify: Apply netplan
-  changed_when: true
+  changed_when: validate_netplan.rc == 0
 - name: Apply netplan
   ansible.builtin.command: netplan apply
-  changed_when: true
+  register: apply_netplan
+  changed_when: apply_netplan.rc == 0
 - name: Update con
-  ansible.builtin.command: nmcli con up {{ dataplane_device }}.{{ item.key }}
-  changed_when: true
-  loop: "{{ vlans | default({}) | dict2items }}"
+  ansible.builtin.command: nmcli con up {{ link_device }}.{{ item }}
+  register: con_up
+  changed_when: con_up.rc == 0
+  loop: "{{ (vlans | default({})).keys() | list }}"

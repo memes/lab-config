@@ -1,2 +1,3 @@
 ---
+link_device: bond0
 vlans: {}

@@ -1,17 +1,11 @@
-# Configure vlan {{ vlan }}
+# Configure vlan {{ item.key }}
 {{ ansible_managed | comment }}
 network:
   version: 2
   vlans:
-    {{ device }}.{{ vlan }}:
-      addresses:
-        {{ addresses | default([]) | to_nice_yaml | indent(8) }}
-      routes:
-{% for address in addresses %}
-        - to: {{ address | ansible.utils.ipaddr('host/prefix') | ansible.utils.ipaddr('0') }}
-          via: {{ address | ansible.utils.ipaddr('1') | ansible.utils.ipaddr('address') }}
-{% endfor %}
-{% for route in routes %}
-        - to: {{ route['route'] }}
-          via: {{ route['gw'] }}
-{% endfor %}
+    {{ link_device }}.{{ item.key }}:
+      dhcp4: no
+      dhcp6: no
+      id: {{ item.key }}
+      link: {{ link_device }}
+      {{ item.value | to_nice_yaml | indent(6) }}
