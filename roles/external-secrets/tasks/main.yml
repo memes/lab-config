@@ -1,0 +1,23 @@
+# Install external-secrets
+---
+- name: Add external-secrets helm repo
+  kubernetes.core.helm_repository:
+    name: external-secrets
+    repo_url: https://charts.external-secrets.io
+  delegate_to: 127.0.0.1
+  become: false
+  run_once: true
+- name: Install external-secrets from chart
+  kubernetes.core.helm:
+    ca_cert: "{{ certificate_dir }}/ca.chain.pem"
+    name: external-secrets
+    chart_ref: external-secrets/external-secrets
+    chart_version: "{{ version }}"
+    create_namespace: true
+    update_repo_cache: false
+    force: true
+    wait: true
+    release_namespace: external-secrets
+  delegate_to: 127.0.0.1
+  become: false
+  run_once: true
