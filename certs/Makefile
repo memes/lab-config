@@ -1,5 +1,5 @@
 # List of the hosts/services to generate FQDN certificates with Lab domains
-SHARED_SERVICES := repair shared vault vpn idr01 idr02 idr03
+SHARED_SERVICES := emerald shared vault vpn idr01 idr02 idr03
 # List of personal certs to generate email style certificates for
 PERSON_CERTS := memes
 
@@ -19,7 +19,8 @@ CA_CERT_PEM := ../ca/acceleratedgcp-root-ca.pem
 all: $(addsuffix .$(LAB_DOMAIN_NAME).chain.pem,$(SHARED_SERVICES)) \
 	$(addsuffix @$(LAB_DOMAIN_NAME).p12,$(PERSON_CERTS)) \
 		intermediate.cert.pem intermediate.chain.pem \
-		patent.$(LAN_DOMAIN_NAME).pfx \
+		repair.$(LAN_DOMAIN_NAME).chain.pem \
+ 		patent.$(LAN_DOMAIN_NAME).pfx \
 		richard.$(LAB_DOMAIN_NAME).root.pem richard.$(LAB_DOMAIN_NAME).server.pem richard.$(LAB_DOMAIN_NAME).dhparams.pem \
 		kubernetes/ca.crt kubernetes/ca.key kubernetes/etcd-ca.crt kubernetes/etcd-ca.key \
 		kubernetes/front-proxy-ca.crt kubernetes/front-proxy-ca.key kubernetes/sa.pub kubernetes/sa.key \
@@ -32,11 +33,18 @@ vault.$(LAB_DOMAIN_NAME).json:
 		alt_names=vault.$(LAN_DOMAIN_NAME) \
 		ip_sans=172.16.0.2,2001:470:49a5::2 > $@
 
-# Repair is the firewall and router combo
-repair.$(LAB_DOMAIN_NAME).json:
+# Repair and emerald are firewall and router combos; repair is not handling any
+# lab traffic at this time.
+repair.$(LAN_DOMAIN_NAME).json:
 	vault write -format=json pki/issue/server \
 		common_name=$(subst .json,,$@) \
-		alt_names=repair.$(LAN_DOMAIN_NAME),fwl01.$(LAB_DOMAIN_NAME),fwl01.$(LAN_DOMAIN_NAME) \
+		alt_names=fwl01.$(LAN_DOMAIN_NAME) \
+		ip_sans=172.16.2.1 > $@
+
+emerald.$(LAB_DOMAIN_NAME).json:
+	vault write -format=json pki/issue/server \
+		common_name=$(subst .json,,$@) \
+		alt_names=emerald.$(LAN_DOMAIN_NAME),fwl02.$(LAB_DOMAIN_NAME),fwl02.$(LAN_DOMAIN_NAME) \
 		ip_sans=172.16.0.1,172.16.10.1,2001:470:49a5::1,2001:470:49a5:10::1 > $@
 
 # Shared provides internal HTTPS for installation and sharing of files
