@@ -1,26 +1,26 @@
 # Playbook to repave servers via PXE
-# yamllint disable rule:truthy rule:line-length
+# yamllint disable rule:line-length
 ---
 - name: Prepare for server repave from PXE
   hosts: shared
-  become: yes
+  become: true
   tasks:
     - name: Set PXE target on shared
       ansible.builtin.template:
         src: templates/tftp/pxelinux.cfg/lab_default_target.cfg.j2
         dest: /srv/tftp/{{ item }}/pxelinux.cfg/lab_default_target.cfg
-        force: yes
+        force: true
         owner: root
         group: root
-        mode: 0644
+        mode: '0644'
       loop:
         - bios
         - efi32
         - efi64
 - name: Force reboot into PXE
   hosts: servers
-  become: no
-  gather_facts: no
+  become: false
+  gather_facts: false
   tasks:
     - name: Get IPMI secrets from Vault
       community.hashi_vault.vault_kv2_get:
@@ -28,7 +28,7 @@
         ca_cert: "{{ root_ca | realpath }}"
         path: "{{ vault_ipmi_secrets_path }}"
         auth_method: token
-        token_validate: no
+        token_validate: false
       register: ipmi_secrets
       delegate_to: localhost
     - name: Set next boot to PXE through IPMI
@@ -37,7 +37,7 @@
         user: "{{ ipmi_secrets.secret.user }}"
         password: "{{ ipmi_secrets.secret.password }}"
         bootdev: network
-        persistent: no
+        persistent: false
       delegate_to: localhost
     - name: Cycle power through IPMI
       community.general.ipmi_power:

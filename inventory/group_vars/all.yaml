@@ -6,7 +6,7 @@ default_shared_host: "shared.{{ default_domain }}"
 default_shared_http_url: "http://{{ default_shared_host }}"
 default_shared_https_url: "https://{{ default_shared_host }}"
 
-# Lab domain settings for vlans 10 and 100
+# Lab domain settings for management (untagged) and internal (vlan96)
 root_ca: ./ca/acceleratedgcp-root-ca.pem
 lab_domain: lab.acceleratedgcp.com
 lab_shared_host: "shared.{{ lab_domain }}"
@@ -18,18 +18,3 @@ vault_host: "vault.{{ lab_domain }}"
 vault_url: "https://{{ vault_host }}:8200"
 vault_ipmi_secrets_path: lab/ipmi
 vault_kickstart_secrets_path: lab/kickstart
-
-# Kubernetes, CRI, CNI, & CSI settings
-kubernetes_version: '1.26.1'
-kubernetes_api_server: 'control.{{ lab_domain }}'
-kubernetes_api_address: '172.16.96.100'
-calico_version: v3.25.0
-kubernetes_cidr: 10.0.0.0/8
-kubernetes_pod_cidr: 10.0.0.0/16
-kubernetes_service_cidr: 10.1.0.0/22
-kubernetes_external_cidr: 10.2.0.0/24
-kubernetes_lb_cidr: 10.3.0.0/24
-longhorn_version: v1.4.0
-cilium_version: 1.12.5
-kubeadm_skip_phases:
-  - addon/kube-proxy
