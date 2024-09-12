@@ -1,6 +1,6 @@
-# These github actions will update Terraform section(s) of README(s), and
-# perform linting using pre-commit.
+# These github actions will perform linting using pre-commit.
 # yamllint disable rule:line-length
+# spell-checker: disable
 ---
 name: pre-commit
 
@@ -8,22 +8,27 @@ name: pre-commit
 on:
   pull_request:
   push:
-    branches: [main]
+    branches-ignore:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: read
 
 jobs:
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Install terraform-docs
-        run: |
-          sudo curl -sL --output - https://github.com/terraform-docs/terraform-docs/releases/download/v0.16.0/terraform-docs-v0.16.0-linux-amd64.tar.gz | tar xzf - -C /usr/local/bin
-          sudo chmod 0755 /usr/local/bin/terraform-docs
+      - uses: actions/checkout@v4
       - name: install talisman
         run: |
-          sudo curl -sLo /usr/local/bin/talisman https://github.com/thoughtworks/talisman/releases/download/v1.29.4/talisman_linux_amd64
+          sudo curl -sLo /usr/local/bin/talisman https://github.com/thoughtworks/talisman/releases/download/v1.32.0/talisman_linux_amd64
           sudo chmod 0755 /usr/local/bin/talisman
-      - uses: actions/setup-python@v4.5.0
+      - name: Install terraform-docs
+        run: |
+          sudo sh -c 'curl -sL https://github.com/terraform-docs/terraform-docs/releases/download/v0.18.0/terraform-docs-v0.18.0-linux-amd64.tar.gz | tar xzf - -C /usr/local/bin'
+          sudo chmod 0755 /usr/local/bin/terraform-docs
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
-      - uses: pre-commit/action@v3.0.0
+          python-version: '3.12'
+      - uses: pre-commit/action@v3.0.1
