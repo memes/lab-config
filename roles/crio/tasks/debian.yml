@@ -1,5 +1,4 @@
 # Perform Debian specific tasks for CRI-O
-# yamllint disable rule:line-length
 ---
 - name: Fetch repo key for CRI-O apt packages
   ansible.builtin.get_url:

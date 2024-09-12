@@ -1,5 +1,4 @@
 # Setup static vlan configurations post-deployment
-# yamllint disable rule:line-length
 ---
 - name: Configure VLANs on Ubuntu
   ansible.builtin.template:

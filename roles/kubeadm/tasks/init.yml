@@ -1,4 +1,3 @@
-# yamllint disable rule:line-length
 ---
 - name: Generate kubeadm token
   ansible.builtin.command: kubeadm token generate

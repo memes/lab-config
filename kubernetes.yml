@@ -1,5 +1,4 @@
 # Provision kubernetes on bare metal hosts
-# yamllint disable rule:line-length
 ---
 - name: Prepare requirements and install Kubernetes on bare-metal hosts
   hosts: servers

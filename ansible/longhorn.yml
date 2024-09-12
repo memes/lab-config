@@ -1,5 +1,5 @@
 # Install kubernetes on hosts
-# yamllint disable rule:truthy rule:line-length
+# yamllint disable rule:truthy
 ---
 - name: Prepare all hosts for longhorn
   hosts: servers

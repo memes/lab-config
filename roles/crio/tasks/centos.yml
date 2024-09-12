@@ -1,5 +1,4 @@
 # Perform CentOS specific tasks for CRI-O
-# yamllint disable rule:line-length
 ---
 - name: Add CentOS CRI-O package repo
   ansible.builtin.get_url:

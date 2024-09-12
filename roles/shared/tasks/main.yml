@@ -1,5 +1,4 @@
 # Update shared server
-# yamllint disable rule:line-length
 ---
 - name: Install required packages
   ansible.builtin.package:

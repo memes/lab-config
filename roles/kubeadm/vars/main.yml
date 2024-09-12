@@ -1,4 +1,3 @@
-# yamllint disable rule:line-length
 ---
 cgroup_driver: systemd
 ipv4_extra_args: "{{ {'node-cidr-mask-size-ipv4': ipv4_node_mask | string} if (pod_cidrs | ansible.utils.ipv4 | length > 0) else {} }}"

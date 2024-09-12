@@ -1,5 +1,5 @@
 # Install Cilium as CNI
-# yamllint disable rule:truthy rule:line-length
+# yamllint disable rule:truthy
 ---
 - name: Gather facts
   hosts: servers

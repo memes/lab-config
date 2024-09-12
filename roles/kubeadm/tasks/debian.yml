@@ -1,5 +1,4 @@
 # Perform Debian/Ubuntu specific tasks common to all hosts
-# yamllint disable rule:line-length
 ---
 - name: Fetch repo key for kubernetes apt packages
   ansible.builtin.get_url:

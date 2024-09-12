@@ -1,5 +1,4 @@
 # Manage Vault service
-# yamllint disable rule:line-length
 ---
 - name: Copy static hashicorp key
   ansible.builtin.copy:

@@ -1,5 +1,4 @@
 # Install Cilium as CNI
-# yamllint disable rule:line-length
 ---
 - set_fact:
     lb_cidr_pool: "{{ lb_cidr_pool | default([]) + [{'cidr': item}] }}"

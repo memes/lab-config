@@ -1,5 +1,4 @@
 # These github actions will perform linting using pre-commit.
-# yamllint disable rule:line-length
 # spell-checker: disable
 ---
 name: pre-commit

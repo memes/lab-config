@@ -1,5 +1,4 @@
 # Install CRI-O runtime
-# yamllint disable rule:line-length
 ---
 - name: Configure persistent modules for CRI-O
   ansible.builtin.template:

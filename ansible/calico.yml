@@ -1,5 +1,5 @@
 # Install Calico as CNI
-# yamllint disable rule:truthy rule:line-length
+# yamllint disable rule:truthy
 ---
 - name: Prepare all hosts for kubernetes
   hosts: servers
