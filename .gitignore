@@ -33,3 +33,4 @@ kubeconfig*
 
 # Ignore any pytest caches
 .pytest_cache
+__pycache__
