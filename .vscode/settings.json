@@ -28,6 +28,7 @@
     "dpkg",
     "dvswitch",
     "elrepo",
+    "endfor",
     "esxi",
     "fileignoreconfig",
     "firewalld",
@@ -36,7 +37,9 @@
     "gpgkey",
     "hashi",
     "hashicorp",
+    "hostvars",
     "hugepages",
+    "ifname",
     "ignoreerrors",
     "ipaddr",
     "ipmi",
@@ -85,6 +88,7 @@
     "rpcbind",
     "runc",
     "sbin",
+    "selectattr",
     "selinux",
     "smbd",
     "storageclass",
@@ -102,7 +106,8 @@
     "vmgmt",
     "vmware",
     "vnet",
-    "vsphere"
+    "vsphere",
+    "wontfix"
   ],
   "yaml.schemas": {
     "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible-lint-config.json": "/.ansible-lint"
