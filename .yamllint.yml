@@ -5,3 +5,12 @@ rules:
   line-length:
     max: 120
     level: warning
+  # Force yamllint rules to match ansible-lint requirements
+  braces:
+    max-spaces-inside: 1
+  comments:
+    min-spaces-from-content: 1
+  comments-indentation: disable
+  octal-values:
+    forbid-explicit-octal: true
+    forbid-implicit-octal: true
