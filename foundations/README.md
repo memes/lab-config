@@ -15,7 +15,7 @@ Accelerated GCP Lab. These resources will be created:
     drive)
 
 <!-- markdownlint-disable MD033 MD034 -->
-<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- BEGIN_TF_DOCS -->
 ## Requirements
 
 | Name | Version |
@@ -68,5 +68,5 @@ No modules.
 | <a name="output_vault_bucket"></a> [vault\_bucket](#output\_vault\_bucket) | The randomly named GCS bucket that will be used for Vault storage. |
 | <a name="output_vault_key"></a> [vault\_key](#output\_vault\_key) | The GCP service account JSON key file, base64 encoded, that must be used to authenticate as the Vault service account. |
 | <a name="output_vault_sa"></a> [vault\_sa](#output\_vault\_sa) | The GCP service account that has access to Vault GCS storage bucket. The Vault service will have to use this account for all GCS operations. |
-<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- END_TF_DOCS -->
 <!-- markdownlint-enable MD033 MD034 -->
