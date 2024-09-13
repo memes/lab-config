@@ -1,7 +1,7 @@
 ---
-required_modules:
+pre_kube_required_modules:
   - br_netfilter
-sysctls:
+pre_kube_sysctls:
   - param: net.bridge.bridge-nf-call-iptables
     value: 1
   - param: net.bridge.bridge-nf-call-ip6tables

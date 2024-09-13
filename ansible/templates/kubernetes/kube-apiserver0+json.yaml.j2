@@ -1,5 +1,0 @@
-# Kubeadm patch file to override kube-apiserver configuration for this node
-{{ ansible_managed | comment }}
-- op: add
-  path: /spec/containers/0/command/-
-  value: --bind-address={{ addresses | ansible.utils.ipv4('host/prefix') | ansible.utils.ipv4('address') | first }}

@@ -1,10 +1,4 @@
 ---
-# - name: Prepare Debian/Ubuntu hosts
-#   ansible.builtin.import_tasks: debian.yml
-#   when: ansible_os_family == "Debian"
-# - name: Prepare CentOS/RHEL hosts
-#   ansible.builtin.import_tasks: rhel.yml
-#   when: ansible_os_family == "RedHat"
 - name: Configure persistent modules for Kubernetes
   ansible.builtin.template:
     src: templates/modules-load.conf.j2
@@ -16,7 +10,7 @@
   community.general.modprobe:
     name: "{{ item }}"
     state: present
-  loop: "{{ required_modules }}"
+  loop: "{{ pre_kube_required_modules }}"
 - name: Set persistent sysctl params for Kubernetes
   ansible.posix.sysctl:
     name: "{{ item['param'] }}"
@@ -25,8 +19,8 @@
     sysctl_set: true
     reload: true
     state: present
-  loop: "{{ sysctls }}"
-- name: Disable swap
+  loop: "{{ pre_kube_sysctls }}"
+- name: Disable swap # noqa no-changed-when # The role should always ensure swap is disabled
   ansible.builtin.command: swapoff -a
 - name: Remove swapfs
   ansible.posix.mount:
@@ -36,17 +30,17 @@
 - name: Disable SELinux
   ansible.posix.selinux:
     state: disabled
-  ignore_errors: true
+  ignore_errors: true # noqa ignore-errors # SELinux could be enabled on any repo or without a standard set of tools
   notify:
-    - reboot
+    - Reboot
 - name: Disable ufw, if installed
   community.general.ufw:
     state: disabled
-  ignore_errors: true
+  ignore_errors: true # noqa ignore-errors # ufw is not consistently installed
 - name: Disable firewalld, if present
   ansible.builtin.systemd:
     name: firewalld
     enabled: false
     masked: true
     state: stopped
-  ignore_errors: true
+  ignore_errors: true # noqa ignore-errors # firewalld is not consistently installed

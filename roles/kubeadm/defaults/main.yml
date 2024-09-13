@@ -1,18 +1,21 @@
 ---
-version: 1.27.1
+kubeadm_version: 1.27.1
 # The endpoint should resolve to the VIP and port that can distribute requests
 # to any master node
-api_external_hostname:
-api_external_port: 6443
+kubeadm_api_external_hostname:
+kubeadm_api_external_port: 6443
 # These match the defaults in kubeadm and should be overridden
-api_bind_port: 6443
-cluster_name: kubernetes
-dns_domain: cluster.local
-ipv4_node_mask: 24
-ipv6_node_mask: 112
-pod_cidrs:
+kubeadm_api_bind_port: 6443
+kubeadm_cluster_name: kubernetes
+kubeadm_dns_domain: cluster.local
+kubeadm_ipv4_node_mask: 24
+kubeadm_ipv6_node_mask: 112
+kubeadm_pod_cidrs:
   - 10.244.0.0/16
-service_cidrs:
+kubeadm_service_cidrs:
   - 10.96.0.0/12
-skip_phases: []
-certificate_dir: ../../certs/kubernetes/
+kubeadm_skip_phases: []
+kubeadm_certificate_dir: ../../certs/kubernetes/
+kubeadm_admins: []
+kubeadm_dns_service:
+kubeadm_node_addresses: []

@@ -1,5 +1,4 @@
 # (Re-)boot the lab servers
-# yamllint disable rule:line-length
 ---
 - name: (Re-)boot servers
   hosts: servers

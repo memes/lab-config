@@ -1,7 +1,7 @@
 ---
 galaxy_info:
   author: Matthew Emes
-  description: Install cillium to kubernetes
+  description: Install cilium to kubernetes
   license: MIT
   min_ansible_version: '2.1'
   galaxy_tags: []

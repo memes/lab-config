@@ -4,12 +4,11 @@
   hosts: servers
   become: true
   gather_facts: true
-
   tasks:
     - name: Get installed packages
       ansible.builtin.package_facts:
         manager: auto
-    - name: Uninstall cilium
+    - name: Uninstall cilium # noqa ignore-errors
       kubernetes.core.helm:
         release_name: cilium
         release_namespace: kube-system
@@ -20,7 +19,7 @@
       become: false
       run_once: true
       ignore_errors: true
-    - name: Reset kubeadm
+    - name: Reset kubeadm # noqa no-changed-when
       ansible.builtin.command: kubeadm reset --force
       when: "'kubeadm' in ansible_facts.packages"
     - name: Disable kubelet unit
@@ -30,16 +29,16 @@
         state: stopped
         daemon_reload: true
       when: "'kubelet' in ansible_facts.packages"
-    - name: Remove all pods
-      ansible.builtin.command: crictl rmp --all --force
+    - name: Remove all pods # noqa ignore-errors
+      ansible.builtin.command: crictl rmp --all --force # noqa no-changed-when
       ignore_errors: true
       when: "'cri-tools' in ansible_facts.packages"
-    - name: Remove all containers
-      ansible.builtin.command: crictl rm --all
+    - name: Remove all containers # noqa ignore-errors
+      ansible.builtin.command: crictl rm --all # noqa no-changed-when
       ignore_errors: true
       when: "'cri-tools' in ansible_facts.packages"
-    - name: Remove all images
-      ansible.builtin.command: crictl rmi --all
+    - name: Remove all images # noqa ignore-errors
+      ansible.builtin.command: crictl rmi --all # noqa no-changed-when
       ignore_errors: true
       when: "'cri-tools' in ansible_facts.packages"
     - name: Disable CRI-O

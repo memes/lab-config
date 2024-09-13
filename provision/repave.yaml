@@ -1,5 +1,4 @@
 # Playbook to repave servers via PXE
-# yamllint disable rule:line-length
 ---
 - name: Prepare for server repave from PXE
   hosts: shared

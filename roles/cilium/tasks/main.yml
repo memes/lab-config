@@ -1,12 +1,12 @@
 # Install Cilium as CNI
-# yamllint disable rule:line-length
 ---
-- set_fact:
+- name: Build a list of cilium CIDR pools for load balancer cidrs
+  ansible.builtin.set_fact:
     lb_cidr_pool: "{{ lb_cidr_pool | default([]) + [{'cidr': item}] }}"
-  loop: "{{ lb_cidrs }}"
+  loop: "{{ cilium_lb_cidrs }}"
 - name: Label nodes to accept default BGP peering policy
   kubernetes.core.k8s:
-    ca_cert: "{{ certificate_dir }}/ca.chain.pem"
+    ca_cert: "{{ cilium_certificate_dir }}/ca.chain.pem"
     state: patched
     kind: Node
     definition:
@@ -25,10 +25,10 @@
   run_once: true
 - name: Install Cilium from chart
   kubernetes.core.helm:
-    ca_cert: "{{ certificate_dir }}/ca.chain.pem"
+    ca_cert: "{{ cilium_certificate_dir }}/ca.chain.pem"
     name: cilium
     chart_ref: cilium/cilium
-    chart_version: "{{ version }}"
+    chart_version: "{{ cilium_version }}"
     update_repo_cache: false
     force: true
     wait: true
@@ -47,23 +47,24 @@
         integration: crio
       enableIPv4Masquerade: false
       enableIPv6Masquerade: false
-      extraArgs: "{{ ['--devices=%s' | format(dataplane_device)] if dataplane_device else [] | to_yaml }}"
+      extraArgs: "{{ ['--devices=%s' | format(cilium_dataplane_device)] if cilium_dataplane_device else [] | to_yaml }}"
       extraConfig:
-        enable-ipv6-ndp: "{{ ((pod_cidrs + service_cidrs + lb_cidrs) | ansible.utils.ipv6 | length > 0) | string | lower }}"
-        ipv6-mcast-device: "{{ dataplane_device }}"
-        ipv6-service-range: "{{ service_cidrs | ansible.utils.ipv6 | default(['auto'], true) | join(',') }}"
+        # yamllint disable-line rule:line-length
+        enable-ipv6-ndp: "{{ ((cilium_pod_cidrs + cilium_service_cidrs + cilium_lb_cidrs) | ansible.utils.ipv6 | length > 0) | string | lower }}"
+        ipv6-mcast-device: "{{ cilium_dataplane_device }}"
+        ipv6-service-range: "{{ cilium_service_cidrs | ansible.utils.ipv6 | default(['auto'], true) | join(',') }}"
       ipv4:
-        enabled: "{{ (pod_cidrs + service_cidrs + lb_cidrs) | ansible.utils.ipv4 | length > 0 }}"
-      ipv4NativeRoutingCIDR: "{{ ipv4_native_routing_cidr }}"
+        enabled: "{{ (cilium_pod_cidrs + cilium_service_cidrs + cilium_lb_cidrs) | ansible.utils.ipv4 | length > 0 }}"
+      ipv4NativeRoutingCIDR: "{{ cilium_ipv4_native_routing_cidr }}"
       ipv6:
-        enabled: "{{ (pod_cidrs + service_cidrs + lb_cidrs) | ansible.utils.ipv6 | length > 0 }}"
+        enabled: "{{ (cilium_pod_cidrs + cilium_service_cidrs + cilium_lb_cidrs) | ansible.utils.ipv6 | length > 0 }}"
       ipam:
         mode: kubernetes
       k8s:
-        requireIPv4PodCidr: "{{ pod_cidrs | ansible.utils.ipv4 | length > 0 }}"
-        requireIPv6PodCidr: "{{ pod_cidrs | ansible.utils.ipv6 | length > 0 }}"
-      k8sServiceHost: "{{ api_external_hostname }}"
-      k8sServicePort: "{{ api_external_port }}"
+        requireIPv4PodCidr: "{{ cilium_pod_cidrs | ansible.utils.ipv4 | length > 0 }}"
+        requireIPv6PodCidr: "{{ cilium_pod_cidrs | ansible.utils.ipv6 | length > 0 }}"
+      k8sServiceHost: "{{ cilium_api_external_name }}"
+      k8sServicePort: "{{ cilium_api_external_port }}"
       kubeProxyReplacement: strict
       tunnel: disabled
   delegate_to: 127.0.0.1
@@ -71,7 +72,7 @@
   run_once: true
 - name: Wait for Cilium to be ready
   kubernetes.core.k8s_info:
-    ca_cert: "{{ certificate_dir }}/ca.chain.pem"
+    ca_cert: "{{ cilium_certificate_dir }}/ca.chain.pem"
     kind: DaemonSet
     name: cilium
     namespace: kube-system
@@ -84,7 +85,7 @@
   run_once: true
 - name: Create load-balancer IP pool
   kubernetes.core.k8s:
-    ca_cert: "{{ certificate_dir }}/ca.chain.pem"
+    ca_cert: "{{ cilium_certificate_dir }}/ca.chain.pem"
     state: present
     definition:
       apiVersion: cilium.io/v2alpha1
@@ -98,7 +99,7 @@
   run_once: true
 - name: Create BGP peering policy
   kubernetes.core.k8s:
-    ca_cert: "{{ certificate_dir }}/ca.chain.pem"
+    ca_cert: "{{ cilium_certificate_dir }}/ca.chain.pem"
     state: present
     definition:
       apiVersion: cilium.io/v2alpha1
@@ -110,11 +111,11 @@
           matchLabels:
             lab.acceleratedgcp.com/bgp-peering-policy: default-peering-policy
         virtualRouters:
-          - localASN: "{{ bgp_asn }}"
+          - localASN: "{{ cilium_bgp_asn }}"
             exportPodCIDR: true
             neighbors:
-              - peerAddress: "{{ bgp_peer | ansible.utils.ipaddr('host') }}"
-                peerASN: "{{ bgp_peer_asn }}"
+              - peerAddress: "{{ cilium_bgp_peer | ansible.utils.ipaddr('host') }}"
+                peerASN: "{{ cilium_bgp_peer_asn }}"
                 eBGPMultihopTTL: 10
                 connectRetryTimeSeconds: 120
                 holdTimeSeconds: 90

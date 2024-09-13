@@ -9,10 +9,10 @@
   run_once: true
 - name: Install external-secrets from chart
   kubernetes.core.helm:
-    ca_cert: "{{ certificate_dir }}/ca.chain.pem"
+    ca_cert: "{{ external_secrets_certificate_dir }}/ca.chain.pem"
     name: external-secrets
     chart_ref: external-secrets/external-secrets
-    chart_version: "{{ version }}"
+    chart_version: "{{ external_secrets_version }}"
     create_namespace: true
     update_repo_cache: false
     force: true

@@ -1,5 +1,4 @@
 # Shutdown the lab servers
-# yamllint disable rule:line-length
 ---
 - name: Power off servers
   hosts: servers

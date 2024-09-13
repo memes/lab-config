@@ -1,24 +1,25 @@
+# defaults file for cilium; unless noted, these will map to the default values used by upstream cilium.
 ---
-# defaults file for cilium
-version: 1.13.2
+cilium_version: 1.13.2
 # The endpoint should be the VIP and port that can distribute requests to any
 # master node
-api_external_name:
-api_external_port: 6443
-dataplane_device:
+cilium_api_external_name:
+cilium_api_external_port: 6443
+cilium_dataplane_device:
 # BGP peer must be the address of the peer
-bgp_peer:
+cilium_bgp_peer:
 # Default values for BGP
-bgp_asn: 64513
-bgp_peer_asn: 64512
-certificate_dir: ../../certs/kubernetes/
+cilium_bgp_asn: 64513
+cilium_bgp_peer_asn: 64512
+cilium_certificate_dir: ../../certs/kubernetes/
 # These should be overridden to match the values provided when provisioning
 # Kubernetes
-ipv4_native_routing_cidr: 10.0.0.0/8
-ipv4_node_mask: 24
-ipv6_node_mask: 112
-lb_cidrs: []
-pod_cidrs:
+cilium_ipv4_native_routing_cidr: 10.0.0.0/8
+# TODO @memes - node masks are not used in current cilium role; remove or find out why they are here.
+cilium_ipv4_node_mask: 24
+cilium_ipv6_node_mask: 112
+cilium_lb_cidrs: []
+cilium_pod_cidrs:
   - 10.244.0.0/16
-service_cidrs:
+cilium_service_cidrs:
   - 10.96.0.0/12

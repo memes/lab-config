@@ -1,16 +1,15 @@
-# yamllint disable rule:line-length
 ---
-required_modules:
+crio_required_modules:
   - overlay
-maj_minor: "{{ version.split('.')[:2] | join('.') }}"
-repo_version: "{{ maj_minor }}{% if maj_minor != version %}:/{{ version }}{% endif %}"
-base_url: https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/
-packages:
+crio_maj_minor: "{{ crio_version.split('.')[:2] | join('.') }}"
+crio_repo_version: "{{ crio_maj_minor }}{% if crio_maj_minor != version %}:/{{ crio_version }}{% endif %}"
+crio_base_url: https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/
+crio_packages:
   Debian:
     - cri-o
     - cri-o-runc
   RedHat:
     - cri-o
-apt_repo_mapping:
+crio_apt_repo_mapping:
   Debian: "Debian_{{ ansible_distribution_version }}"
   Ubuntu: "xUbuntu_{{ ansible_distribution_version }}"

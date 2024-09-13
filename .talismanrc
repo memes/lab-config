@@ -60,7 +60,7 @@ fileignoreconfig:
 - filename: roles/shared/tasks/main.yml
   checksum: 7fdf44dc8bfabe5839cc4dae3c014e946aff65208280235c04a43db099f8d62b
 - filename: roles/vault/defaults/main.yml
-  checksum: 2232da9d2fea90e539c0a88742afd740729143d88ac63837affe79b0a060217c
+  checksum: c7d3e5475ec20225a16b17b0f3f01bd3e64f5b27161c6f3decce42bf5cda8020
 - filename: roles/vault/tasks/main.yml
   checksum: 9db6fa1ea15d1f1221ebecfc536be9657289a85216dce43690bf7ef1a8ee323b
 - filename: vault/kickstart-secrets.tf
@@ -70,7 +70,7 @@ fileignoreconfig:
 - filename: roles/crio/tasks/ubuntu.yml
   checksum: 17977771e05f783f83df3d2e71bd86c6f92be65c02a361072fd98a9041218f62
 - filename: roles/crio/tasks/debian.yml
-  checksum: 7a55c5565f4ed159e6004f2851804c578aa23b081cc53e9a806e7a816e624d73
+  checksum: 1d556ce69804f0fe827b6547c8adce0f706a6275cd1df87567b19129fa7c1197
 - filename: roles/shared/templates/scripts/post-onboard-debian.sh.j2
   checksum: b9109b9587d4a02f83de60c1aea350afd12cd6608b080de5f0807ca7ee23aecf
 - filename: certs/Makefile
@@ -89,3 +89,5 @@ fileignoreconfig:
   checksum: bb7e71a39b91430ce89dce56bcaf94d6d615e151e10b747fb63d5edfa5fdebfe
 - filename: kubernetes.yml
   checksum: db1c3f78b9659e1d5cbed0397fa02c45142966a8d986a3ae6936b76e01471eee
+- filename: roles/external_secrets/defaults/main.yml
+  checksum: b7cf61e4d734f478ac52808f66f5e256232ecacd65684819101d17de1159208e

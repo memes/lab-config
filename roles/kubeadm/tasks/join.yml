@@ -13,10 +13,10 @@
     group: root
     mode: '0644'
     force: false
-  when: inventory_hostname != init_target
+  when: inventory_hostname != kubeadm_init_target
 - name: Execute kubeadm join on nodes
   ansible.builtin.command: >-
     kubeadm join --config=/var/tmp/kubeadm/config.yml
   args:
     creates: /etc/kubernetes/kubelet.conf
-  when: inventory_hostname != init_target
+  when: inventory_hostname != kubeadm_init_target

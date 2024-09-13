@@ -1,9 +1,8 @@
 # Manage Vault service
-# yamllint disable rule:line-length
 ---
 - name: Copy static hashicorp key
   ansible.builtin.copy:
-    src: "{{ hashi_gpg_key }}"
+    src: "{{ vault_hashi_gpg_key }}"
     dest: /usr/share/keyrings/hashicorp-archive-keyring.gpg
     force: true
     owner: root
@@ -15,6 +14,7 @@
     - bootstrap
 - name: Add Hashicorp apt repo
   ansible.builtin.apt_repository:
+    # yamllint disable-line rule:line-length
     repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
     state: present
     filename: hashicorp

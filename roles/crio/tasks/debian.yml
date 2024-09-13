@@ -1,16 +1,16 @@
 # Perform Debian specific tasks for CRI-O
-# yamllint disable rule:line-length
 ---
 - name: Fetch repo key for CRI-O apt packages
   ansible.builtin.get_url:
-    url: "{{ base_url }}stable:/cri-o:/{{ repo_version }}/{{ apt_repo_mapping[ansible_distribution] }}/Release.key"
+    # yamllint disable-line rule:line-length
+    url: "{{ crio_base_url }}stable:/cri-o:/{{ crio_repo_version }}/{{ crio_apt_repo_mapping[ansible_distribution] }}/Release.key"
     dest: /var/tmp/crio/crio.key
     owner: root
     group: root
     mode: '0640'
 - name: Fetch repo key for stable CRI-O apt packages
   ansible.builtin.get_url:
-    url: "{{ base_url }}stable/{{ apt_repo_mapping[ansible_distribution] }}/Release.key"
+    url: "{{ crio_base_url }}stable/{{ crio_apt_repo_mapping[ansible_distribution] }}/Release.key"
     dest: /var/tmp/crio/crio_stable.key
     owner: root
     group: root
@@ -38,13 +38,15 @@
     - crio_stable.gpg
 - name: Add CRI-O apt package repo
   ansible.builtin.apt_repository:
-    repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/crio.gpg] {{ base_url }}stable:/cri-o:/{{ repo_version }}/{{ apt_repo_mapping[ansible_distribution] }}/ /"
+    # yamllint disable-line rule:line-length
+    repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/crio.gpg] {{ crio_base_url }}stable:/cri-o:/{{ crio_repo_version }}/{{ crio_apt_repo_mapping[ansible_distribution] }}/ /"
     state: present
     filename: crio
     update_cache: true
 - name: Add CRI-O stable apt package repo
   ansible.builtin.apt_repository:
-    repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/crio_stable.gpg] {{ base_url }}stable/{{ apt_repo_mapping[ansible_distribution] }}/ /"
+    # yamllint disable-line rule:line-length
+    repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/crio_stable.gpg] {{ crio_base_url }}stable/{{ crio_apt_repo_mapping[ansible_distribution] }}/ /"
     state: present
     filename: crio_stable
     update_cache: true

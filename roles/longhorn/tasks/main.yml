@@ -2,7 +2,7 @@
 ---
 - name: Install required packages
   ansible.builtin.package:
-    name: "{{ packages[ansible_os_family] }}"
+    name: "{{ longhorn_packages[ansible_os_family] }}"
     state: present
 - name: Enable iscsid unit
   ansible.builtin.systemd:
@@ -16,7 +16,7 @@
   register: tmpfile
 - name: Get longhorn manifest
   ansible.builtin.get_url:
-    url: "{{ base_url }}/{{ version }}/deploy/longhorn.yaml"
+    url: "{{ longhorn_base_url }}/{{ longhorn_version }}/deploy/longhorn.yaml"
     dest: "{{ tmpfile.path }}"
     mode: '0640'
   when: tmpfile.path is defined
@@ -52,7 +52,7 @@
     definition:
       spec:
         type: LoadBalancer
-  when: enable_frontend_loadbalancer | default(False)
+  when: longhorn_enable_frontend_loadbalancer | default(False)
   delegate_to: 127.0.0.1
   become: false
   run_once: true

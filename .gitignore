@@ -28,8 +28,9 @@ kubeconfig*
 !ansible/templates/kubernetes/kubeconfig.user.j2
 
 # Ignore VS Code files, except settings.json
-.vscode
+.vscode/*
 !.vscode/settings.json
+!.vscode/cSpell.json
 
 # Ignore any pytest caches
 .pytest_cache

@@ -1,3 +1,3 @@
 ---
-link_device: bond0
-vlans: {}
+networking_link_device: bond0
+networking_vlans: {}

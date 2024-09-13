@@ -14,13 +14,13 @@ discovery:
 nodeRegistration:
   name: {{ node_name }}
   kubeletExtraArgs:
-    node-ip: "{{ node_addresses | ansible.utils.ipaddr('address') | join(',') }}"
-    address: "{{ node_addresses | ansible.utils.ipaddr('address') | first }}"
+    node-ip: "{{ kubeadm_node_addresses | ansible.utils.ipaddr('address') | join(',') }}"
+    address: "{{ kubeadm_node_addresses | ansible.utils.ipaddr('address') | first }}"
 skipPhases: {{ skip_phases['join'] | default([]) | to_yaml }}
 {% if is_master | default(False) -%}
 controlPlane:
   localAPIEndpoint:
-    advertiseAddress: "{{ node_addresses | ansible.utils.ipaddr('address') | first }}"
+    advertiseAddress: "{{ kubeadm_node_addresses | ansible.utils.ipaddr('address') | first }}"
     bindPort: {{ api_bind_port }}
   certificateKey: "{{ cert_key }}"
 {%- endif %}
