@@ -29,9 +29,9 @@
   ansible.builtin.apt:
     name:
       - cri-tools
-      - "kubectl={{ version }}-00"
-      - "kubelet={{ version }}-00"
-      - "kubeadm={{ version }}-00"
+      - "kubectl={{ kubeadm_version }}-00"
+      - "kubelet={{ kubeadm_version }}-00"
+      - "kubeadm={{ kubeadm_version }}-00"
     state: present
     allow_change_held_packages: false
     allow_downgrade: false

@@ -3,15 +3,15 @@
   ansible.builtin.file:
     path: /etc/kubernetes/pki/etcd
     state: directory
-    mode: 0755
+    mode: '0755'
     owner: root
     group: root
 - name: Copy Kubernetes CA certificates
   ansible.builtin.copy:
-    src: "{{ certificate_dir }}/{{ item }}"
+    src: "{{ kubeadm_certificate_dir }}/{{ item }}"
     dest: /etc/kubernetes/pki/
     force: true
-    mode: 0644
+    mode: '0644'
     owner: root
     group: root
   loop:
@@ -20,10 +20,10 @@
     - sa.pub
 - name: Copy Kubernetes CA keys
   ansible.builtin.copy:
-    src: "{{ certificate_dir }}/{{ item }}"
+    src: "{{ kubeadm_certificate_dir }}/{{ item }}"
     dest: /etc/kubernetes/pki/
     force: true
-    mode: 0600
+    mode: '0600'
     owner: root
     group: root
   loop:
@@ -32,18 +32,18 @@
     - sa.key
 - name: Copy Kubernetes etcd CA certificate
   ansible.builtin.copy:
-    src: "{{ certificate_dir }}/etcd-ca.crt"
+    src: "{{ kubeadm_certificate_dir }}/etcd-ca.crt"
     dest: /etc/kubernetes/pki/etcd/ca.crt
     force: true
-    mode: 0644
+    mode: '0644'
     owner: root
     group: root
 - name: Copy Kubernetes etcd CA key
   ansible.builtin.copy:
-    src: "{{ certificate_dir }}/etcd-ca.key"
+    src: "{{ kubeadm_certificate_dir }}/etcd-ca.key"
     dest: /etc/kubernetes/pki/etcd/ca.key
     force: true
-    mode: 0600
+    mode: '0600'
     owner: root
     group: root
 - name: Create temp kubeadm config directory

@@ -1,0 +1,4 @@
+# defaults file for external-secrets
+---
+external_secrets_version: 0.8.1
+external_secrets_certificate_dir: ../../certs/kubernetes/

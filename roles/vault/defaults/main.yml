@@ -1,9 +1,9 @@
 ---
-hashi_gpg_key: files/hashicorp-archive-keyring.gpg
+vault_hashi_gpg_key: files/hashicorp-archive-keyring.gpg
 vault_port: 8200
 vault_host: "vault.{{ lab_domain }}"
 vault_url: "https://{{ vault_host }}:{{ vault_port }}"
-vault_cluster_url: "https://{{ vault_host }}:{{ vault_port + 1}}"
+vault_cluster_url: "https://{{ vault_host }}:{{ vault_port + 1 }}"
 vault_home: /opt/vault
 vault_gcs: 18ad5ebfd63af0e4
 vault_tls_disable: false

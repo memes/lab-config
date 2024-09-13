@@ -1,5 +1,5 @@
 # Persistent module configuration for CRI-O
 {{ ansible_managed | comment }}
-{% for mod in required_modules %}
+{% for mod in crio_required_modules %}
 {{ mod }}
 {% endfor %}

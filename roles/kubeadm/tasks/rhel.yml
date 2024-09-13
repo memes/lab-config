@@ -9,12 +9,13 @@
     enabled: true
     gpgcheck: true
     repo_gpgcheck: true
+    # yamllint disable-line rule:line-length
     gpgkey: https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
 - name: Install required packages
   ansible.builtin.package:
     name:
       - cri-tools
       - iproute-tc
-      - "kubectl-{{ version }}"
-      - "kubelet-{{ version }}"
-      - "kubeadm-{{ version }}"
+      - "kubectl-{{ kubeadm_version }}"
+      - "kubelet-{{ kubeadm_version }}"
+      - "kubeadm-{{ kubeadm_version }}"

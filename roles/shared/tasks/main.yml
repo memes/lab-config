@@ -126,6 +126,7 @@
 - name: Copy Debian netboot files for TFTP
   ansible.builtin.copy:
     remote_src: true
+    # yamllint disable-line rule:line-length
     src: "/usr/lib/debian-installer/images/{{ ansible_distribution_major_version }}/amd64/text/debian-installer/amd64/{{ item }}"
     dest: "/srv/tftp/boot/debian{{ ansible_distribution_major_version }}-x86_64/{{ item }}"
     force: true
@@ -239,7 +240,7 @@
     owner: tftp
     group: root
     mode: '0644'
-  loop: "{{ autoprovision_macs | map('regex_replace', ':', '-') | map('lower') | list }}"
+  loop: "{{ shared_autoprovision_macs | map('regex_replace', ':', '-') | map('lower') | list }}"
   tags:
     - pxe
 - name: Create hard-links for server MACs to autoprovision via EFI32
@@ -251,7 +252,7 @@
     owner: tftp
     group: root
     mode: '0644'
-  loop: "{{ autoprovision_macs | map('regex_replace', ':', '-') | map('lower') | list }}"
+  loop: "{{ shared_autoprovision_macs | map('regex_replace', ':', '-') | map('lower') | list }}"
   tags:
     - pxe
 - name: Create hard-links for server MACs to autoprovision via EFI64
@@ -263,7 +264,7 @@
     owner: tftp
     group: root
     mode: '0644'
-  loop: "{{ autoprovision_macs | map('regex_replace', ':', '-') | map('lower') | list }}"
+  loop: "{{ shared_autoprovision_macs | map('regex_replace', ':', '-') | map('lower') | list }}"
   tags:
     - pxe
 - name: Start tftpd-hpa
@@ -275,7 +276,7 @@
     - pxe
 - name: Update CA cert
   ansible.builtin.copy:
-    src: "{{ ca_cert_pem }}"
+    src: "{{ shared_ca_cert_pem }}"
     dest: "{{ item }}/acceleratedgcp-root-ca.crt"
     force: true
     owner: root
@@ -347,7 +348,7 @@
     - http
 - name: Copy CA file
   ansible.builtin.copy:
-    src: "{{ ca_cert_pem }}"
+    src: "{{ shared_ca_cert_pem }}"
     dest: /srv/shared/certs/
     force: true
     owner: root

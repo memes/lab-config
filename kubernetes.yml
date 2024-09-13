@@ -62,25 +62,26 @@
 
   tasks:
     - name: Setup networking for VLAN 96
-      include_role:
+      ansible.builtin.include_role:
         name: networking
       vars:
-        vlans: "{{ hostvars[inventory_hostname]['vlans'] | combine(overrides | default({}), recursive=true) }}"
+        # yamllint disable-line rule:line-length
+        networking_vlans: "{{ hostvars[inventory_hostname]['vlans'] | combine(overrides | default({}), recursive=true) }}"
     - name: Prepare hosts for kubernetes
-      include_role:
-        name: pre-kube
+      ansible.builtin.include_role:
+        name: pre_kube
     - name: Flush pending handlers
       ansible.builtin.meta: flush_handlers
     - name: Reset connections
       ansible.builtin.meta: reset_connection
     - name: Install CRI-O
-      include_role:
+      ansible.builtin.include_role:
         name: crio
     - name: Install Kubernetes with Kubeadm
-      include_role:
+      ansible.builtin.include_role:
         name: kubeadm
       vars:
-        node_addresses: "{{ vlans[96]['addresses'] }}"
+        kubeadm_node_addresses: "{{ vlans[96]['addresses'] }}"
     - name: Flush pending handlers
       ansible.builtin.meta: flush_handlers
     - name: Remove scheduling taints from masters that are also workers
@@ -105,6 +106,7 @@
         namespace: kube-system
         definition:
           data:
+            # yamllint disable rule:line-length
             Corefile: |
               .:53 {
                   errors
@@ -126,6 +128,7 @@
                   reload
                   loadbalance
               }
+            # yamllint enable rule:line-length
       delegate_to: 127.0.0.1
       become: false
       run_once: true
@@ -178,12 +181,13 @@
         path: auth/k8s/config
         data:
           oidc_discovery_url: "https://{{ api_external_hostname }}:{{ api_external_port }}"
+          # yamllint disable-line rule:line-length
           oidc_discovery_ca_pem: "{{ lookup('ansible.builtin.file', certificate_dir + './ca.chain.pem') | ansible.builtin.regex_replace('\r?\n+','\\n') }}"
       delegate_to: 127.0.0.1
       become: false
       run_once: true
     - name: Install Cilium
-      include_role:
+      ansible.builtin.include_role:
         name: cilium
     # https://docs.cilium.io/en/stable/network/kubernetes/configuration/#crio
     - name: Restart CRI-O to recognise Cilium
@@ -193,8 +197,8 @@
         state: restarted
         daemon_reload: false
     - name: Install external-secrets
-      include_role:
-        name: external-secrets
+      ansible.builtin.include_role:
+        name: external_secrets
     - name: Install Longhorn
-      include_role:
+      ansible.builtin.include_role:
         name: longhorn

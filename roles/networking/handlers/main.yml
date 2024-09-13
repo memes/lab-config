@@ -9,7 +9,7 @@
   register: apply_netplan
   changed_when: apply_netplan.rc == 0
 - name: Update con
-  ansible.builtin.command: nmcli con up {{ link_device }}.{{ item }}
+  ansible.builtin.command: nmcli con up {{ networking_link_device }}.{{ item }}
   register: con_up
   changed_when: con_up.rc == 0
-  loop: "{{ (vlans | default({})).keys() | list }}"
+  loop: "{{ (networking_vlans | default({})).keys() | list }}"

@@ -1,5 +1,0 @@
-# Persistent module configuration for {{ pb_name | default('unknown playbook') }}
-{{ ansible_managed | comment }}
-{% for mod in required_modules %}
-{{ mod }}
-{% endfor %}

@@ -2,4 +2,4 @@
 {{ ansible_managed | comment }}
 - op: add
   path: /spec/containers/0/command/-
-  value: --bind-address={{ node_addresses | ansible.utils.ipv4('host/prefix') | ansible.utils.ipv4('address') | first }}
+  value: --bind-address={{ kubeadm_node_addresses | ansible.utils.ipv4('host/prefix') | ansible.utils.ipv4('address') | first }}

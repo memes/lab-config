@@ -11,8 +11,8 @@
   community.general.modprobe:
     name: "{{ item }}"
     state: present
-  loop: "{{ required_modules }}"
-- name: Create temp crio config directory
+  loop: "{{ crio_required_modules }}"
+- name: Create temp CRI-O config directory
   ansible.builtin.file:
     path: /var/tmp/crio
     state: directory
@@ -27,7 +27,7 @@
   when: ansible_distribution == "CentOS"
 - name: Install CRI-O packages
   ansible.builtin.package:
-    name: "{{ packages[ansible_os_family] }}"
+    name: "{{ crio_packages[ansible_os_family] }}"
     state: present
 - name: Create CRI-O unit override directory
   ansible.builtin.file:

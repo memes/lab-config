@@ -8,26 +8,27 @@
     group: root
     mode: '0640'
   when: ansible_distribution == "Ubuntu"
-  loop: "{{ vlans | dict2items }}"
+  loop: "{{ networking_vlans | dict2items }}"
   notify:
     - Validate netplan
 - name: Create VLAN connections on CentOS/RHEL
   ansible.builtin.command: >-
-    nmcli connection add type vlan ifname {{ link_device }}.{{ item }}
-      con-name {{ link_device }}.{{ item }}
-      vlan.parent {{ link_device }}
+    nmcli connection add type vlan ifname {{ networking_link_device }}.{{ item }}
+      con-name {{ networking_link_device }}.{{ item }}
+      vlan.parent {{ networking_link_device }}
       vlan.id {{ item }}
       ipv4.method disabled
       ipv6.method disabled
   register: add_vlan
-  when: ansible_os_family == "RedHat" and ansible_facts['%s.%d'|format(link_device, item)] is undefined
-  loop: "{{ vlans.keys() | list }}"
+  when: ansible_os_family == "RedHat" and ansible_facts['%s.%d'|format(networking_link_device, item)] is undefined
+  loop: "{{ networking_vlans.keys() | list }}"
   changed_when: add_vlan.rc == 0
   notify:
     - Update con
 - name: Configure VLAN connections on CentOS/RHEL
+  # yamllint disable rule:line-length
   ansible.builtin.command: >-
-    nmcli connection modify {{ link_device }}.{{ item.key }}{% if item.value['addresses'] | default([]) | ansible.utils.ipv4('host/prefix') | length > 0 %}
+    nmcli connection modify {{ networking_link_device }}.{{ item.key }}{% if item.value['addresses'] | default([]) | ansible.utils.ipv4('host/prefix') | length > 0 %}
       ipv4.method manual
       ipv4.never-default true
       ipv4.addresses "{{ item.value['addresses'] | default([]) | ansible.utils.ipv4('host/prefix') | join(',') }}"{% if item.value['nameservers']['addresses'] | default([]) | ansible.utils.ipv4 | length > 0 %}
@@ -40,9 +41,10 @@
       ipv6.dns "{{ item.value['nameservers']['addresses'] | default([]) | ansible.utils.ipv6 | join(' ') }}"{% endif %}{% if item.value['routes'] | default([]) | selectattr('to', 'ansible.utils.ipv6') | length > 0 %}
       ipv6.routes "{% for route in item.value['routes'] | default([]) | selectattr('to', 'ansible.utils.ipv6') %}{% if loop.index > 1 %},{% endif %}{{ route['to'] }} {{ route['via'] }}{% if route['metric'] is defined %} {{ route['metric'] }}{% endif %}{% if route['from'] is defined %} src={{ route['from'] }}{% endif %}{% if route['table'] is defined %} table={{ route['table'] }}{% endif %}{% endfor %}"{% endif %}{% if item.value['routing-policy'] | default([]) | selectattr('from', 'ansible.utils.ipv6') | length > 0 %}
       ipv6.routing-rules "{% for rule in item.value['routing-policy'] | default([]) | selectattr('from', 'ansible.utils.ipv6') %}{% if loop.index > 1 %},{% endif %}{% if rule['priority'] %}priority {{ rule['priority'] }} {% endif %}from {{ rule['from'] }}{% if rule['table'] is defined %} table {{ rule['table'] }}{% endif %}{% endfor %}"{% endif %}{% endif %}
+  # yamllint enable rule:line-length
   register: modify_vlan
   when: ansible_os_family == "RedHat"
-  loop: "{{ vlans | dict2items }}"
+  loop: "{{ networking_vlans | dict2items }}"
   changed_when: modify_vlan.rc == 0
   notify:
     - Update con
