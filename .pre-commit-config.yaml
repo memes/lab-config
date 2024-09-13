@@ -14,6 +14,10 @@ repos:
     rev: v24.9.0
     hooks:
       - id: ansible-lint
+        # Use the full ansible package, not just ansible-core
+        # https://ansible.readthedocs.io/projects/lint/configuring/#pre-commit-setup
+        additional_dependencies:
+          - ansible
   - repo: https://github.com/antonbabenko/pre-commit-terraform
     rev: v1.95.0
     hooks:
