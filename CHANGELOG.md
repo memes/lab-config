@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.1-vpshere](https://github.com/memes/lab-config/compare/v0.10.0-vpshere...v0.10.1-vpshere) (2024-09-13)
+
+
+### Bug Fixes
+
+* Configure yamllint to match ansible-lint ([57656e7](https://github.com/memes/lab-config/commit/57656e795865df28b5935428ed79a6523187d7d8))
+* Modified playbooks and roles to pass linting ([c3d7bb7](https://github.com/memes/lab-config/commit/c3d7bb7cb3fde6c42c0d13397e219c7142686f72))
+
 ## [0.10.0-vpshere](https://github.com/memes/lab-config/compare/v0.9.9-vpshere...v0.10.0-vpshere) (2024-09-12)
 
 
